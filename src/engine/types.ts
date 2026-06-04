@@ -55,7 +55,7 @@ export interface LogEntry {
     | "setupSettlement" | "setupRoad"
     | "roll" | "buildRoad" | "buildSettlement" | "buildCity"
     | "endTurn" | "win" | "discard"
-    | "moveRobber" | "steal";
+    | "moveRobber" | "steal" | "buyDevCard";
   seat: number;
   vertex?: string;
   edge?: string;
@@ -90,7 +90,8 @@ export type Action =
   | { type: "buildCity"; vertex: string }
   | { type: "endTurn" }
   | { type: "discard"; seat: number; cards: ResourceMap }
-  | { type: "moveRobber"; hex: string; victim?: number };
+  | { type: "moveRobber"; hex: string; victim?: number }
+  | { type: "buyDevCard" };
 
 export type ApplyResult =
   | { ok: true; state: GameState }
