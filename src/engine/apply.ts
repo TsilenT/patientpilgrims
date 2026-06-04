@@ -4,6 +4,7 @@ import { applySetupSettlement, applySetupRoad } from "./actions/setup";
 import { applyRollDice } from "./actions/roll";
 import { applyBuildRoad, applyBuildSettlement, applyBuildCity } from "./actions/build";
 import { applyEndTurn } from "./actions/turn";
+import { applyDiscard } from "./actions/robber";
 import { checkVictory } from "./scoring/victory";
 
 export function apply(state: GameState, action: Action, rng: Rng): ApplyResult {
@@ -30,6 +31,8 @@ function route(draft: GameState, action: Action, rng: Rng): string | null {
       return applyBuildSettlement(draft, action.vertex);
     case "buildCity":
       return applyBuildCity(draft, action.vertex);
+    case "discard":
+      return applyDiscard(draft, action.seat, action.cards);
     case "endTurn":
       return applyEndTurn(draft);
   }

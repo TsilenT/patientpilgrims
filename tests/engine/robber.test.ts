@@ -62,3 +62,60 @@ describe("rolling a 7 -> robber move", () => {
     expect(r.state.discardObligations).toBeUndefined();
   });
 });
+
+describe("discard action", () => {
+  function rolled7WithOverflow(): GameState {
+    const g = mainGame();
+    g.players[1]!.resources = { wood: 8, brick: 0, sheep: 0, wheat: 0, ore: 0 };
+    g.bank.wood = 19 - 8; // pretend the 8 came from the bank, so totals stay sane
+    const r = apply(g, { type: "rollDice" }, sevenRng());
+    expectOk(r);
+    expect(r.state.discardObligations).toEqual({ 1: 4 });
+    return r.state;
+  }
+
+  it("a valid discard returns cards to the bank and clears the obligation (turn unchanged)", () => {
+    const s = rolled7WithOverflow();
+    const before = s.bank.wood;
+    const r = apply(
+      s,
+      { type: "discard", seat: 1, cards: { wood: 4, brick: 0, sheep: 0, wheat: 0, ore: 0 } },
+      rngOf(),
+    );
+    expectOk(r);
+    expect(r.state.players[1]!.resources.wood).toBe(4);
+    expect(r.state.bank.wood).toBe(before + 4);
+    expect(r.state.discardObligations).toBeUndefined();
+    expect(r.state.turn.subPhase).toBe("movingRobber"); // discard does NOT move the robber
+  });
+
+  it("rejects a discard of the wrong count", () => {
+    const s = rolled7WithOverflow();
+    const r = apply(
+      s,
+      { type: "discard", seat: 1, cards: { wood: 3, brick: 0, sheep: 0, wheat: 0, ore: 0 } },
+      rngOf(),
+    );
+    expect(r.ok).toBe(false);
+  });
+
+  it("rejects a discard from a player who owes nothing", () => {
+    const s = rolled7WithOverflow();
+    const r = apply(
+      s,
+      { type: "discard", seat: 0, cards: { wood: 0, brick: 0, sheep: 0, wheat: 0, ore: 0 } },
+      rngOf(),
+    );
+    expect(r.ok).toBe(false);
+  });
+
+  it("rejects discarding cards the player does not have", () => {
+    const s = rolled7WithOverflow();
+    const r = apply(
+      s,
+      { type: "discard", seat: 1, cards: { wood: 0, brick: 0, sheep: 0, wheat: 0, ore: 4 } },
+      rngOf(),
+    );
+    expect(r.ok).toBe(false);
+  });
+});
