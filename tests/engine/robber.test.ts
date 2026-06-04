@@ -163,3 +163,50 @@ describe("moveRobber + steal", () => {
     expect(r.state.turn.subPhase).toBe("main");
   });
 });
+
+describe("full 7 flow", () => {
+  it("the roller moves the robber and steals while still owing a discard, then discards", () => {
+    const g = mainGame();
+    g.players[0]!.resources = { wood: 8, brick: 0, sheep: 0, wheat: 0, ore: 0 }; // roller owes 4
+    g.bank.wood = 19 - 8;
+    const targetHex = topology().hexIds.find((h) => h !== g.board.robber)!;
+    const victimVertex = topology().hexVertices.get(targetHex)![0]!;
+    g.board.buildings[victimVertex] = { owner: 1, type: "settlement" };
+    g.players[1]!.resources = { wood: 0, brick: 2, sheep: 0, wheat: 0, ore: 0 };
+
+    let r = apply(g, { type: "rollDice" }, sevenRng());
+    expectOk(r);
+    expect(r.state.turn.subPhase).toBe("movingRobber");
+    expect(r.state.discardObligations).toEqual({ 0: 4 });
+
+    // roller resolves the robber immediately (does NOT have to discard first)
+    r = apply(r.state, { type: "moveRobber", hex: targetHex, victim: 1 }, rngOf(0));
+    expectOk(r);
+    expect(r.state.board.robber).toBe(targetHex);
+    expect(r.state.players[1]!.resources.brick).toBe(1);
+    expect(r.state.players[0]!.resources.brick).toBe(1);
+    expect(r.state.turn.subPhase).toBe("main");
+    expect(r.state.discardObligations).toEqual({ 0: 4 }); // still owed
+
+    // roller pays the discard
+    r = apply(
+      r.state,
+      { type: "discard", seat: 0, cards: { wood: 4, brick: 0, sheep: 0, wheat: 0, ore: 0 } },
+      rngOf(),
+    );
+    expectOk(r);
+    expect(r.state.discardObligations).toBeUndefined();
+
+    const end = apply(r.state, { type: "endTurn" }, rngOf());
+    expectOk(end);
+    expect(end.state.turn.activeSeat).toBe(1);
+  });
+
+  it("blocks ending the turn until the robber is moved", () => {
+    const g = mainGame();
+    const r = apply(g, { type: "rollDice" }, sevenRng()); // 0 cards -> movingRobber
+    expectOk(r);
+    const blocked = apply(r.state, { type: "endTurn" }, rngOf());
+    expect(blocked.ok).toBe(false);
+  });
+});
