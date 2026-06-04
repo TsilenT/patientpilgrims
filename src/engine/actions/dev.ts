@@ -4,6 +4,8 @@ import type { DevCardType } from "../devcards";
 import { canAfford, payInto, RESOURCE_LIST, emptyResources } from "../resources";
 import { DEV_CARD_COST } from "../devcards";
 import { recomputeVictoryPoints } from "../scoring/victory";
+import { topology } from "../board";
+import { edgeConnects } from "../placement";
 
 function requireMain(state: GameState): string | null {
   if (state.phase !== "main") return "Not in the main phase";
@@ -55,6 +57,25 @@ export function applyPlayYearOfPlenty(state: GameState, picks: [Resource, Resour
   const seat = state.turn.activeSeat;
   for (const r of picks) { state.bank[r] -= 1; state.players[seat]!.resources[r] += 1; }
   state.log.push({ type: "playYearOfPlenty", seat });
+  return null;
+}
+
+export function applyPlayRoadBuilding(state: GameState, edges: string[]): string | null {
+  if (edges.length < 1 || edges.length > 2) return "Road building places one or two roads";
+  if (new Set(edges).size !== edges.length) return "Cannot place two roads on the same edge";
+  const err = playDevCardGuard(state, "roadBuilding");
+  if (err) return err;
+  const seat = state.turn.activeSeat;
+  const player = state.players[seat]!;
+  for (const edge of edges) {
+    if (!topology().edgeIds.includes(edge)) return "Unknown edge";
+    if (state.board.roads[edge] !== undefined) return "Edge already has a road";
+    if (player.pieces.roads <= 0) return "No roads left in stock";
+    if (!edgeConnects(state.board, seat, edge)) return "Road must connect to your network";
+    state.board.roads[edge] = { owner: seat };
+    player.pieces.roads -= 1;
+    state.log.push({ type: "playRoadBuilding", seat, edge });
+  }
   return null;
 }
 

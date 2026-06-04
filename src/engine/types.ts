@@ -56,7 +56,7 @@ export interface LogEntry {
     | "setupSettlement" | "setupRoad"
     | "roll" | "buildRoad" | "buildSettlement" | "buildCity"
     | "endTurn" | "win" | "discard"
-    | "moveRobber" | "steal" | "buyDevCard" | "playMonopoly" | "playYearOfPlenty";
+    | "moveRobber" | "steal" | "buyDevCard" | "playMonopoly" | "playYearOfPlenty" | "playRoadBuilding";
   seat: number;
   vertex?: string;
   edge?: string;
@@ -94,7 +94,8 @@ export type Action =
   | { type: "moveRobber"; hex: string; victim?: number }
   | { type: "buyDevCard" }
   | { type: "playMonopoly"; resource: Resource }
-  | { type: "playYearOfPlenty"; resources: [Resource, Resource] };
+  | { type: "playYearOfPlenty"; resources: [Resource, Resource] }
+  | { type: "playRoadBuilding"; edges: string[] };
 
 export type ApplyResult =
   | { ok: true; state: GameState }

@@ -4,6 +4,7 @@ import { createInitialGame } from "../../src/engine/state";
 import { apply } from "../../src/engine/apply";
 import type { GameState } from "../../src/engine/types";
 import type { Rng } from "../../src/engine/rng";
+import { topology } from "../../src/engine/board";
 
 const players3 = [
   { name: "A", color: "red" }, { name: "B", color: "blue" }, { name: "C", color: "white" },
@@ -77,6 +78,35 @@ describe("year of plenty", () => {
   it("rejects if the bank cannot supply both", () => {
     const g = withYoP(); g.bank.ore = 1;
     const r = apply(g, { type: "playYearOfPlenty", resources: ["ore", "ore"] }, rngOf());
+    expect(r.ok).toBe(false);
+  });
+});
+
+describe("road building", () => {
+  it("places two free roads connected to the player's network", () => {
+    const g = mainGame();
+    g.players[0]!.devCards.push({ type: "roadBuilding", boughtThisTurn: false, played: false });
+    // seed a settlement so the player has a network anchor
+    const v = topology().vertexIds[0]!;
+    g.board.buildings[v] = { owner: 0, type: "settlement" };
+    const e1 = topology().vertexEdges.get(v)![0]!;
+    const before = g.players[0]!.pieces.roads;
+    // pick a second edge adjacent to e1's far vertex
+    const [a, b] = topology().edgeVertices.get(e1)!;
+    const farV = a === v ? b : a;
+    const e2 = topology().vertexEdges.get(farV)!.find((e) => e !== e1)!;
+    const r = apply(g, { type: "playRoadBuilding", edges: [e1, e2] }, rngOf());
+    expectOk(r);
+    expect(r.state.board.roads[e1]!.owner).toBe(0);
+    expect(r.state.board.roads[e2]!.owner).toBe(0);
+    expect(r.state.players[0]!.pieces.roads).toBe(before - 2); // FREE but still uses stock
+    expect(r.state.players[0]!.resources).toEqual({ wood: 0, brick: 0, sheep: 0, wheat: 0, ore: 0 });
+  });
+  it("rejects an edge that doesn't connect to the network", () => {
+    const g = mainGame();
+    g.players[0]!.devCards.push({ type: "roadBuilding", boughtThisTurn: false, played: false });
+    const lone = topology().edgeIds[0]!;
+    const r = apply(g, { type: "playRoadBuilding", edges: [lone] }, rngOf());
     expect(r.ok).toBe(false);
   });
 });
