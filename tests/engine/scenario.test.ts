@@ -59,8 +59,15 @@ function runSetup(s: GameState, rng: Rng): GameState {
 
 function takeTurn(s: GameState, rng: Rng): GameState {
   s = ok(s, { type: "rollDice" }, rng);
+  // A 7 sends the turn to "movingRobber". The real moveRobber action lands in Task 3;
+  // until then, simulate instantaneous resolution so the full-game scenario can proceed.
+  // (This test-side scaffold gets replaced by a real moveRobber action in Phase 1c-i Task 3.)
+  if (s.turn.subPhase === "movingRobber") {
+    s.turn.subPhase = "main";
+    delete s.discardObligations;
+  }
   let acted = true;
-  while (acted && s.phase === "main") {
+  while (acted && s.phase === "main" && s.turn.subPhase === "main") {
     acted = false;
     const seat = s.turn.activeSeat;
     const p = s.players[seat]!;

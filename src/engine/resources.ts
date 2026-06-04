@@ -31,6 +31,9 @@ export function gainInto(target: ResourceMap, gain: ResourceMap): void {
   for (const k of RESOURCE_LIST) target[k] += gain[k];
 }
 
+/** Players holding MORE than this many cards must discard half (floor) on a 7. */
+export const DISCARD_LIMIT = 7;
+
 export const COSTS: Record<"road" | "settlement" | "city", ResourceMap> = {
   road: { wood: 1, brick: 1, sheep: 0, wheat: 0, ore: 0 },
   settlement: { wood: 1, brick: 1, sheep: 1, wheat: 1, ore: 0 },

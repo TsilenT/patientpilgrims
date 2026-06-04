@@ -1,7 +1,9 @@
 import type { GameState, Resource } from "../types";
 import type { Rng } from "../rng";
 import { topology } from "../board";
-import { RESOURCE_LIST, emptyResources, type ResourceMap } from "../resources";
+import {
+  RESOURCE_LIST, emptyResources, totalCards, DISCARD_LIMIT, type ResourceMap,
+} from "../resources";
 
 export function applyRollDice(state: GameState, rng: Rng): string | null {
   if (state.turn.subPhase !== "awaitingRoll") return "Not awaiting a dice roll";
@@ -9,11 +11,21 @@ export function applyRollDice(state: GameState, rng: Rng): string | null {
   const d2 = rng.nextInt(6) + 1;
   const sum = d1 + d2;
   state.turn.dice = [d1, d2];
-  state.turn.subPhase = "main";
   state.log.push({ type: "roll", seat: state.turn.activeSeat, dice: [d1, d2], sum });
 
-  // 7: robber/discard deferred to Phase 1c — produce nothing, turn continues.
-  if (sum !== 7) produce(state, sum);
+  if (sum === 7) {
+    const owed: Record<number, number> = {};
+    for (const p of state.players) {
+      const total = totalCards(p.resources);
+      if (total > DISCARD_LIMIT) owed[p.seat] = Math.floor(total / 2);
+    }
+    if (Object.keys(owed).length > 0) state.discardObligations = owed;
+    state.turn.subPhase = "movingRobber"; // roller proceeds; discards don't block
+    return null;
+  }
+
+  state.turn.subPhase = "main";
+  produce(state, sum);
   return null;
 }
 
@@ -50,7 +62,6 @@ function produce(state: GameState, sum: number): void {
         state.players[seat]!.resources[res] += give;
         state.bank[res] -= give;
       }
-      // multiple claimants + insufficient bank: nobody gets this resource
     }
   }
 }

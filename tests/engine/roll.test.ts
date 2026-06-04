@@ -72,12 +72,12 @@ describe("rollDice + production", () => {
     expect(r.state.players[0]!.resources[kind]).toBe(0);
   });
 
-  it("a 7 produces nothing and continues the turn", () => {
+  it("a 7 produces nothing and enters the robber move", () => {
     const { g } = setup();
     const r = apply(g, { type: "rollDice" }, scriptedRng(3, 4));
     expectOk(r);
     expect(r.state.turn.dice).toEqual([3, 4]);
-    expect(r.state.turn.subPhase).toBe("main");
+    expect(r.state.turn.subPhase).toBe("movingRobber");
     const total = r.state.players.reduce((s, p) => s + totalCards(p.resources), 0);
     expect(total).toBe(0);
   });

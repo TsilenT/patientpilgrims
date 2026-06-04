@@ -5,7 +5,9 @@ import type { ResourceMap } from "./resources";
 export type { Tile, Port, Resource, ResourceMap };
 
 export type Phase = "setup" | "main" | "finished";
-export type SubPhase = "setupSettlement" | "setupRoad" | "awaitingRoll" | "main";
+export type SubPhase =
+  | "setupSettlement" | "setupRoad" | "awaitingRoll" | "main"
+  | "movingRobber";
 
 export interface Building {
   owner: number;
@@ -60,6 +62,7 @@ export interface GameState {
   players: Player[];
   bank: ResourceMap;
   setup?: { order: number[]; pos: number };
+  discardObligations?: Record<number, number>; // seat -> cards still owed after a 7
   log: LogEntry[];
   winner?: number;
 }
