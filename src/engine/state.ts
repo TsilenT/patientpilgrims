@@ -1,6 +1,7 @@
 import type { Board } from "../board";
 import type { GameState, Player, BoardState } from "./types";
 import { emptyResources, fullBank } from "./resources";
+import { makeDevDeck } from "./devcards";
 
 export interface NewPlayer {
   name: string;
@@ -31,6 +32,7 @@ export function createInitialGame(players: NewPlayer[], board: Board): GameState
     resources: emptyResources(),
     victoryPoints: 0,
     pieces: { roads: 15, settlements: 5, cities: 4 },
+    devCards: [],
   }));
   const order = snakeOrder(players.length);
   return {
@@ -40,6 +42,7 @@ export function createInitialGame(players: NewPlayer[], board: Board): GameState
     board: boardState,
     players: playerStates,
     bank: fullBank(),
+    devDeck: makeDevDeck(),
     setup: { order, pos: 0 },
     log: [],
   };

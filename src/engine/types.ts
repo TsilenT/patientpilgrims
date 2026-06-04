@@ -1,6 +1,7 @@
 import type { Tile, Port } from "../board";
 import type { Resource } from "../board/constants";
 import type { ResourceMap } from "./resources";
+import type { DevCardType } from "./devcards";
 
 export type { Tile, Port, Resource, ResourceMap };
 
@@ -26,6 +27,12 @@ export interface BoardState {
   roads: Record<string, RoadPiece>;
 }
 
+export interface PlayerDevCard {
+  type: DevCardType;
+  boughtThisTurn: boolean;
+  played: boolean;
+}
+
 export interface Player {
   seat: number;
   name: string;
@@ -33,6 +40,7 @@ export interface Player {
   resources: ResourceMap;
   victoryPoints: number;
   pieces: { roads: number; settlements: number; cities: number };
+  devCards: PlayerDevCard[];
 }
 
 export interface Turn {
@@ -66,6 +74,7 @@ export interface GameState {
   board: BoardState;
   players: Player[];
   bank: ResourceMap;
+  devDeck: DevCardType[];
   setup?: { order: number[]; pos: number };
   discardObligations?: Record<number, number>; // seat -> cards still owed after a 7
   log: LogEntry[];
