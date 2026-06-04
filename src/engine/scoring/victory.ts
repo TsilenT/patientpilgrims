@@ -10,7 +10,12 @@ export function victoryPointsFromBuildings(state: GameState, seat: number): numb
 }
 
 export function recomputeVictoryPoints(state: GameState, seat: number): void {
-  state.players[seat]!.victoryPoints = victoryPointsFromBuildings(state, seat);
+  const player = state.players[seat]!;
+  let vp = victoryPointsFromBuildings(state, seat);
+  for (const c of player.devCards) {
+    if (c.type === "victoryPoint") vp += 1;
+  }
+  player.victoryPoints = vp;
 }
 
 /** Ends the game for the first player at 10+ VP. */

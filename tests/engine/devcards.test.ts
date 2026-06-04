@@ -5,6 +5,8 @@ import { makeDevDeck } from "../../src/engine/devcards";
 import { apply } from "../../src/engine/apply";
 import type { GameState } from "../../src/engine/types";
 import type { Rng } from "../../src/engine/rng";
+import { recomputeVictoryPoints } from "../../src/engine/scoring/victory";
+import { topology } from "../../src/engine/board";
 
 const players3 = [
   { name: "A", color: "red" },
@@ -82,5 +84,33 @@ describe("buyDevCard", () => {
     g.turn.subPhase = "awaitingRoll";
     const r = apply(g, { type: "buyDevCard" }, rngOf(0));
     expect(r.ok).toBe(false);
+  });
+});
+
+describe("victory-point dev cards", () => {
+  it("a held VP card adds 1 to recomputed victory points", () => {
+    const g = mainGame();
+    g.players[0]!.devCards.push({ type: "victoryPoint", boughtThisTurn: true, played: false });
+    recomputeVictoryPoints(g, 0);
+    expect(g.players[0]!.victoryPoints).toBe(1); // 0 buildings + 1 VP card
+  });
+
+  it("buying the final VP card wins the game at 9 building VP", () => {
+    const g = mainGame();
+    // 9 VP of buildings placed directly (bypassing distance/network — fine for a scoring test):
+    // 4 cities (8) + 1 settlement (1).
+    const verts = topology().vertexIds.slice(0, 5);
+    verts.slice(0, 4).forEach((v) => (g.board.buildings[v] = { owner: 0, type: "city" }));
+    g.board.buildings[verts[4]!] = { owner: 0, type: "settlement" };
+    recomputeVictoryPoints(g, 0);
+    expect(g.players[0]!.victoryPoints).toBe(9);
+
+    g.players[0]!.resources = { wood: 0, brick: 0, sheep: 1, wheat: 1, ore: 1 };
+    g.devDeck = ["victoryPoint"];
+    const r = apply(g, { type: "buyDevCard" }, rngOf(0));
+    expectOk(r);
+    expect(r.state.players[0]!.victoryPoints).toBe(10);
+    expect(r.state.phase).toBe("finished");
+    expect(r.state.winner).toBe(0);
   });
 });
