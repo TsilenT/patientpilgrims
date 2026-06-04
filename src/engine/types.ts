@@ -48,6 +48,7 @@ export interface Turn {
   subPhase: SubPhase;
   dice?: [number, number];
   setupSettlement?: string;
+  devCardPlayedThisTurn?: boolean;
 }
 
 export interface LogEntry {
