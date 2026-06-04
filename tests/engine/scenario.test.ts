@@ -59,9 +59,10 @@ function runSetup(s: GameState, rng: Rng): GameState {
 
 function takeTurn(s: GameState, rng: Rng): GameState {
   s = ok(s, { type: "rollDice" }, rng);
-  // A 7 sends the turn to "movingRobber". The real moveRobber action lands in Task 3;
-  // until then, simulate instantaneous resolution so the full-game scenario can proceed.
-  // (This test-side scaffold gets replaced by a real moveRobber action in Phase 1c-i Task 3.)
+  // A 7 sends the turn to "movingRobber". This full-game smoke test is about reaching a
+  // 10-VP win via production/building, not robber fidelity (that is covered exhaustively in
+  // robber.test.ts), so we resolve the robber instantly test-side rather than driving the
+  // real moveRobber/discard actions here.
   if (s.turn.subPhase === "movingRobber") {
     s.turn.subPhase = "main";
     delete s.discardObligations;
