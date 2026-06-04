@@ -119,3 +119,47 @@ describe("discard action", () => {
     expect(r.ok).toBe(false);
   });
 });
+
+describe("moveRobber + steal", () => {
+  function movingRobberState(): { s: GameState; targetHex: string } {
+    const g = mainGame();
+    const targetHex = topology().hexIds.find((h) => h !== g.board.robber)!;
+    const victimVertex = topology().hexVertices.get(targetHex)![0]!;
+    g.board.buildings[victimVertex] = { owner: 1, type: "settlement" };
+    g.players[1]!.resources = { wood: 1, brick: 0, sheep: 0, wheat: 0, ore: 0 };
+    g.turn.subPhase = "movingRobber";
+    return { s: g, targetHex };
+  }
+
+  it("moves the robber, steals one random card, and returns to main", () => {
+    const { s, targetHex } = movingRobberState();
+    const r = apply(s, { type: "moveRobber", hex: targetHex, victim: 1 }, rngOf(0));
+    expectOk(r);
+    expect(r.state.board.robber).toBe(targetHex);
+    expect(r.state.players[1]!.resources.wood).toBe(0);
+    expect(r.state.players[0]!.resources.wood).toBe(1);
+    expect(r.state.turn.subPhase).toBe("main");
+  });
+
+  it("rejects moving the robber to its current hex", () => {
+    const { s } = movingRobberState();
+    const r = apply(s, { type: "moveRobber", hex: s.board.robber }, rngOf());
+    expect(r.ok).toBe(false);
+  });
+
+  it("requires choosing a victim when an eligible target exists", () => {
+    const { s, targetHex } = movingRobberState();
+    const r = apply(s, { type: "moveRobber", hex: targetHex }, rngOf());
+    expect(r.ok).toBe(false);
+  });
+
+  it("moves with no steal when no adjacent opponent has cards", () => {
+    const g = mainGame();
+    const targetHex = topology().hexIds.find((h) => h !== g.board.robber)!;
+    g.turn.subPhase = "movingRobber";
+    const r = apply(g, { type: "moveRobber", hex: targetHex }, rngOf());
+    expectOk(r);
+    expect(r.state.board.robber).toBe(targetHex);
+    expect(r.state.turn.subPhase).toBe("main");
+  });
+});

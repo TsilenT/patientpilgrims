@@ -46,13 +46,17 @@ export interface LogEntry {
   type:
     | "setupSettlement" | "setupRoad"
     | "roll" | "buildRoad" | "buildSettlement" | "buildCity"
-    | "endTurn" | "win" | "discard";
+    | "endTurn" | "win" | "discard"
+    | "moveRobber" | "steal";
   seat: number;
   vertex?: string;
   edge?: string;
   dice?: [number, number];
   sum?: number;
   count?: number;
+  hex?: string;
+  victim?: number;
+  resource?: Resource;
 }
 
 export interface GameState {
@@ -76,7 +80,8 @@ export type Action =
   | { type: "buildSettlement"; vertex: string }
   | { type: "buildCity"; vertex: string }
   | { type: "endTurn" }
-  | { type: "discard"; seat: number; cards: ResourceMap };
+  | { type: "discard"; seat: number; cards: ResourceMap }
+  | { type: "moveRobber"; hex: string; victim?: number };
 
 export type ApplyResult =
   | { ok: true; state: GameState }
