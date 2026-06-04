@@ -3,6 +3,7 @@ import type { Rng } from "./rng";
 import { applySetupSettlement, applySetupRoad } from "./actions/setup";
 import { applyRollDice } from "./actions/roll";
 import { applyBuildRoad, applyBuildSettlement, applyBuildCity } from "./actions/build";
+import { applyEndTurn } from "./actions/turn";
 import { checkVictory } from "./scoring/victory";
 
 export function apply(state: GameState, action: Action, rng: Rng): ApplyResult {
@@ -29,7 +30,7 @@ function route(draft: GameState, action: Action, rng: Rng): string | null {
       return applyBuildSettlement(draft, action.vertex);
     case "buildCity":
       return applyBuildCity(draft, action.vertex);
-    default:
-      return `Action '${action.type}' is not available yet`;
+    case "endTurn":
+      return applyEndTurn(draft);
   }
 }
