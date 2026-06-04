@@ -2,6 +2,7 @@ import type { GameState, Action, ApplyResult } from "./types";
 import type { Rng } from "./rng";
 import { applySetupSettlement, applySetupRoad } from "./actions/setup";
 import { applyRollDice } from "./actions/roll";
+import { applyBuildRoad, applyBuildSettlement, applyBuildCity } from "./actions/build";
 import { checkVictory } from "./scoring/victory";
 
 export function apply(state: GameState, action: Action, rng: Rng): ApplyResult {
@@ -22,6 +23,12 @@ function route(draft: GameState, action: Action, rng: Rng): string | null {
       return applySetupRoad(draft, action.edge);
     case "rollDice":
       return applyRollDice(draft, rng);
+    case "buildRoad":
+      return applyBuildRoad(draft, action.edge);
+    case "buildSettlement":
+      return applyBuildSettlement(draft, action.vertex);
+    case "buildCity":
+      return applyBuildCity(draft, action.vertex);
     default:
       return `Action '${action.type}' is not available yet`;
   }
