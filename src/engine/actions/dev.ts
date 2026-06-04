@@ -32,8 +32,8 @@ export function applyBuyDevCard(state: GameState, rng: Rng): string | null {
 }
 
 export function playDevCardGuard(state: GameState, type: DevCardType): string | null {
-  if (state.phase !== "main") return "Not in the main phase";
-  if (state.turn.subPhase !== "main") return "You must roll the dice first";
+  const err = requireMain(state);
+  if (err) return err;
   if (state.turn.devCardPlayedThisTurn) return "You already played a development card this turn";
   const player = state.players[state.turn.activeSeat]!;
   const card = player.devCards.find((c) => c.type === type && !c.played && !c.boughtThisTurn);
