@@ -48,6 +48,7 @@ export interface Turn {
   subPhase: SubPhase;
   dice?: [number, number];
   setupSettlement?: string;
+  devCardPlayedThisTurn?: boolean;
 }
 
 export interface LogEntry {
@@ -55,7 +56,7 @@ export interface LogEntry {
     | "setupSettlement" | "setupRoad"
     | "roll" | "buildRoad" | "buildSettlement" | "buildCity"
     | "endTurn" | "win" | "discard"
-    | "moveRobber" | "steal" | "buyDevCard";
+    | "moveRobber" | "steal" | "buyDevCard" | "playMonopoly" | "playYearOfPlenty" | "playRoadBuilding";
   seat: number;
   vertex?: string;
   edge?: string;
@@ -91,7 +92,10 @@ export type Action =
   | { type: "endTurn" }
   | { type: "discard"; seat: number; cards: ResourceMap }
   | { type: "moveRobber"; hex: string; victim?: number }
-  | { type: "buyDevCard" };
+  | { type: "buyDevCard" }
+  | { type: "playMonopoly"; resource: Resource }
+  | { type: "playYearOfPlenty"; resources: [Resource, Resource] }
+  | { type: "playRoadBuilding"; edges: string[] };
 
 export type ApplyResult =
   | { ok: true; state: GameState }
