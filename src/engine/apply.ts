@@ -5,7 +5,7 @@ import { applyRollDice } from "./actions/roll";
 import { applyBuildRoad, applyBuildSettlement, applyBuildCity } from "./actions/build";
 import { applyEndTurn } from "./actions/turn";
 import { applyDiscard, applyMoveRobber } from "./actions/robber";
-import { applyBuyDevCard, applyPlayMonopoly } from "./actions/dev";
+import { applyBuyDevCard, applyPlayMonopoly, applyPlayYearOfPlenty } from "./actions/dev";
 import { checkVictory } from "./scoring/victory";
 
 export function apply(state: GameState, action: Action, rng: Rng): ApplyResult {
@@ -40,6 +40,8 @@ function route(draft: GameState, action: Action, rng: Rng): string | null {
       return applyBuyDevCard(draft, rng);
     case "playMonopoly":
       return applyPlayMonopoly(draft, action.resource);
+    case "playYearOfPlenty":
+      return applyPlayYearOfPlenty(draft, action.resources);
     case "endTurn":
       return applyEndTurn(draft);
   }

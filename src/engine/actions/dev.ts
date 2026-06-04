@@ -1,7 +1,7 @@
 import type { GameState, Resource } from "../types";
 import type { Rng } from "../rng";
 import type { DevCardType } from "../devcards";
-import { canAfford, payInto, RESOURCE_LIST } from "../resources";
+import { canAfford, payInto, RESOURCE_LIST, emptyResources } from "../resources";
 import { DEV_CARD_COST } from "../devcards";
 import { recomputeVictoryPoints } from "../scoring/victory";
 
@@ -43,6 +43,18 @@ export function applyPlayMonopoly(state: GameState, resource: Resource): string 
     p.resources[resource] = 0;
   }
   state.log.push({ type: "playMonopoly", seat, resource, count: taken });
+  return null;
+}
+
+export function applyPlayYearOfPlenty(state: GameState, picks: [Resource, Resource]): string | null {
+  const err = playDevCardGuard(state, "yearOfPlenty");
+  if (err) return err;
+  const need = emptyResources();
+  for (const r of picks) need[r] += 1;
+  for (const r of RESOURCE_LIST) if (state.bank[r] < need[r]) return "The bank cannot supply those resources";
+  const seat = state.turn.activeSeat;
+  for (const r of picks) { state.bank[r] -= 1; state.players[seat]!.resources[r] += 1; }
+  state.log.push({ type: "playYearOfPlenty", seat });
   return null;
 }
 

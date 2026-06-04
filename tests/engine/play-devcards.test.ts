@@ -53,4 +53,32 @@ describe("monopoly", () => {
   });
 });
 
+describe("year of plenty", () => {
+  function withYoP(): GameState {
+    const g = mainGame();
+    g.players[0]!.devCards.push({ type: "yearOfPlenty", boughtThisTurn: false, played: false });
+    return g;
+  }
+  it("takes two resources from the bank", () => {
+    const g = withYoP();
+    const r = apply(g, { type: "playYearOfPlenty", resources: ["wheat", "ore"] }, rngOf());
+    expectOk(r);
+    expect(r.state.players[0]!.resources.wheat).toBe(1);
+    expect(r.state.players[0]!.resources.ore).toBe(1);
+    expect(r.state.bank.wheat).toBe(18);
+    expect(r.state.bank.ore).toBe(18);
+  });
+  it("can take two of the same resource", () => {
+    const r = apply(withYoP(), { type: "playYearOfPlenty", resources: ["sheep", "sheep"] }, rngOf());
+    expectOk(r);
+    expect(r.state.players[0]!.resources.sheep).toBe(2);
+    expect(r.state.bank.sheep).toBe(17);
+  });
+  it("rejects if the bank cannot supply both", () => {
+    const g = withYoP(); g.bank.ore = 1;
+    const r = apply(g, { type: "playYearOfPlenty", resources: ["ore", "ore"] }, rngOf());
+    expect(r.ok).toBe(false);
+  });
+});
+
 export { players3, rngOf, mainGame, expectOk };
