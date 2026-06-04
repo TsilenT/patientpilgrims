@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Brainstorming / scratch (mockups, not source)
+.brainstorm/
+.superpowers/
+
+# Local env / secrets
+.env
+.env.local
+*.local
+
+# Firebase local
+.firebase/
+firebase-debug.log
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
