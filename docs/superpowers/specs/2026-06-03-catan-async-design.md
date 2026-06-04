@@ -147,6 +147,16 @@ a server, which we explicitly avoided). It prevents casual impersonation and rac
 does not stop a determined friend from hacking their own client. That is an accepted
 trade-off for a trusted friend group.
 
+### Hidden information caveat
+
+Catan relies on hidden information: your exact resources and your unplayed development
+cards are secret. With a single public state blob and no server, that information is
+**hidden by the UI only** — a friend who opens the database or browser devtools can read
+the full state, including others' hands and dev cards. This is the same trust trade-off
+as above and is accepted for a friend group. If it ever matters, it could be hardened
+later (e.g. a server authority, or per-seat encryption of private fields) — explicitly
+out of scope for v1.
+
 ---
 
 ## 6. Async-Catan design decisions
