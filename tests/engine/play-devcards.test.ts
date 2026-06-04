@@ -111,4 +111,47 @@ describe("road building", () => {
   });
 });
 
+describe("dev-card timing rules", () => {
+  it("only one dev card may be played per turn", () => {
+    const g = mainGame();
+    g.players[0]!.devCards.push({ type: "monopoly", boughtThisTurn: false, played: false });
+    g.players[0]!.devCards.push({ type: "yearOfPlenty", boughtThisTurn: false, played: false });
+    let r = apply(g, { type: "playMonopoly", resource: "brick" }, rngOf());
+    expectOk(r);
+    const r2 = apply(r.state, { type: "playYearOfPlenty", resources: ["wheat", "ore"] }, rngOf());
+    expect(r2.ok).toBe(false);
+  });
+  it("a card bought this turn cannot be played", () => {
+    const g = mainGame();
+    g.players[0]!.resources = { wood: 0, brick: 0, sheep: 1, wheat: 1, ore: 1 };
+    g.devDeck = ["monopoly"];
+    const bought = apply(g, { type: "buyDevCard" }, rngOf(0));
+    expectOk(bought);
+    const played = apply(bought.state, { type: "playMonopoly", resource: "brick" }, rngOf());
+    expect(played.ok).toBe(false);
+  });
+  it("after the turn ends, a card bought this turn becomes playable next turn", () => {
+    let s = mainGame();
+    s.players[0]!.devCards.push({ type: "monopoly", boughtThisTurn: true, played: false });
+    // bought this turn -> not playable yet
+    const blocked = apply(s, { type: "playMonopoly", resource: "wheat" }, rngOf());
+    expect(blocked.ok).toBe(false);
+    // cycle a full round (3 players) back to seat 0; rngOf(0, 0) -> dice [1,1] = 2 (never a 7)
+    const step = (action: Parameters<typeof apply>[1], rng = rngOf()) => {
+      const res = apply(s, action, rng);
+      expectOk(res);
+      s = res.state;
+    };
+    step({ type: "endTurn" });                  // seat 0 ends -> clears its boughtThisTurn; seat 1 awaitingRoll
+    step({ type: "rollDice" }, rngOf(0, 0));     // seat 1 -> main
+    step({ type: "endTurn" });                   // seat 2 awaitingRoll
+    step({ type: "rollDice" }, rngOf(0, 0));     // seat 2 -> main
+    step({ type: "endTurn" });                   // seat 0 awaitingRoll
+    step({ type: "rollDice" }, rngOf(0, 0));     // seat 0 -> main
+    // back on seat 0's turn, the card is no longer boughtThisTurn -> playable
+    const played = apply(s, { type: "playMonopoly", resource: "wheat" }, rngOf());
+    expectOk(played);
+  });
+});
+
 export { players3, rngOf, mainGame, expectOk };
