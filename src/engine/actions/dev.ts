@@ -1,4 +1,4 @@
-import type { GameState } from "../types";
+import type { GameState, Resource } from "../types";
 import type { Rng } from "../rng";
 import type { DevCardType } from "../devcards";
 import { canAfford, payInto, RESOURCE_LIST } from "../resources";
@@ -28,6 +28,21 @@ export function applyBuyDevCard(state: GameState, rng: Rng): string | null {
 
   if (card === "victoryPoint") recomputeVictoryPoints(state, seat);
   state.log.push({ type: "buyDevCard", seat });
+  return null;
+}
+
+export function applyPlayMonopoly(state: GameState, resource: Resource): string | null {
+  const err = playDevCardGuard(state, "monopoly");
+  if (err) return err;
+  const seat = state.turn.activeSeat;
+  let taken = 0;
+  for (const p of state.players) {
+    if (p.seat === seat) continue;
+    taken += p.resources[resource];
+    state.players[seat]!.resources[resource] += p.resources[resource];
+    p.resources[resource] = 0;
+  }
+  state.log.push({ type: "playMonopoly", seat, resource, count: taken });
   return null;
 }
 
