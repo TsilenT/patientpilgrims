@@ -8,6 +8,7 @@ import { HandPanel } from "./panels/HandPanel";
 import { ActionBar } from "./panels/ActionBar";
 import { PassDeviceScreen } from "./overlays/PassDeviceScreen";
 import { RobberVictimPicker } from "./overlays/RobberVictimPicker";
+import { DiscardModal } from "./overlays/DiscardModal";
 import { Toast } from "./Toast";
 
 export function GameView() {
@@ -17,6 +18,7 @@ export function GameView() {
 
   const sub = state.turn.subPhase;
   const actor = currentActor(state);
+  const owed = state.discardObligations?.[actor] ?? 0;
   const [revealedSeat, setRevealedSeat] = useState(actor);
   const [robberPick, setRobberPick] = useState<{ hex: string; victims: number[] } | null>(null);
 
@@ -45,6 +47,9 @@ export function GameView() {
       <BoardSvg state={state} legal={legal} onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
       {actor !== revealedSeat ? (
         <PassDeviceScreen name={state.players[actor]!.name} onReveal={() => setRevealedSeat(actor)} />
+      ) : owed > 0 ? (
+        <DiscardModal state={state} seat={actor} owed={owed}
+          onDiscard={(cards) => run({ type: "discard", seat: actor, cards })} />
       ) : (
         <>
           <HandPanel />
