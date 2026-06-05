@@ -42,8 +42,9 @@ export function applyAcceptTrade(state: GameState, offerId: number, seat: number
   const offer = state.tradeOffers[idx]!;
   if (seat === offer.from) return "You cannot accept your own offer";
   if (offer.to !== undefined && offer.to !== seat) return "That offer is not addressed to you";
+  const acceptor = state.players[seat];
+  if (!acceptor) return "Unknown player";
   const proposer = state.players[offer.from]!;
-  const acceptor = state.players[seat]!;
   if (!canAfford(proposer.resources, offer.give)) return "The proposer can no longer cover the trade";
   if (!canAfford(acceptor.resources, offer.want)) return "You cannot cover the trade";
   payInto(proposer.resources, offer.give); gainInto(acceptor.resources, offer.give);
