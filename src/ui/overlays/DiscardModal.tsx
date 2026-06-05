@@ -11,7 +11,7 @@ export function DiscardModal({ state, seat, owed, onDiscard }: {
   const adj = (r: keyof ResourceMap, d: number) =>
     setSel((cur) => ({ ...cur, [r]: Math.max(0, Math.min(have[r], cur[r] + d)) }));
   return (
-    <div className="discard-modal" role="dialog" aria-label="Discard cards">
+    <div className="discard-modal" role="dialog" aria-modal="true" aria-label="Discard cards">
       <p>{state.players[seat]!.name} must discard {owed} ({total}/{owed})</p>
       {RESOURCE_LIST.map((r) => (
         <div key={r} className="discard-row">

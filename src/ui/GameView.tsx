@@ -56,7 +56,7 @@ export function GameView() {
           <ActionBar />
         </>
       )}
-      {robberPick && (
+      {robberPick && sub === "movingRobber" && (
         <RobberVictimPicker state={state} victims={robberPick.victims}
           onPick={(victim) => { run({ type: "moveRobber", hex: robberPick.hex, victim }); setRobberPick(null); }} />
       )}
