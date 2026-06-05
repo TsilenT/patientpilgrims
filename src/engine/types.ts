@@ -49,6 +49,14 @@ export interface Awards {
   longestRoad?: number;
 }
 
+export interface TradeOffer {
+  id: number;
+  from: number;
+  to?: number;          // undefined = open to any opponent
+  give: ResourceMap;    // what the proposer gives
+  want: ResourceMap;    // what the proposer wants
+}
+
 export interface Turn {
   activeSeat: number;
   subPhase: SubPhase;
@@ -64,7 +72,7 @@ export interface LogEntry {
     | "roll" | "buildRoad" | "buildSettlement" | "buildCity"
     | "endTurn" | "win" | "discard"
     | "moveRobber" | "steal" | "buyDevCard" | "playMonopoly" | "playYearOfPlenty" | "playRoadBuilding"
-    | "playKnight" | "tradeBank";
+    | "playKnight" | "tradeBank" | "proposeTrade";
   seat: number;
   vertex?: string;
   edge?: string;
@@ -85,6 +93,8 @@ export interface GameState {
   bank: ResourceMap;
   devDeck: DevCardType[];
   awards: Awards;
+  tradeOffers: TradeOffer[];
+  tradeSeq: number;
   setup?: { order: number[]; pos: number };
   discardObligations?: Record<number, number>; // seat -> cards still owed after a 7
   log: LogEntry[];
@@ -106,7 +116,8 @@ export type Action =
   | { type: "playYearOfPlenty"; resources: [Resource, Resource] }
   | { type: "playRoadBuilding"; edges: string[] }
   | { type: "playKnight" }
-  | { type: "tradeBank"; give: Resource; get: Resource };
+  | { type: "tradeBank"; give: Resource; get: Resource }
+  | { type: "proposeTrade"; give: ResourceMap; want: ResourceMap; to?: number };
 
 export type ApplyResult =
   | { ok: true; state: GameState }

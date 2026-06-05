@@ -4,7 +4,12 @@ import { createInitialGame } from "../../src/engine/state";
 import { apply } from "../../src/engine/apply";
 import { topology } from "../../src/engine/board";
 import type { GameState } from "../../src/engine/types";
+import type { ResourceMap } from "../../src/engine/resources";
 import type { Rng } from "../../src/engine/rng";
+
+function rm(wood = 0, brick = 0, sheep = 0, wheat = 0, ore = 0): ResourceMap {
+  return { wood, brick, sheep, wheat, ore };
+}
 
 const players3 = [
   { name: "A", color: "red" }, { name: "B", color: "blue" }, { name: "C", color: "white" },
@@ -117,6 +122,74 @@ describe("bank/port trading", () => {
     g.players[0]!.resources.wood = 4;
 
     const r = apply(g, { type: "tradeBank", give: "wood", get: "brick" }, rngOf());
+    expect(r.ok).toBe(false);
+  });
+});
+
+describe("propose trade offer", () => {
+  it("open offer appears in tradeOffers with correct fields and id 0", () => {
+    const g = mainGame();
+    g.players[0]!.resources = rm(2, 0, 0, 0, 0); // give 2 wood
+    const r = apply(g, { type: "proposeTrade", give: rm(2), want: rm(0, 1) }, rngOf());
+    expectOk(r);
+    expect(r.state.tradeOffers).toHaveLength(1);
+    const offer = r.state.tradeOffers[0]!;
+    expect(offer.id).toBe(0);
+    expect(offer.from).toBe(0);
+    expect(offer.to).toBeUndefined();
+    expect(offer.give).toEqual(rm(2));
+    expect(offer.want).toEqual(rm(0, 1));
+    expect(r.state.tradeSeq).toBe(1);
+  });
+
+  it("targeted offer includes 'to' field and id increments across two offers", () => {
+    const g = mainGame();
+    g.players[0]!.resources = rm(3, 2, 0, 0, 0);
+
+    // First offer (open)
+    const r1 = apply(g, { type: "proposeTrade", give: rm(1), want: rm(0, 1) }, rngOf());
+    expectOk(r1);
+    expect(r1.state.tradeOffers[0]!.id).toBe(0);
+    expect(r1.state.tradeSeq).toBe(1);
+
+    // Second offer (targeted at seat 2) using the updated state
+    r1.state.players[0]!.resources = rm(3, 2, 0, 0, 0);
+    const r2 = apply(r1.state, { type: "proposeTrade", give: rm(0, 1), want: rm(0, 0, 1), to: 2 }, rngOf());
+    expectOk(r2);
+    expect(r2.state.tradeOffers).toHaveLength(2);
+    const offer2 = r2.state.tradeOffers[1]!;
+    expect(offer2.id).toBe(1);
+    expect(offer2.from).toBe(0);
+    expect(offer2.to).toBe(2);
+    expect(r2.state.tradeSeq).toBe(2);
+  });
+
+  it("rejects when player lacks the offered resources", () => {
+    const g = mainGame();
+    g.players[0]!.resources = rm(1, 0, 0, 0, 0); // only 1 wood, trying to give 2
+    const r = apply(g, { type: "proposeTrade", give: rm(2), want: rm(0, 1) }, rngOf());
+    expect(r.ok).toBe(false);
+  });
+
+  it("rejects when give is all-zero", () => {
+    const g = mainGame();
+    g.players[0]!.resources = rm(0, 2, 0, 0, 0);
+    const r = apply(g, { type: "proposeTrade", give: rm(0), want: rm(0, 1) }, rngOf());
+    expect(r.ok).toBe(false);
+  });
+
+  it("rejects when want is all-zero", () => {
+    const g = mainGame();
+    g.players[0]!.resources = rm(2, 0, 0, 0, 0);
+    const r = apply(g, { type: "proposeTrade", give: rm(2), want: rm(0) }, rngOf());
+    expect(r.ok).toBe(false);
+  });
+
+  it("rejects when not in main subPhase", () => {
+    const g = mainGame();
+    g.turn.subPhase = "awaitingRoll";
+    g.players[0]!.resources = rm(2, 0, 0, 0, 0);
+    const r = apply(g, { type: "proposeTrade", give: rm(2), want: rm(0, 1) }, rngOf());
     expect(r.ok).toBe(false);
   });
 });
