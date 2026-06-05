@@ -85,7 +85,7 @@ export function GameView() {
               <button role="tab" aria-selected={tab === "trades"} onClick={() => setTab("trades")}>Trades</button>
               <button role="tab" aria-selected={tab === "log"} onClick={() => setTab("log")}>Log</button>
             </div>
-            <div className="tab-content">
+            <div className="tab-content" role="tabpanel" aria-label={tab}>
               {tab === "hand" && <HandPanel onPlayDev={onPlayDev} />}
               {tab === "trades" && (sub === "main" ? <TradePanel /> : <p>Trades open after you roll.</p>)}
               {tab === "log" && <LogRail />}
