@@ -42,6 +42,7 @@ export interface Player {
   pieces: { roads: number; settlements: number; cities: number };
   devCards: PlayerDevCard[];
   knightsPlayed: number;
+  longestRoadLength: number;
 }
 
 export interface Awards {

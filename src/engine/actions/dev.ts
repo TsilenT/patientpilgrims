@@ -4,6 +4,7 @@ import type { DevCardType } from "../devcards";
 import { canAfford, payInto, RESOURCE_LIST, emptyResources } from "../resources";
 import { DEV_CARD_COST } from "../devcards";
 import { recomputeVictoryPoints } from "../scoring/victory";
+import { updateLongestRoad } from "../scoring/roads";
 import { topology } from "../board";
 import { edgeConnects } from "../placement";
 
@@ -76,6 +77,7 @@ export function applyPlayRoadBuilding(state: GameState, edges: string[]): string
     player.pieces.roads -= 1;
     state.log.push({ type: "playRoadBuilding", seat, edge });
   }
+  updateLongestRoad(state);
   return null;
 }
 
