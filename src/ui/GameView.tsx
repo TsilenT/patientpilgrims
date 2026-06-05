@@ -27,6 +27,7 @@ export function GameView() {
   const [robberPick, setRobberPick] = useState<{ hex: string; victims: number[] } | null>(null);
   const [devModal, setDevModal] = useState<"monopoly" | "yearOfPlenty" | null>(null);
   const [roadEdges, setRoadEdges] = useState<string[] | null>(null);
+  const [tab, setTab] = useState<"hand" | "trades" | "log">("hand");
 
   // While a Road Building card is being placed, the board highlights its legal edges.
   const legal = roadEdges !== null
@@ -77,9 +78,19 @@ export function GameView() {
           onDiscard={(cards) => run({ type: "discard", seat: actor, cards })} />
       ) : (
         <>
-          <HandPanel onPlayDev={onPlayDev} />
           <ActionBar />
-          {sub === "main" && <TradePanel />}
+          <div className="bottom-sheet">
+            <div className="tabs" role="tablist">
+              <button role="tab" aria-selected={tab === "hand"} onClick={() => setTab("hand")}>Hand</button>
+              <button role="tab" aria-selected={tab === "trades"} onClick={() => setTab("trades")}>Trades</button>
+              <button role="tab" aria-selected={tab === "log"} onClick={() => setTab("log")}>Log</button>
+            </div>
+            <div className="tab-content">
+              {tab === "hand" && <HandPanel onPlayDev={onPlayDev} />}
+              {tab === "trades" && (sub === "main" ? <TradePanel /> : <p>Trades open after you roll.</p>)}
+              {tab === "log" && <LogRail />}
+            </div>
+          </div>
         </>
       )}
       {roadEdges !== null && (
@@ -102,7 +113,6 @@ export function GameView() {
         <RobberVictimPicker state={state} victims={robberPick.victims}
           onPick={(victim) => { run({ type: "moveRobber", hex: robberPick.hex, victim }); setRobberPick(null); }} />
       )}
-      <LogRail />
       <GameOverBanner />
       <Toast message={error} onDismiss={dismissError} />
     </div>

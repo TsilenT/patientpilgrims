@@ -30,6 +30,7 @@ test("bank trade swaps at the 4:1 default ratio", async () => {
   g.players[0]!.resources = rm(4); // 4 wood
   const s = store(g);
   render(<GameProvider store={s}><GameView /></GameProvider>);
+  await userEvent.click(screen.getByRole("tab", { name: "Trades" }));
   await userEvent.click(screen.getByRole("button", { name: /trade with bank/i }));
   expect(s.getState().players[0]!.resources.wood).toBe(0);
   expect(s.getState().players[0]!.resources.brick).toBe(1);
@@ -41,6 +42,7 @@ test("propose then accept-on-behalf swaps resources between the two players", as
   g.players[1]!.resources = rm(0, 0, 0, 1); // 1 wheat
   const s = store(g);
   render(<GameProvider store={s}><GameView /></GameProvider>);
+  await userEvent.click(screen.getByRole("tab", { name: "Trades" }));
   await userEvent.click(screen.getByTestId("give-add-wood"));
   await userEvent.click(screen.getByTestId("want-add-wheat"));
   await userEvent.click(screen.getByRole("button", { name: /^propose$/i }));
@@ -57,6 +59,7 @@ test("proposer can cancel their own open offer", async () => {
   g.tradeSeq = 1;
   const s = store(g);
   render(<GameProvider store={s}><GameView /></GameProvider>);
+  await userEvent.click(screen.getByRole("tab", { name: "Trades" }));
   await userEvent.click(screen.getByRole("button", { name: /^cancel$/i }));
   expect(s.getState().tradeOffers).toHaveLength(0);
 });
