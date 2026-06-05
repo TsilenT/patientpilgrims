@@ -11,8 +11,11 @@ export interface BoardSvgProps {
   onHex: (h: string) => void;
 }
 
+// Board geometry is static (depends only on the memoized topology), so compute it once.
+const LAYOUT = boardLayout();
+
 export function BoardSvg({ state, legal, onVertex, onEdge, onHex }: BoardSvgProps) {
-  const layout = boardLayout();
+  const layout = LAYOUT;
   const { minX, minY, width, height } = layout.viewBox;
   return (
     <svg className="board" viewBox={`${minX} ${minY} ${width} ${height}`} role="img" aria-label="Catan board">

@@ -29,6 +29,10 @@ test("renders placed roads and buildings in owner color", () => {
   g.board.buildings[vid] = { owner: 0, type: "settlement" };
   g.board.roads[eid] = { owner: 1 };
   const { container } = render(<BoardSvg state={g} onVertex={() => {}} onEdge={() => {}} onHex={() => {}} legal={{ vertices: new Set(), edges: new Set(), hexes: new Set() }} />);
-  expect(container.querySelector(`[data-building="${vid}"]`)).not.toBeNull();
-  expect(container.querySelector(`[data-road="${eid}"]`)).not.toBeNull();
+  const building = container.querySelector(`[data-building="${vid}"]`);
+  const road = container.querySelector(`[data-road="${eid}"]`);
+  expect(building).not.toBeNull();
+  expect(road).not.toBeNull();
+  expect(building!.getAttribute("fill")).toBe("red"); // player 0
+  expect(road!.getAttribute("stroke")).toBe("blue"); // player 1
 });

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { boardLayout, SCALE } from "../../src/ui/board/layout";
 import { topology } from "../../src/engine/board";
+import { vertexPixel } from "../../src/board";
 
 describe("boardLayout", () => {
   const layout = boardLayout();
@@ -21,9 +22,10 @@ describe("boardLayout", () => {
     }
   });
 
-  it("scales by SCALE relative to raw unit coords", () => {
-    const ids = topology().vertexIds;
-    expect(ids.length).toBeGreaterThan(1);
-    expect(SCALE).toBeGreaterThan(1);
+  it("scales raw pixel coords by SCALE", () => {
+    const vid = topology().vertexIds[0]!;
+    const raw = vertexPixel(vid);
+    expect(layout.vertex[vid]!.x).toBeCloseTo(raw.px * SCALE);
+    expect(layout.vertex[vid]!.y).toBeCloseTo(raw.py * SCALE);
   });
 });

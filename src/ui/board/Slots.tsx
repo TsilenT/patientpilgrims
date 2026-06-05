@@ -6,19 +6,20 @@ export function Slots({ state, layout, legal, onVertex, onEdge, onHex }: {
   state: GameState; layout: BoardLayout; legal: LegalTargets;
   onVertex: (v: string) => void; onEdge: (e: string) => void; onHex: (h: string) => void;
 }) {
+  const topo = topology();
   const color = (seat: number) => state.players[seat]!.color;
   return (
     <g>
       {/* legal-hex click overlays (robber) */}
       {[...legal.hexes].map((hid) => {
-        const corners = topology().hexVertices.get(hid)!.map((v) => layout.vertex[v]!);
+        const corners = topo.hexVertices.get(hid)!.map((v) => layout.vertex[v]!);
         const points = corners.map((p) => `${p.x},${p.y}`).join(" ");
         return <polygon key={hid} data-hex-slot={hid} points={points} fill="#fff" fillOpacity={0.15}
           style={{ cursor: "pointer" }} onClick={() => onHex(hid)} />;
       })}
-      {topology().edgeIds.map((eid) => {
+      {topo.edgeIds.map((eid) => {
         const road = state.board.roads[eid];
-        const [a, b] = topology().edgeVertices.get(eid)!;
+        const [a, b] = topo.edgeVertices.get(eid)!;
         const pa = layout.vertex[a]!, pb = layout.vertex[b]!;
         const isLegal = legal.edges.has(eid);
         if (road) return <line key={eid} data-road={eid} x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y}
@@ -29,7 +30,7 @@ export function Slots({ state, layout, legal, onVertex, onEdge, onHex }: {
           style={{ cursor: isLegal ? "pointer" : "default" }}
           onClick={isLegal ? () => onEdge(eid) : undefined} />;
       })}
-      {topology().vertexIds.map((vid) => {
+      {topo.vertexIds.map((vid) => {
         const b = state.board.buildings[vid];
         const p = layout.vertex[vid]!;
         const isLegal = legal.vertices.has(vid);
