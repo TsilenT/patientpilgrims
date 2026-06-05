@@ -1,5 +1,17 @@
 import type { GameState } from "../engine/types";
-import { RESOURCE_LIST } from "../engine/resources";
+import { RESOURCE_LIST, totalCards } from "../engine/resources";
+import { topology } from "../engine/board";
+
+/** Opponents with a building on `hex` who hold at least one card — the legal steal targets. */
+export function eligibleVictims(state: GameState, hex: string): number[] {
+  const active = state.turn.activeSeat;
+  const owners = new Set<number>();
+  for (const v of topology().hexVertices.get(hex) ?? []) {
+    const b = state.board.buildings[v];
+    if (b && b.owner !== active) owners.add(b.owner);
+  }
+  return [...owners].filter((s) => totalCards(state.players[s]!.resources) > 0);
+}
 
 export function currentActor(state: GameState): number {
   const owing = state.discardObligations;
