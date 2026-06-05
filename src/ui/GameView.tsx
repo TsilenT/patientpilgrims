@@ -6,10 +6,13 @@ import { currentActor, eligibleVictims } from "../state/viewModel";
 import { BoardSvg } from "./board/BoardSvg";
 import { HandPanel } from "./panels/HandPanel";
 import { ActionBar } from "./panels/ActionBar";
+import { OpponentBar } from "./panels/OpponentBar";
+import { LogRail } from "./panels/LogRail";
 import { PassDeviceScreen } from "./overlays/PassDeviceScreen";
 import { RobberVictimPicker } from "./overlays/RobberVictimPicker";
 import { DiscardModal } from "./overlays/DiscardModal";
 import { MonopolyPicker, YearOfPlentyPicker } from "./overlays/DevCardModals";
+import { GameOverBanner } from "./overlays/GameOverBanner";
 import { Toast } from "./Toast";
 import type { DevCardType } from "../engine/devcards";
 
@@ -64,6 +67,7 @@ export function GameView() {
 
   return (
     <div className="game-view">
+      <OpponentBar />
       <BoardSvg state={state} legal={legal} onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
       {actor !== revealedSeat ? (
         <PassDeviceScreen name={state.players[actor]!.name} onReveal={() => setRevealedSeat(actor)} />
@@ -96,6 +100,8 @@ export function GameView() {
         <RobberVictimPicker state={state} victims={robberPick.victims}
           onPick={(victim) => { run({ type: "moveRobber", hex: robberPick.hex, victim }); setRobberPick(null); }} />
       )}
+      <LogRail />
+      <GameOverBanner />
       <Toast message={error} onDismiss={dismissError} />
     </div>
   );
