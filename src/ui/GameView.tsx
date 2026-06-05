@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useGame } from "../state/GameProvider";
 import { useDispatchWithError } from "./useDispatchWithError";
-import { legalTargets } from "../state/legalTargets";
+import { legalTargets, legalRoadBuildingEdges } from "../state/legalTargets";
 import { currentActor, eligibleVictims } from "../state/viewModel";
 import { BoardSvg } from "./board/BoardSvg";
 import { HandPanel } from "./panels/HandPanel";
@@ -9,18 +9,25 @@ import { ActionBar } from "./panels/ActionBar";
 import { PassDeviceScreen } from "./overlays/PassDeviceScreen";
 import { RobberVictimPicker } from "./overlays/RobberVictimPicker";
 import { DiscardModal } from "./overlays/DiscardModal";
+import { MonopolyPicker, YearOfPlentyPicker } from "./overlays/DevCardModals";
 import { Toast } from "./Toast";
+import type { DevCardType } from "../engine/devcards";
 
 export function GameView() {
   const { state } = useGame();
   const { run, error, dismissError } = useDispatchWithError();
-  const legal = legalTargets(state);
-
   const sub = state.turn.subPhase;
   const actor = currentActor(state);
   const owed = state.discardObligations?.[actor] ?? 0;
   const [revealedSeat, setRevealedSeat] = useState(actor);
   const [robberPick, setRobberPick] = useState<{ hex: string; victims: number[] } | null>(null);
+  const [devModal, setDevModal] = useState<"monopoly" | "yearOfPlenty" | null>(null);
+  const [roadEdges, setRoadEdges] = useState<string[] | null>(null);
+
+  // While a Road Building card is being placed, the board highlights its legal edges.
+  const legal = roadEdges !== null
+    ? { vertices: new Set<string>(), edges: legalRoadBuildingEdges(state, roadEdges), hexes: new Set<string>() }
+    : legalTargets(state);
 
   const onVertex = (v: string) => {
     if (sub === "setupSettlement") return run({ type: "setupSettlement", vertex: v });
@@ -31,6 +38,12 @@ export function GameView() {
     }
   };
   const onEdge = (e: string) => {
+    if (roadEdges !== null) {
+      const next = [...roadEdges, e];
+      if (next.length >= 2) { run({ type: "playRoadBuilding", edges: next }); setRoadEdges(null); }
+      else setRoadEdges(next);
+      return;
+    }
     if (sub === "setupRoad") return run({ type: "setupRoad", edge: e });
     if (sub === "main") return run({ type: "buildRoad", edge: e });
   };
@@ -40,6 +53,13 @@ export function GameView() {
     if (victims.length === 0) run({ type: "moveRobber", hex: h });
     else if (victims.length === 1) run({ type: "moveRobber", hex: h, victim: victims[0]! });
     else setRobberPick({ hex: h, victims });
+  };
+
+  const onPlayDev = (type: DevCardType) => {
+    if (type === "knight") return run({ type: "playKnight" });
+    if (type === "monopoly") return setDevModal("monopoly");
+    if (type === "yearOfPlenty") return setDevModal("yearOfPlenty");
+    if (type === "roadBuilding") return setRoadEdges([]);
   };
 
   return (
@@ -52,9 +72,25 @@ export function GameView() {
           onDiscard={(cards) => run({ type: "discard", seat: actor, cards })} />
       ) : (
         <>
-          <HandPanel />
+          <HandPanel onPlayDev={onPlayDev} />
           <ActionBar />
         </>
+      )}
+      {roadEdges !== null && (
+        <div className="road-building" role="dialog" aria-modal="true" aria-label="Road building">
+          <p>Place up to 2 roads ({roadEdges.length}/2)</p>
+          <button disabled={roadEdges.length < 1}
+            onClick={() => { run({ type: "playRoadBuilding", edges: roadEdges }); setRoadEdges(null); }}>Confirm</button>
+          <button onClick={() => setRoadEdges(null)}>Cancel</button>
+        </div>
+      )}
+      {devModal === "monopoly" && (
+        <MonopolyPicker onCancel={() => setDevModal(null)}
+          onPick={(r) => { run({ type: "playMonopoly", resource: r }); setDevModal(null); }} />
+      )}
+      {devModal === "yearOfPlenty" && (
+        <YearOfPlentyPicker onCancel={() => setDevModal(null)}
+          onPick={(rs) => { run({ type: "playYearOfPlenty", resources: rs }); setDevModal(null); }} />
       )}
       {robberPick && sub === "movingRobber" && (
         <RobberVictimPicker state={state} victims={robberPick.victims}

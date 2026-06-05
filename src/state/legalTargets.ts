@@ -39,3 +39,21 @@ export function legalTargets(state: GameState): LegalTargets {
   }
   return t; // no targets for other sub-phases (t holds fresh empty sets)
 }
+
+/**
+ * Edges legal to place during a Road Building card, treating already-collected
+ * edges as if placed — so a second road that only connects via the first still
+ * highlights. The engine re-validates the final pair on dispatch.
+ */
+export function legalRoadBuildingEdges(state: GameState, collected: string[]): Set<string> {
+  const seat = state.turn.activeSeat;
+  const roads = { ...state.board.roads };
+  for (const e of collected) roads[e] = { owner: seat };
+  const board = { ...state.board, roads };
+  const result = new Set<string>();
+  for (const e of topology().edgeIds) {
+    if (roads[e] !== undefined) continue;
+    if (edgeConnects(board, seat, e)) result.add(e);
+  }
+  return result;
+}
