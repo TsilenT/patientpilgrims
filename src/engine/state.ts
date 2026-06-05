@@ -45,6 +45,8 @@ export function createInitialGame(players: NewPlayer[], board: Board): GameState
     bank: fullBank(),
     devDeck: makeDevDeck(),
     awards: {},
+    tradeOffers: [],
+    tradeSeq: 0,
     setup: { order, pos: 0 },
     log: [],
   };
