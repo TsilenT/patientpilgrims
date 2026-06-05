@@ -127,3 +127,96 @@ describe("playKnight", () => {
     expect(r.state.players[0]!.victoryPoints).toBe(before + 2);
   });
 });
+
+describe("Largest Army transfer", () => {
+  /** Give `seat` a playable knight card. */
+  function knightFor(g: GameState, seat: number): void {
+    g.players[seat]!.devCards.push({ type: "knight", boughtThisTurn: false, played: false });
+  }
+  /** Play a knight for the active seat, then move the robber to an empty hex
+   * so the action resolves back to "main"/"awaitingRoll". Returns the post-move state. */
+  function playKnightAndResolve(g: GameState): GameState {
+    const played = apply(g, { type: "playKnight" }, rngOf());
+    expectOk(played);
+    const hex = emptyTargetHex(played.state);
+    const moved = apply(played.state, { type: "moveRobber", hex }, rngOf());
+    expectOk(moved);
+    return moved.state;
+  }
+
+  it("(a) the third knight grants Largest Army and +2 VP to that seat", () => {
+    const g = mainGame();
+    g.players[0]!.knightsPlayed = 2; // about to play the 3rd
+    knightFor(g, 0);
+    const before = g.players[0]!.victoryPoints;
+
+    const r = apply(g, { type: "playKnight" }, rngOf());
+    expectOk(r);
+    expect(r.state.players[0]!.knightsPlayed).toBe(3);
+    expect(r.state.awards.largestArmy).toBe(0);
+    expect(r.state.players[0]!.victoryPoints).toBe(before + 2);
+  });
+
+  it("(b) an opponent who strictly exceeds the holder steals the award (and the +2 moves)", () => {
+    // Player 0 earns Largest Army by playing their 3rd knight.
+    const g = mainGame();
+    g.players[0]!.knightsPlayed = 2;
+    knightFor(g, 0);
+    const afterP0 = playKnightAndResolve(g);
+    expect(afterP0.awards.largestArmy).toBe(0);
+    expect(afterP0.players[0]!.victoryPoints).toBe(2); // 0 buildings + Largest Army
+
+    // Player 1 is poised at 3 knights and plays a 4th -> 4 > 3 -> steals the award.
+    afterP0.players[1]!.knightsPlayed = 3;
+    knightFor(afterP0, 1);
+    afterP0.turn = { activeSeat: 1, subPhase: "main" };
+
+    const r = apply(afterP0, { type: "playKnight" }, rngOf());
+    expectOk(r);
+    expect(r.state.players[1]!.knightsPlayed).toBe(4);
+    expect(r.state.awards.largestArmy).toBe(1);
+    expect(r.state.players[1]!.victoryPoints).toBe(2); // new holder gains +2
+    expect(r.state.players[0]!.victoryPoints).toBe(0); // old holder loses the +2
+  });
+
+  it("(c) a tie does NOT steal the award (must strictly exceed)", () => {
+    // Player 0 holds Largest Army at 3 knights.
+    const g = mainGame();
+    g.players[0]!.knightsPlayed = 2;
+    knightFor(g, 0);
+    const afterP0 = playKnightAndResolve(g);
+    expect(afterP0.awards.largestArmy).toBe(0);
+
+    // Player 1 plays their 3rd knight -> ties at 3, does not exceed.
+    afterP0.players[1]!.knightsPlayed = 2;
+    knightFor(afterP0, 1);
+    afterP0.turn = { activeSeat: 1, subPhase: "main" };
+    const beforeP1 = afterP0.players[1]!.victoryPoints;
+
+    const r = apply(afterP0, { type: "playKnight" }, rngOf());
+    expectOk(r);
+    expect(r.state.players[1]!.knightsPlayed).toBe(3);
+    expect(r.state.awards.largestArmy).toBe(0); // unchanged
+    expect(r.state.players[1]!.victoryPoints).toBe(beforeP1); // no +2 for the tie
+  });
+
+  it("(d) reaching 10 VP via Largest Army ends the game", () => {
+    const g = mainGame();
+    // 8 VP of buildings (4 cities), so the +2 from Largest Army reaches exactly 10.
+    const verts = topology().vertexIds.slice(0, 4);
+    verts.forEach((v) => (g.board.buildings[v] = { owner: 0, type: "city" }));
+    recomputeVictoryPoints(g, 0);
+    expect(g.players[0]!.victoryPoints).toBe(8);
+
+    g.players[0]!.knightsPlayed = 2; // about to play the 3rd
+    knightFor(g, 0);
+
+    // checkVictory runs at the end of the playKnight action itself.
+    const r = apply(g, { type: "playKnight" }, rngOf());
+    expectOk(r);
+    expect(r.state.awards.largestArmy).toBe(0);
+    expect(r.state.players[0]!.victoryPoints).toBe(10);
+    expect(r.state.phase).toBe("finished");
+    expect(r.state.winner).toBe(0);
+  });
+});
