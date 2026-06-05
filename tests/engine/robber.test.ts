@@ -162,6 +162,17 @@ describe("moveRobber + steal", () => {
     expect(r.state.board.robber).toBe(targetHex);
     expect(r.state.turn.subPhase).toBe("main");
   });
+
+  it("consumes robberReturn after moving the robber (field is deleted)", () => {
+    const g = mainGame();
+    const targetHex = topology().hexIds.find((h) => h !== g.board.robber)!;
+    g.turn.subPhase = "movingRobber";
+    g.turn.robberReturn = "main";
+    const r = apply(g, { type: "moveRobber", hex: targetHex }, rngOf());
+    expectOk(r);
+    expect(r.state.turn.subPhase).toBe("main");
+    expect(r.state.turn.robberReturn).toBeUndefined();
+  });
 });
 
 describe("full 7 flow", () => {

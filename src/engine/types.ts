@@ -41,6 +41,12 @@ export interface Player {
   victoryPoints: number;
   pieces: { roads: number; settlements: number; cities: number };
   devCards: PlayerDevCard[];
+  knightsPlayed: number;
+}
+
+export interface Awards {
+  largestArmy?: number;
+  longestRoad?: number;
 }
 
 export interface Turn {
@@ -49,6 +55,7 @@ export interface Turn {
   dice?: [number, number];
   setupSettlement?: string;
   devCardPlayedThisTurn?: boolean;
+  robberReturn?: SubPhase;
 }
 
 export interface LogEntry {
@@ -56,7 +63,8 @@ export interface LogEntry {
     | "setupSettlement" | "setupRoad"
     | "roll" | "buildRoad" | "buildSettlement" | "buildCity"
     | "endTurn" | "win" | "discard"
-    | "moveRobber" | "steal" | "buyDevCard" | "playMonopoly" | "playYearOfPlenty" | "playRoadBuilding";
+    | "moveRobber" | "steal" | "buyDevCard" | "playMonopoly" | "playYearOfPlenty" | "playRoadBuilding"
+    | "playKnight";
   seat: number;
   vertex?: string;
   edge?: string;
@@ -76,6 +84,7 @@ export interface GameState {
   players: Player[];
   bank: ResourceMap;
   devDeck: DevCardType[];
+  awards: Awards;
   setup?: { order: number[]; pos: number };
   discardObligations?: Record<number, number>; // seat -> cards still owed after a 7
   log: LogEntry[];
@@ -95,7 +104,8 @@ export type Action =
   | { type: "buyDevCard" }
   | { type: "playMonopoly"; resource: Resource }
   | { type: "playYearOfPlenty"; resources: [Resource, Resource] }
-  | { type: "playRoadBuilding"; edges: string[] };
+  | { type: "playRoadBuilding"; edges: string[] }
+  | { type: "playKnight" };
 
 export type ApplyResult =
   | { ok: true; state: GameState }

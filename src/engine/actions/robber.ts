@@ -76,6 +76,7 @@ export function applyMoveRobber(
     const res = stealRandom(state, victim, active, rng);
     if (res !== null) state.log.push({ type: "steal", seat: active, victim, resource: res });
   }
-  state.turn.subPhase = "main";
+  state.turn.subPhase = state.turn.robberReturn ?? "main";
+  delete state.turn.robberReturn;
   return null;
 }

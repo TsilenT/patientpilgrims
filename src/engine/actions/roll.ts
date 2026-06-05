@@ -20,6 +20,7 @@ export function applyRollDice(state: GameState, rng: Rng): string | null {
       if (total > DISCARD_LIMIT) owed[p.seat] = Math.floor(total / 2);
     }
     if (Object.keys(owed).length > 0) state.discardObligations = owed;
+    state.turn.robberReturn = "main";
     state.turn.subPhase = "movingRobber"; // roller proceeds; discards don't block
     return null;
   }

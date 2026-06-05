@@ -33,6 +33,7 @@ export function createInitialGame(players: NewPlayer[], board: Board): GameState
     victoryPoints: 0,
     pieces: { roads: 15, settlements: 5, cities: 4 },
     devCards: [],
+    knightsPlayed: 0,
   }));
   const order = snakeOrder(players.length);
   return {
@@ -43,6 +44,7 @@ export function createInitialGame(players: NewPlayer[], board: Board): GameState
     players: playerStates,
     bank: fullBank(),
     devDeck: makeDevDeck(),
+    awards: {},
     setup: { order, pos: 0 },
     log: [],
   };

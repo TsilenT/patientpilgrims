@@ -79,6 +79,19 @@ export function applyPlayRoadBuilding(state: GameState, edges: string[]): string
   return null;
 }
 
+export function playKnightGuard(state: GameState): string | null {
+  if (state.phase !== "main") return "Not in the main phase";
+  if (state.turn.subPhase !== "main" && state.turn.subPhase !== "awaitingRoll")
+    return "You can only play a knight before or after rolling";
+  if (state.turn.devCardPlayedThisTurn) return "You already played a development card this turn";
+  const player = state.players[state.turn.activeSeat]!;
+  const card = player.devCards.find((c) => c.type === "knight" && !c.played && !c.boughtThisTurn);
+  if (!card) return "You have no playable knight card";
+  card.played = true;
+  state.turn.devCardPlayedThisTurn = true;
+  return null;
+}
+
 export function playDevCardGuard(state: GameState, type: DevCardType): string | null {
   const err = requireMain(state);
   if (err) return err;
