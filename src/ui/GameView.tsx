@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { useGame } from "../state/GameProvider";
 import { useDispatchWithError } from "./useDispatchWithError";
 import { legalTargets } from "../state/legalTargets";
+import { currentActor } from "../state/viewModel";
 import { BoardSvg } from "./board/BoardSvg";
 import { HandPanel } from "./panels/HandPanel";
 import { ActionBar } from "./panels/ActionBar";
+import { PassDeviceScreen } from "./overlays/PassDeviceScreen";
 import { Toast } from "./Toast";
 
 export function GameView() {
@@ -12,6 +15,8 @@ export function GameView() {
   const legal = legalTargets(state);
 
   const sub = state.turn.subPhase;
+  const actor = currentActor(state);
+  const [revealedSeat, setRevealedSeat] = useState(actor);
 
   const onVertex = (v: string) => {
     if (sub === "setupSettlement") return run({ type: "setupSettlement", vertex: v });
@@ -30,8 +35,14 @@ export function GameView() {
   return (
     <div className="game-view">
       <BoardSvg state={state} legal={legal} onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
-      <HandPanel />
-      <ActionBar />
+      {actor !== revealedSeat ? (
+        <PassDeviceScreen name={state.players[actor]!.name} onReveal={() => setRevealedSeat(actor)} />
+      ) : (
+        <>
+          <HandPanel />
+          <ActionBar />
+        </>
+      )}
       <Toast message={error} onDismiss={dismissError} />
     </div>
   );
