@@ -34,6 +34,7 @@ export function createInitialGame(players: NewPlayer[], board: Board): GameState
     pieces: { roads: 15, settlements: 5, cities: 4 },
     devCards: [],
     knightsPlayed: 0,
+    longestRoadLength: 0,
   }));
   const order = snakeOrder(players.length);
   return {
