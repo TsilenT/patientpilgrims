@@ -2,6 +2,8 @@ import { useCallback, useState } from "react";
 import { useGame } from "../state/GameProvider";
 import { legalTargets } from "../state/legalTargets";
 import { BoardSvg } from "./board/BoardSvg";
+import { HandPanel } from "./panels/HandPanel";
+import { ActionBar } from "./panels/ActionBar";
 import { Toast } from "./Toast";
 import type { Action } from "../engine/types";
 
@@ -31,7 +33,8 @@ export function GameView() {
   return (
     <div className="game-view">
       <BoardSvg state={state} legal={legal} onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
-      {/* panels added in D4 */}
+      <HandPanel />
+      <ActionBar />
       <Toast message={error} onDismiss={dismissError} />
     </div>
   );
