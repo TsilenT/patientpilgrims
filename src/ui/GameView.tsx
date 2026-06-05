@@ -1,19 +1,16 @@
-import { useCallback, useState } from "react";
 import { useGame } from "../state/GameProvider";
+import { useDispatchWithError } from "./useDispatchWithError";
 import { legalTargets } from "../state/legalTargets";
 import { BoardSvg } from "./board/BoardSvg";
 import { HandPanel } from "./panels/HandPanel";
 import { ActionBar } from "./panels/ActionBar";
 import { Toast } from "./Toast";
-import type { Action } from "../engine/types";
 
 export function GameView() {
-  const { state, dispatch } = useGame();
-  const [error, setError] = useState<string | null>(null);
-  const dismissError = useCallback(() => setError(null), []);
+  const { state } = useGame();
+  const { run, error, dismissError } = useDispatchWithError();
   const legal = legalTargets(state);
 
-  const run = (a: Action) => { const r = dispatch(a); if (!r.ok) setError(r.error); };
   const sub = state.turn.subPhase;
 
   const onVertex = (v: string) => {
