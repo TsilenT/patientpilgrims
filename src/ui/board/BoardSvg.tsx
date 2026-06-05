@@ -1,6 +1,7 @@
 import type { GameState } from "../../engine/types";
 import { boardLayout, type LegalTargets } from "./layout";
 import { HexTile } from "./HexTile";
+import { Slots } from "./Slots";
 
 export interface BoardSvgProps {
   state: GameState;
@@ -11,7 +12,6 @@ export interface BoardSvgProps {
 }
 
 export function BoardSvg({ state, legal, onVertex, onEdge, onHex }: BoardSvgProps) {
-  void legal; void onVertex; void onEdge; void onHex;
   const layout = boardLayout();
   const { minX, minY, width, height } = layout.viewBox;
   return (
@@ -19,7 +19,7 @@ export function BoardSvg({ state, legal, onVertex, onEdge, onHex }: BoardSvgProp
       {Object.entries(state.board.tiles).map(([hid, tile]) => (
         <HexTile key={hid} hid={hid} tile={tile} layout={layout} hasRobber={state.board.robber === hid} />
       ))}
-      {/* Slots layer added in Task C3. */}
+      <Slots state={state} layout={layout} legal={legal} onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
     </svg>
   );
 }
