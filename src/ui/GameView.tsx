@@ -1,0 +1,37 @@
+import { useState } from "react";
+import { useGame } from "../state/GameProvider";
+import { legalTargets } from "../state/legalTargets";
+import { BoardSvg } from "./board/BoardSvg";
+import { Toast } from "./Toast";
+import type { Action } from "../engine/types";
+
+export function GameView() {
+  const { state, dispatch } = useGame();
+  const [error, setError] = useState<string | null>(null);
+  const legal = legalTargets(state);
+
+  const run = (a: Action) => { const r = dispatch(a); if (!r.ok) setError(r.error); };
+  const sub = state.turn.subPhase;
+
+  const onVertex = (v: string) => {
+    if (sub === "setupSettlement") return run({ type: "setupSettlement", vertex: v });
+    if (sub === "main") {
+      const b = state.board.buildings[v];
+      if (b && b.owner === state.turn.activeSeat && b.type === "settlement") return run({ type: "buildCity", vertex: v });
+      return run({ type: "buildSettlement", vertex: v });
+    }
+  };
+  const onEdge = (e: string) => {
+    if (sub === "setupRoad") return run({ type: "setupRoad", edge: e });
+    if (sub === "main") return run({ type: "buildRoad", edge: e });
+  };
+  const onHex = (h: string) => { if (sub === "movingRobber") run({ type: "moveRobber", hex: h }); };
+
+  return (
+    <div className="game-view">
+      <BoardSvg state={state} legal={legal} onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
+      {/* panels added in D4 */}
+      <Toast message={error} onDismiss={() => setError(null)} />
+    </div>
+  );
+}
