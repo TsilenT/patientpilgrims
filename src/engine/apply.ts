@@ -7,7 +7,7 @@ import { applyEndTurn } from "./actions/turn";
 import { applyDiscard, applyMoveRobber } from "./actions/robber";
 import { applyBuyDevCard, applyPlayMonopoly, applyPlayYearOfPlenty, applyPlayRoadBuilding } from "./actions/dev";
 import { applyPlayKnight } from "./actions/knight";
-import { applyTradeBank, applyProposeTrade } from "./actions/trade";
+import { applyTradeBank, applyProposeTrade, applyAcceptTrade } from "./actions/trade";
 import { checkVictory } from "./scoring/victory";
 
 export function apply(state: GameState, action: Action, rng: Rng): ApplyResult {
@@ -52,6 +52,8 @@ function route(draft: GameState, action: Action, rng: Rng): string | null {
       return applyTradeBank(draft, action.give, action.get);
     case "proposeTrade":
       return applyProposeTrade(draft, action.give, action.want, action.to);
+    case "acceptTrade":
+      return applyAcceptTrade(draft, action.offerId, action.seat);
     case "endTurn":
       return applyEndTurn(draft);
   }

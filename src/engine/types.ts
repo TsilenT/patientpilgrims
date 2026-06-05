@@ -72,7 +72,7 @@ export interface LogEntry {
     | "roll" | "buildRoad" | "buildSettlement" | "buildCity"
     | "endTurn" | "win" | "discard"
     | "moveRobber" | "steal" | "buyDevCard" | "playMonopoly" | "playYearOfPlenty" | "playRoadBuilding"
-    | "playKnight" | "tradeBank" | "proposeTrade";
+    | "playKnight" | "tradeBank" | "proposeTrade" | "acceptTrade";
   seat: number;
   vertex?: string;
   edge?: string;
@@ -117,7 +117,8 @@ export type Action =
   | { type: "playRoadBuilding"; edges: string[] }
   | { type: "playKnight" }
   | { type: "tradeBank"; give: Resource; get: Resource }
-  | { type: "proposeTrade"; give: ResourceMap; want: ResourceMap; to?: number };
+  | { type: "proposeTrade"; give: ResourceMap; want: ResourceMap; to?: number }
+  | { type: "acceptTrade"; offerId: number; seat: number };
 
 export type ApplyResult =
   | { ok: true; state: GameState }

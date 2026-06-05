@@ -1,6 +1,6 @@
 import type { GameState, Resource, TradeOffer } from "../types";
 import type { ResourceMap } from "../resources";
-import { RESOURCE_LIST, canAfford, totalCards } from "../resources";
+import { RESOURCE_LIST, canAfford, totalCards, payInto, gainInto } from "../resources";
 
 export function portRatio(state: GameState, seat: number, resource: Resource): number {
   let ratio = 4;
@@ -33,6 +33,23 @@ export function applyProposeTrade(state: GameState, give: ResourceMap, want: Res
   state.tradeSeq += 1;
   state.tradeOffers.push(offer);
   state.log.push({ type: "proposeTrade", seat });
+  return null;
+}
+
+export function applyAcceptTrade(state: GameState, offerId: number, seat: number): string | null {
+  const idx = state.tradeOffers.findIndex((o) => o.id === offerId);
+  if (idx === -1) return "That trade offer no longer exists";
+  const offer = state.tradeOffers[idx]!;
+  if (seat === offer.from) return "You cannot accept your own offer";
+  if (offer.to !== undefined && offer.to !== seat) return "That offer is not addressed to you";
+  const proposer = state.players[offer.from]!;
+  const acceptor = state.players[seat]!;
+  if (!canAfford(proposer.resources, offer.give)) return "The proposer can no longer cover the trade";
+  if (!canAfford(acceptor.resources, offer.want)) return "You cannot cover the trade";
+  payInto(proposer.resources, offer.give); gainInto(acceptor.resources, offer.give);
+  payInto(acceptor.resources, offer.want); gainInto(proposer.resources, offer.want);
+  state.tradeOffers.splice(idx, 1);
+  state.log.push({ type: "acceptTrade", seat });
   return null;
 }
 

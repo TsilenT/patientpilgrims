@@ -193,3 +193,75 @@ describe("propose trade offer", () => {
     expect(r.ok).toBe(false);
   });
 });
+
+describe("accept trade offer", () => {
+  it("valid accept swaps resources both ways and removes the offer", () => {
+    // Player 0 proposes: give 1 wheat, want 1 ore
+    const g = mainGame();
+    g.players[0]!.resources = rm(0, 0, 0, 1, 0); // 1 wheat
+    g.players[1]!.resources = rm(0, 0, 0, 0, 1); // 1 ore
+
+    const r1 = apply(g, { type: "proposeTrade", give: rm(0, 0, 0, 1), want: rm(0, 0, 0, 0, 1) }, rngOf());
+    expectOk(r1);
+    expect(r1.state.tradeOffers).toHaveLength(1);
+    expect(r1.state.tradeOffers[0]!.id).toBe(0);
+
+    // Player 1 accepts
+    const r2 = apply(r1.state, { type: "acceptTrade", offerId: 0, seat: 1 }, rngOf());
+    expectOk(r2);
+
+    // Proposer (0): lost 1 wheat, gained 1 ore
+    expect(r2.state.players[0]!.resources.wheat).toBe(0);
+    expect(r2.state.players[0]!.resources.ore).toBe(1);
+
+    // Acceptor (1): lost 1 ore, gained 1 wheat
+    expect(r2.state.players[1]!.resources.ore).toBe(0);
+    expect(r2.state.players[1]!.resources.wheat).toBe(1);
+
+    // Offer is consumed
+    expect(r2.state.tradeOffers).toHaveLength(0);
+  });
+
+  it("rejects if the proposer can no longer cover the give (offer stays)", () => {
+    const g = mainGame();
+    g.players[0]!.resources = rm(0, 0, 0, 1, 0); // 1 wheat to offer
+    g.players[1]!.resources = rm(0, 0, 0, 0, 1); // 1 ore
+
+    const r1 = apply(g, { type: "proposeTrade", give: rm(0, 0, 0, 1), want: rm(0, 0, 0, 0, 1) }, rngOf());
+    expectOk(r1);
+
+    // Drain the proposer's wheat so they can no longer cover it
+    r1.state.players[0]!.resources.wheat = 0;
+
+    const r2 = apply(r1.state, { type: "acceptTrade", offerId: 0, seat: 1 }, rngOf());
+    expect(r2.ok).toBe(false);
+    // Offer should still be present
+    expect(r1.state.tradeOffers).toHaveLength(1);
+  });
+
+  it("rejects a targeted offer accepted by the wrong seat", () => {
+    const g = mainGame();
+    g.players[0]!.resources = rm(0, 0, 0, 1, 0); // 1 wheat
+    g.players[2]!.resources = rm(0, 0, 0, 0, 1); // 1 ore (seat 2 has resource, but offer is for seat 1)
+
+    // Target offer to seat 1 only
+    const r1 = apply(g, { type: "proposeTrade", give: rm(0, 0, 0, 1), want: rm(0, 0, 0, 0, 1), to: 1 }, rngOf());
+    expectOk(r1);
+
+    // Seat 2 tries to accept a targeted offer addressed to seat 1
+    const r2 = apply(r1.state, { type: "acceptTrade", offerId: 0, seat: 2 }, rngOf());
+    expect(r2.ok).toBe(false);
+  });
+
+  it("rejects accepting your own offer", () => {
+    const g = mainGame();
+    g.players[0]!.resources = rm(0, 0, 0, 1, 0); // 1 wheat
+
+    const r1 = apply(g, { type: "proposeTrade", give: rm(0, 0, 0, 1), want: rm(0, 0, 0, 0, 1) }, rngOf());
+    expectOk(r1);
+
+    // Proposer (seat 0) tries to accept their own offer
+    const r2 = apply(r1.state, { type: "acceptTrade", offerId: 0, seat: 0 }, rngOf());
+    expect(r2.ok).toBe(false);
+  });
+});
