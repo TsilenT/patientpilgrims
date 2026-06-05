@@ -8,6 +8,7 @@ import { HandPanel } from "./panels/HandPanel";
 import { ActionBar } from "./panels/ActionBar";
 import { OpponentBar } from "./panels/OpponentBar";
 import { LogRail } from "./panels/LogRail";
+import { TradePanel } from "./panels/TradePanel";
 import { PassDeviceScreen } from "./overlays/PassDeviceScreen";
 import { RobberVictimPicker } from "./overlays/RobberVictimPicker";
 import { DiscardModal } from "./overlays/DiscardModal";
@@ -78,6 +79,7 @@ export function GameView() {
         <>
           <HandPanel onPlayDev={onPlayDev} />
           <ActionBar />
+          {sub === "main" && <TradePanel />}
         </>
       )}
       {roadEdges !== null && (
