@@ -12,9 +12,8 @@ export function victoryPointsFromBuildings(state: GameState, seat: number): numb
 export function recomputeVictoryPoints(state: GameState, seat: number): void {
   const player = state.players[seat]!;
   let vp = victoryPointsFromBuildings(state, seat);
-  for (const c of player.devCards) {
-    if (c.type === "victoryPoint") vp += 1;
-  }
+  for (const c of player.devCards) if (c.type === "victoryPoint") vp += 1;
+  if (state.awards.largestArmy === seat) vp += 2;
   player.victoryPoints = vp;
 }
 

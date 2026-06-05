@@ -41,6 +41,12 @@ export interface Player {
   victoryPoints: number;
   pieces: { roads: number; settlements: number; cities: number };
   devCards: PlayerDevCard[];
+  knightsPlayed: number;
+}
+
+export interface Awards {
+  largestArmy?: number;
+  longestRoad?: number;
 }
 
 export interface Turn {
@@ -49,6 +55,7 @@ export interface Turn {
   dice?: [number, number];
   setupSettlement?: string;
   devCardPlayedThisTurn?: boolean;
+  robberReturn?: SubPhase;
 }
 
 export interface LogEntry {
@@ -76,6 +83,7 @@ export interface GameState {
   players: Player[];
   bank: ResourceMap;
   devDeck: DevCardType[];
+  awards: Awards;
   setup?: { order: number[]; pos: number };
   discardObligations?: Record<number, number>; // seat -> cards still owed after a 7
   log: LogEntry[];
