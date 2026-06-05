@@ -265,3 +265,47 @@ describe("accept trade offer", () => {
     expect(r2.ok).toBe(false);
   });
 });
+
+describe("cancel trade + endTurn clearing", () => {
+  it("proposer can cancel their own offer", () => {
+    const g = mainGame();
+    g.players[0]!.resources = rm(2, 0, 0, 0, 0);
+
+    // Player 0 proposes an offer (id will be 0)
+    const r1 = apply(g, { type: "proposeTrade", give: rm(2), want: rm(0, 1) }, rngOf());
+    expectOk(r1);
+    expect(r1.state.tradeOffers).toHaveLength(1);
+    expect(r1.state.tradeOffers[0]!.id).toBe(0);
+
+    // Player 0 (active seat) cancels their own offer
+    const r2 = apply(r1.state, { type: "cancelTrade", offerId: 0 }, rngOf());
+    expectOk(r2);
+    expect(r2.state.tradeOffers).toHaveLength(0);
+  });
+
+  it("non-proposer cannot cancel an offer they do not own", () => {
+    const g = mainGame();
+    // Seed an offer with from: 1, but active seat is 0
+    g.tradeOffers = [{ id: 0, from: 1, give: rm(1), want: rm(0, 1) }];
+
+    const r = apply(g, { type: "cancelTrade", offerId: 0 }, rngOf());
+    expect(r.ok).toBe(false);
+    // Offer still present on the original game state (apply does structuredClone internally)
+    expect(g.tradeOffers).toHaveLength(1);
+  });
+
+  it("endTurn clears all trade offers and advances the turn normally", () => {
+    const g = mainGame();
+    // Seed two trade offers (any from/ids)
+    g.tradeOffers = [
+      { id: 0, from: 0, give: rm(1), want: rm(0, 1) },
+      { id: 1, from: 0, give: rm(0, 0, 1), want: rm(0, 0, 0, 1) },
+    ];
+    // Active seat 0, subPhase "main" — endTurn should succeed
+    const r = apply(g, { type: "endTurn" }, rngOf());
+    expectOk(r);
+    expect(r.state.tradeOffers).toHaveLength(0);
+    expect(r.state.turn.activeSeat).toBe(1);
+    expect(r.state.turn.subPhase).toBe("awaitingRoll");
+  });
+});

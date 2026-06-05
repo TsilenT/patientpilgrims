@@ -53,6 +53,15 @@ export function applyAcceptTrade(state: GameState, offerId: number, seat: number
   return null;
 }
 
+export function applyCancelTrade(state: GameState, offerId: number): string | null {
+  const idx = state.tradeOffers.findIndex((o) => o.id === offerId);
+  if (idx === -1) return "That trade offer no longer exists";
+  if (state.tradeOffers[idx]!.from !== state.turn.activeSeat) return "You can only cancel your own offer";
+  state.tradeOffers.splice(idx, 1);
+  state.log.push({ type: "cancelTrade", seat: state.turn.activeSeat });
+  return null;
+}
+
 export function applyTradeBank(state: GameState, give: Resource, get: Resource): string | null {
   const err = requireMain(state);
   if (err) return err;

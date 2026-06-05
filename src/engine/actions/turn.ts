@@ -6,6 +6,7 @@ export function applyEndTurn(state: GameState): string | null {
   const prev = state.turn.activeSeat;
   const next = (prev + 1) % state.players.length;
   for (const c of state.players[prev]!.devCards) c.boughtThisTurn = false;
+  state.tradeOffers = [];
   state.turn = { activeSeat: next, subPhase: "awaitingRoll" };
   state.log.push({ type: "endTurn", seat: prev });
   return null;
