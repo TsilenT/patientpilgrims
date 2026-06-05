@@ -1,9 +1,10 @@
 import type { GameState } from "../engine/types";
-import type { LegalTargets } from "../ui/board/layout";
 import { topology } from "../engine/board";
 import { respectsDistance, vertexOnNetwork, edgeConnects } from "../engine";
 
-const EMPTY: LegalTargets = { vertices: new Set(), edges: new Set(), hexes: new Set() };
+/** Clickable board targets for the current sub-phase. Defined here (state layer);
+ *  the board UI imports this type rather than the reverse. */
+export interface LegalTargets { vertices: Set<string>; edges: Set<string>; hexes: Set<string> }
 
 export function legalTargets(state: GameState): LegalTargets {
   const seat = state.turn.activeSeat;
@@ -36,5 +37,5 @@ export function legalTargets(state: GameState): LegalTargets {
     for (const h of topology().hexIds) if (h !== state.board.robber) t.hexes.add(h);
     return t;
   }
-  return EMPTY;
+  return t; // no targets for other sub-phases (t holds fresh empty sets)
 }

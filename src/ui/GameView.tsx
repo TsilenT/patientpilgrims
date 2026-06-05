@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useGame } from "../state/GameProvider";
 import { legalTargets } from "../state/legalTargets";
 import { BoardSvg } from "./board/BoardSvg";
@@ -8,6 +8,7 @@ import type { Action } from "../engine/types";
 export function GameView() {
   const { state, dispatch } = useGame();
   const [error, setError] = useState<string | null>(null);
+  const dismissError = useCallback(() => setError(null), []);
   const legal = legalTargets(state);
 
   const run = (a: Action) => { const r = dispatch(a); if (!r.ok) setError(r.error); };
@@ -31,7 +32,7 @@ export function GameView() {
     <div className="game-view">
       <BoardSvg state={state} legal={legal} onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
       {/* panels added in D4 */}
-      <Toast message={error} onDismiss={() => setError(null)} />
+      <Toast message={error} onDismiss={dismissError} />
     </div>
   );
 }

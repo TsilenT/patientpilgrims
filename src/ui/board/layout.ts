@@ -12,9 +12,6 @@ export interface BoardLayout {
   viewBox: { minX: number; minY: number; width: number; height: number };
 }
 
-/** Canonical home for the click-target sets shared by BoardSvg, Slots, and the selectors. */
-export interface LegalTargets { vertices: Set<string>; edges: Set<string>; hexes: Set<string> }
-
 export function boardLayout(): BoardLayout {
   const topo = topology();
   const hex: Record<string, Pt> = {};
