@@ -8,8 +8,9 @@
     "noImplicitOverride": true,
     "exactOptionalPropertyTypes": true,
     "skipLibCheck": true,
-    "types": ["node"],
-    "lib": ["ES2022"]
+    "jsx": "react-jsx",
+    "types": ["node", "vite/client"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"]
   },
   "include": ["src", "tests"]
 }
