@@ -1,5 +1,6 @@
 import type { GameState } from "../../engine/types";
-import { boardLayout, type LegalTargets } from "./layout";
+import type { LegalTargets } from "../../state/legalTargets";
+import { boardLayout } from "./layout";
 import { HexTile } from "./HexTile";
 import { Slots } from "./Slots";
 

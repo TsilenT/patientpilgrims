@@ -1,5 +1,6 @@
 import type { GameState } from "../../engine/types";
-import type { BoardLayout, LegalTargets } from "./layout";
+import type { BoardLayout } from "./layout";
+import type { LegalTargets } from "../../state/legalTargets";
 import { topology } from "../../engine/board";
 
 export function Slots({ state, layout, legal, onVertex, onEdge, onHex }: {
