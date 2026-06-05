@@ -121,10 +121,13 @@ describe("full game scenario", () => {
     const winnerVp = s.players[s.winner!]!.victoryPoints;
     expect(winnerVp).toBeGreaterThanOrEqual(10);
 
+    // VP comes from buildings plus the Longest Road award (+2) once it is wired in.
+    // (No dev cards / Largest Army are exercised by this bot, so those are the only sources.)
     let counted = 0;
     for (const b of Object.values(s.board.buildings)) {
       if (b.owner === s.winner) counted += b.type === "city" ? 2 : 1;
     }
+    if (s.awards.longestRoad === s.winner) counted += 2;
     expect(counted).toBe(winnerVp);
   });
 });

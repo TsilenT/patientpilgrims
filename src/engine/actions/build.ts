@@ -3,6 +3,7 @@ import { topology } from "../board";
 import { COSTS, canAfford, payInto, RESOURCE_LIST, type ResourceMap } from "../resources";
 import { respectsDistance, vertexOnNetwork, edgeConnects } from "../placement";
 import { recomputeVictoryPoints } from "../scoring/victory";
+import { updateLongestRoad } from "../scoring/roads";
 
 function requireMain(state: GameState): string | null {
   if (state.phase !== "main") return "Not in the main phase";
@@ -30,6 +31,7 @@ export function applyBuildRoad(state: GameState, edge: string): string | null {
   state.board.roads[edge] = { owner: seat };
   player.pieces.roads -= 1;
   state.log.push({ type: "buildRoad", seat, edge });
+  updateLongestRoad(state);
   return null;
 }
 
@@ -49,6 +51,7 @@ export function applyBuildSettlement(state: GameState, vertex: string): string |
   player.pieces.settlements -= 1;
   recomputeVictoryPoints(state, seat);
   state.log.push({ type: "buildSettlement", seat, vertex });
+  updateLongestRoad(state);
   return null;
 }
 

@@ -1,5 +1,6 @@
 import type { GameState } from "../types";
 import { topology } from "../board";
+import { recomputeVictoryPoints } from "./victory";
 
 /**
  * Longest continuous road for `seat`: longest trail over the seat's road edges
@@ -39,4 +40,29 @@ export function longestRoadLength(state: GameState, seat: number): number {
   let best = 0;
   for (const v of starts) best = Math.max(best, extend(v, new Set()));
   return best;
+}
+
+export function updateLongestRoad(state: GameState): void {
+  const lens = state.players.map((p) => (p.longestRoadLength = longestRoadLength(state, p.seat)));
+  const prev = state.awards.longestRoad;
+  let current = prev;
+  if (current !== undefined && lens[current]! < 5) current = undefined; // holder's road got cut below 5
+  const max = Math.max(0, ...lens);
+  if (max < 5) {
+    current = undefined;
+  } else {
+    const leaders = state.players.filter((p) => lens[p.seat] === max).map((p) => p.seat);
+    if (current === undefined) {
+      if (leaders.length === 1) current = leaders[0]; // unowned: assign only to a sole leader
+    } else if (max > lens[current]! && leaders.length === 1) {
+      current = leaders[0]; // a sole challenger strictly exceeds the holder
+    }
+    // ties, or holder still tied-for-max, leave the award where it is
+  }
+  if (current !== prev) {
+    if (current === undefined) delete state.awards.longestRoad;
+    else state.awards.longestRoad = current;
+    if (prev !== undefined) recomputeVictoryPoints(state, prev);
+    if (current !== undefined) recomputeVictoryPoints(state, current);
+  }
 }
