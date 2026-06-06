@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [react()],
   test: {
     include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
+    exclude: ["**/node_modules/**", "tests/net/**"], // emulator suites run via test:emulator
     environment: "node", // UI test files opt into jsdom via a per-file docblock
     setupFiles: ["tests/setup-dom.ts"],
   },
