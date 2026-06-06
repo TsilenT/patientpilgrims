@@ -31,3 +31,19 @@ test("End Turn appears in main and advances the active seat", async () => {
   await userEvent.click(screen.getByRole("button", { name: /end turn/i }));
   expect(s.getState().turn.activeSeat).toBe(1);
 });
+
+test("shows the current turn dice roll outside the log", () => {
+  const s = store("main");
+  s.getState().turn.dice = [3, 5];
+  render(<GameProvider store={s}><ActionBar /></GameProvider>);
+  expect(screen.getByRole("status", { name: /dice roll/i })).toHaveTextContent("3 + 5 = 8");
+});
+
+test("main action buttons explain their costs", () => {
+  const s = store("main");
+  render(<GameProvider store={s}><ActionBar /></GameProvider>);
+  expect(screen.getByRole("button", { name: /buy dev card/i })).toHaveAttribute(
+    "title",
+    "Costs sheep, wheat, ore",
+  );
+});

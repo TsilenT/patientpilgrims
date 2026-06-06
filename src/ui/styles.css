@@ -88,8 +88,17 @@ main { min-height: 100vh; }
 .opponent .award { background: var(--good); color: #fff; border-radius: 6px; padding: 0 4px; font-size: 11px; }
 
 /* ---- Bottom sheet + tabs ---- */
-.action-bar { display: flex; gap: 8px; justify-content: center; }
+.action-bar { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
 .action-bar button { background: var(--accent); color: var(--accent-ink); border: none; font-weight: 600; }
+.dice-summary {
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  border-radius: 10px;
+  padding: 6px 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+.dice-summary span { opacity: 0.72; }
+.dice-summary strong { color: var(--ocean-deep); }
 
 .bottom-sheet {
   background: var(--panel);
@@ -105,6 +114,27 @@ main { min-height: 100vh; }
 .resources, .dev-cards { list-style: none; padding: 0; margin: 4px 0; display: flex; gap: 8px; flex-wrap: wrap; }
 .resources li { background: #fff; border: 1px solid var(--panel-edge); border-radius: 6px; padding: 2px 8px; }
 .dev-cards li { display: inline-flex; }
+.cost-reference { margin-top: 10px; }
+.cost-reference h3 { margin: 6px 0 4px; font-size: 14px; }
+.cost-reference ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 6px;
+}
+.cost-reference li {
+  background: #fff;
+  border: 1px solid var(--panel-edge);
+  border-radius: 8px;
+  padding: 5px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cost-label { font-weight: 700; }
+.cost-value { font-size: 13px; }
 
 /* ---- Trade panel ---- */
 .trade-panel section { margin-bottom: 10px; }

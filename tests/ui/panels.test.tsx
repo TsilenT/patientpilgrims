@@ -5,6 +5,7 @@ import { GameProvider } from "../../src/state/GameProvider";
 import { GameStore } from "../../src/state/gameStore";
 import { OpponentBar } from "../../src/ui/panels/OpponentBar";
 import { LogRail } from "../../src/ui/panels/LogRail";
+import { HandPanel } from "../../src/ui/panels/HandPanel";
 import { GameOverBanner } from "../../src/ui/overlays/GameOverBanner";
 import { createInitialGame, mulberry32 } from "../../src/engine";
 import { createBoard } from "../../src/board";
@@ -39,6 +40,27 @@ test("log rail renders readable event lines", () => {
   render(<GameProvider store={store(g)}><LogRail /></GameProvider>);
   expect(screen.getByText("A rolled 8")).toBeInTheDocument();
   expect(screen.getByText("B built a city")).toBeInTheDocument();
+});
+
+test("hand panel includes a build cost reference", () => {
+  render(<GameProvider store={store(mainGame())}><HandPanel /></GameProvider>);
+  const costs = screen.getByRole("region", { name: /cost reference/i });
+  expect(costs).toHaveTextContent("Road");
+  expect(costs).toHaveTextContent("wood + brick");
+  expect(costs).toHaveTextContent("Settlement");
+  expect(costs).toHaveTextContent("wood + brick + sheep + wheat");
+  expect(costs).toHaveTextContent("City upgrade");
+  expect(costs).toHaveTextContent("2 wheat + 3 ore");
+  expect(costs).toHaveTextContent("Dev card");
+  expect(costs).toHaveTextContent("sheep + wheat + ore");
+});
+
+test("cost reference rows expose tooltip details", () => {
+  render(<GameProvider store={store(mainGame())}><HandPanel /></GameProvider>);
+  expect(screen.getByText("City upgrade").closest("li")).toHaveAttribute(
+    "title",
+    "Upgrade one settlement to a city. Costs 2 wheat, 3 ore.",
+  );
 });
 
 test("game over banner names the winner when finished", () => {

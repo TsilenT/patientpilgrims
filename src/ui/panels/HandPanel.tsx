@@ -3,6 +3,7 @@ import { currentActor } from "../../state/viewModel";
 import { RESOURCE_LIST } from "../../engine/resources";
 import type { PlayerDevCard } from "../../engine/types";
 import type { DevCardType } from "../../engine/devcards";
+import { CostReference } from "./CostReference";
 
 export function HandPanel({ onPlayDev }: { onPlayDev?: (type: DevCardType) => void }) {
   const { state, mySeat } = useGame();
@@ -35,6 +36,7 @@ export function HandPanel({ onPlayDev }: { onPlayDev?: (type: DevCardType) => vo
           </li>
         ))}
       </ul>
+      <CostReference />
     </div>
   );
 }
