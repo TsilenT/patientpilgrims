@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test:emulator": "firebase emulators:exec --only database,auth \"vitest run tests/net\"",
+    "test:emulator": "firebase emulators:exec --only database,auth \"vitest run --config vitest.emulator.config.ts\"",
     "rules:deploy": "firebase deploy --only database"
   },
   "devDependencies": {
