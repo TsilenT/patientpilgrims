@@ -56,4 +56,17 @@ describe("rtdb security rules (emulator)", () => {
     const db = env.authenticatedContext("alice").database();
     await assertFails(set(ref(db, "games/g/state"), { version: 99, turn: { activeSeat: 0 } }));
   });
+
+  it("lets the creator write ALL seat claim tokens (createGame writes them one by one)", async () => {
+    const db = env.authenticatedContext("creator").database();
+    await assertSucceeds(set(ref(db, "games/multi/_claims/0"), "t0"));
+    await assertSucceeds(set(ref(db, "games/multi/_claims/1"), "t1")); // regression: must not be denied
+    await assertSucceeds(set(ref(db, "games/multi/_claims/2"), "t2"));
+  });
+
+  it("rejects overwriting an existing claim token (write-once)", async () => {
+    const db = env.authenticatedContext("x").database();
+    await assertSucceeds(set(ref(db, "games/wo/_claims/0"), "first"));
+    await assertFails(set(ref(db, "games/wo/_claims/0"), "second"));
+  });
 });
