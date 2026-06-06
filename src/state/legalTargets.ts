@@ -40,6 +40,47 @@ export function legalTargets(state: GameState): LegalTargets {
   return t; // no targets for other sub-phases (t holds fresh empty sets)
 }
 
+/** Legal spots for a single chosen build type (the conscious-build flow). */
+export function buildTargets(state: GameState, mode: "road" | "settlement" | "city"): LegalTargets {
+  const seat = state.turn.activeSeat;
+  const sub = state.turn.subPhase;
+  const t: LegalTargets = { vertices: new Set(), edges: new Set(), hexes: new Set() };
+
+  if (mode === "road") {
+    if (sub === "setupRoad") {
+      const just = state.turn.setupSettlement;
+      if (just) for (const e of topology().vertexEdges.get(just) ?? [])
+        if (state.board.roads[e] === undefined) t.edges.add(e);
+    } else if (sub === "main") {
+      for (const e of topology().edgeIds)
+        if (state.board.roads[e] === undefined && edgeConnects(state.board, seat, e)) t.edges.add(e);
+    }
+  } else if (mode === "settlement") {
+    if (sub === "setupSettlement") {
+      for (const v of topology().vertexIds) if (respectsDistance(state.board, v)) t.vertices.add(v);
+    } else if (sub === "main") {
+      for (const v of topology().vertexIds)
+        if (state.board.buildings[v] === undefined && respectsDistance(state.board, v)
+            && vertexOnNetwork(state.board, seat, v))
+          t.vertices.add(v);
+    }
+  } else { // city
+    if (sub === "main") {
+      for (const v of topology().vertexIds) {
+        const b = state.board.buildings[v];
+        if (b && b.owner === seat && b.type === "settlement") t.vertices.add(v);
+      }
+    }
+  }
+  return t;
+}
+
+/** Total number of legal targets across vertices + edges (for selector enablement). */
+export function buildTargetCount(state: GameState, mode: "road" | "settlement" | "city"): number {
+  const t = buildTargets(state, mode);
+  return t.vertices.size + t.edges.size;
+}
+
 /**
  * Edges legal to place during a Road Building card, treating already-collected
  * edges as if placed — so a second road that only connects via the first still
