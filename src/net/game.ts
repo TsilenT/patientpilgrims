@@ -3,6 +3,7 @@ import type { GameState } from "../engine/types";
 import { createInitialGame, mulberry32, cryptoRng, type NewPlayer } from "../engine";
 import { createBoard } from "../board";
 import { database, ensureSignedIn } from "./firebase";
+import { normalizeState } from "./normalize";
 import type { RtdbBackend, CommitResult, GameMeta, SeatLink } from "./types";
 
 const ID_ALPHABET = "abcdefghijkmnpqrstuvwxyz23456789";
@@ -72,18 +73,19 @@ export function makeRtdbBackend(id: string): RtdbBackend {
   const stateRef = ref(database(), `games/${id}/state`);
   return {
     subscribe(cb) {
-      return onValue(stateRef, (snap) => cb((snap.val() as GameState | null) ?? null));
+      // RTDB drops empty collections; rehydrate before the store/engine see the state.
+      return onValue(stateRef, (snap) => cb(normalizeState(snap.val() as GameState | null)));
     },
     async commit(update): Promise<CommitResult> {
       let abortError: string | null = null;
       const tx = await runTransaction(stateRef, (current: GameState | null) => {
-        const next = update(current);
+        const next = update(normalizeState(current));
         if (typeof next === "string") { abortError = next; return undefined; } // abort
         return next;
       });
       if (abortError !== null) return { ok: false, error: abortError };
       if (!tx.committed) return { ok: false, error: "The board changed — please retry." };
-      return { ok: true, state: tx.snapshot.val() as GameState };
+      return { ok: true, state: normalizeState(tx.snapshot.val() as GameState)! };
     },
   };
 }

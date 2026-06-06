@@ -21,6 +21,8 @@ export function App() {
   const [resumable, setResumable] = useState<GameStore | null>(null);
   const [creatingOnline, setCreatingOnline] = useState(false);
   const [checked, setChecked] = useState(false);
+  const [joining, setJoining] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
 
   useEffect(() => {
     const onHash = () => setRoute(parseRoute(location.hash));
@@ -35,20 +37,54 @@ export function App() {
     });
   }, []);
 
-  // Join an online game (claimed seat or already-bound device).
+  // Join an online game (claimed seat or already-bound device). Waits for the first
+  // remote snapshot before mounting the game view, so getState() is never called empty.
   const enterOnline = useCallback((id: string) => {
-    void seatForUid(id).then((seat) => {
-      setStore(new NetworkedGameStore(makeRtdbBackend(id), seat));
-      location.hash = `#/g/${id}`;
-    });
+    setJoining(true);
+    setJoinError(null);
+    void (async () => {
+      try {
+        const seat = await seatForUid(id);
+        const s = new NetworkedGameStore(makeRtdbBackend(id), seat);
+        await s.whenReady();
+        if (!s.hasState()) { setJoinError("Game not found."); setJoining(false); return; }
+        setStore(s);
+        if (location.hash !== `#/g/${id}`) location.hash = `#/g/${id}`;
+        setJoining(false);
+      } catch (e) {
+        setJoinError(e instanceof Error ? e.message : "Could not join the game.");
+        setJoining(false);
+      }
+    })();
   }, []);
 
   // A bare game link (already claimed elsewhere) → open it once.
   useEffect(() => {
-    if (route.kind === "game" && store === null) enterOnline(route.id);
-  }, [route, store, enterOnline]);
+    if (route.kind === "game" && store === null && !joining && joinError === null) {
+      enterOnline(route.id);
+    }
+  }, [route, store, joining, joinError, enterOnline]);
 
   if (store) return <GameProvider store={store}><GameView /></GameProvider>;
+
+  if (joinError) {
+    return (
+      <main data-testid="app-root">
+        <div className="start-screen">
+          <h1>Couldn’t join</h1>
+          <p role="alert">{joinError}</p>
+          <button onClick={() => { setJoinError(null); location.hash = "#/"; }}>Back to start</button>
+        </div>
+      </main>
+    );
+  }
+  if (joining) {
+    return (
+      <main data-testid="app-root">
+        <div className="start-screen"><h1>Joining game…</h1></div>
+      </main>
+    );
+  }
 
   if (route.kind === "claim") {
     return <ClaimSeat id={route.id} seat={route.seat} token={route.token} onClaimed={enterOnline} />;
