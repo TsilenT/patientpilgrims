@@ -11,9 +11,12 @@ export function GameProvider({ store, children }: { store: Store; children: Reac
 export function useGame(): {
   state: GameState;
   dispatch: (a: Action) => DispatchResult | Promise<DispatchResult>;
+  /** Seat this device controls in an online game, or null for hotseat. */
+  mySeat: number | null;
 } {
   const store = useContext(StoreContext);
   if (!store) throw new Error("useGame must be used within a GameProvider");
   const state = useSyncExternalStore(store.subscribe, store.getState);
-  return { state, dispatch: store.dispatch };
+  const mySeat = store.seat ? store.seat() : null;
+  return { state, dispatch: store.dispatch, mySeat };
 }

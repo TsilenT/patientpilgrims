@@ -5,9 +5,10 @@ import type { PlayerDevCard } from "../../engine/types";
 import type { DevCardType } from "../../engine/devcards";
 
 export function HandPanel({ onPlayDev }: { onPlayDev?: (type: DevCardType) => void }) {
-  const { state } = useGame();
-  const seat = currentActor(state);
-  const me = state.players[seat]!;
+  const { state, mySeat } = useGame();
+  const seat = mySeat ?? currentActor(state); // online: always my hand; hotseat: the acting player
+  const me = state.players[seat];
+  if (!me) return null; // spectator (no claimed seat)
   const canPlay = (c: PlayerDevCard) =>
     onPlayDev !== undefined &&
     c.type !== "victoryPoint" &&

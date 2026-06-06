@@ -17,24 +17,37 @@ import { GameOverBanner } from "./overlays/GameOverBanner";
 import { Toast } from "./Toast";
 import type { DevCardType } from "../engine/devcards";
 
+const NO_TARGETS = { vertices: new Set<string>(), edges: new Set<string>(), hexes: new Set<string>() };
+
 export function GameView() {
-  const { state } = useGame();
+  const { state, mySeat } = useGame();
   const { run, error, dismissError } = useDispatchWithError();
   const sub = state.turn.subPhase;
+  const online = mySeat !== null;
   const actor = currentActor(state);
-  const owed = state.discardObligations?.[actor] ?? 0;
+  const viewer = mySeat ?? actor; // perspective: online → my seat; hotseat → the acting player
+  const owed = state.discardObligations?.[viewer] ?? 0;
   const [revealedSeat, setRevealedSeat] = useState(actor);
   const [robberPick, setRobberPick] = useState<{ hex: string; victims: number[] } | null>(null);
   const [devModal, setDevModal] = useState<"monopoly" | "yearOfPlenty" | null>(null);
   const [roadEdges, setRoadEdges] = useState<string[] | null>(null);
   const [tab, setTab] = useState<"hand" | "trades" | "log">("hand");
 
+  // Turn gating. Hotseat keeps the pass-the-device flow; online locks to your own seat.
+  const needReveal = !online && actor !== revealedSeat;
+  const myTurn = online ? state.turn.activeSeat === mySeat : true;
+  const waiting = online && !myTurn && owed === 0; // not your turn, nothing owed → read-only
+  const interactive = !needReveal && !waiting && owed === 0;
+
   // While a Road Building card is being placed, the board highlights its legal edges.
-  const legal = roadEdges !== null
-    ? { vertices: new Set<string>(), edges: legalRoadBuildingEdges(state, roadEdges), hexes: new Set<string>() }
-    : legalTargets(state);
+  const legal = !interactive
+    ? NO_TARGETS
+    : roadEdges !== null
+      ? { vertices: new Set<string>(), edges: legalRoadBuildingEdges(state, roadEdges), hexes: new Set<string>() }
+      : legalTargets(state);
 
   const onVertex = (v: string) => {
+    if (!interactive) return;
     if (sub === "setupSettlement") return run({ type: "setupSettlement", vertex: v });
     if (sub === "main") {
       const b = state.board.buildings[v];
@@ -43,6 +56,7 @@ export function GameView() {
     }
   };
   const onEdge = (e: string) => {
+    if (!interactive) return;
     if (roadEdges !== null) {
       const next = [...roadEdges, e];
       if (next.length >= 2) { run({ type: "playRoadBuilding", edges: next }); setRoadEdges(null); }
@@ -53,7 +67,7 @@ export function GameView() {
     if (sub === "main") return run({ type: "buildRoad", edge: e });
   };
   const onHex = (h: string) => {
-    if (sub !== "movingRobber") return;
+    if (!interactive || sub !== "movingRobber") return;
     const victims = eligibleVictims(state, h);
     if (victims.length === 0) run({ type: "moveRobber", hex: h });
     else if (victims.length === 1) run({ type: "moveRobber", hex: h, victim: victims[0]! });
@@ -71,11 +85,26 @@ export function GameView() {
     <div className="game-view">
       <OpponentBar />
       <BoardSvg state={state} legal={legal} onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
-      {actor !== revealedSeat ? (
+      {needReveal ? (
         <PassDeviceScreen name={state.players[actor]!.name} onReveal={() => setRevealedSeat(actor)} />
+      ) : waiting ? (
+        <>
+          <div className="waiting-banner" role="status">
+            Waiting for <strong>{state.players[state.turn.activeSeat]!.name}</strong>…
+          </div>
+          <div className="bottom-sheet">
+            <div className="tabs" role="tablist">
+              <button role="tab" aria-selected={tab === "log"} onClick={() => setTab("log")}>Log</button>
+              <button role="tab" aria-selected={tab !== "log"} onClick={() => setTab("hand")}>Your hand</button>
+            </div>
+            <div className="tab-content" role="tabpanel" aria-label={tab}>
+              {tab === "log" ? <LogRail /> : <HandPanel />}
+            </div>
+          </div>
+        </>
       ) : owed > 0 ? (
-        <DiscardModal state={state} seat={actor} owed={owed}
-          onDiscard={(cards) => run({ type: "discard", seat: actor, cards })} />
+        <DiscardModal state={state} seat={viewer} owed={owed}
+          onDiscard={(cards) => run({ type: "discard", seat: viewer, cards })} />
       ) : (
         <>
           <ActionBar />
