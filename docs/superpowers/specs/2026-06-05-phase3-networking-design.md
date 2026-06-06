@@ -73,15 +73,21 @@ Rules engine (pure TS)  apply(state, action, rng) -> state      ← unchanged, n
 
 `dispatch` becomes async-capable. The existing `DispatchResult` (`{ok:true} | {ok:false,
 error}`) is preserved; `NetworkedGameStore.dispatch` returns a `Promise<DispatchResult>`.
-The hotseat store keeps its synchronous return. Callers (`useDispatchWithError`) await a
-value that may be a promise — handled uniformly.
+The hotseat store keeps its synchronous return. `useDispatchWithError` is updated to
+`await Promise.resolve(dispatch(a))`, which handles both the sync (hotseat) and promise
+(networked) returns uniformly — the only existing-code change in the UI layer.
 
-> **Engine purity note.** `apply()` takes injected RNG. Inside a transaction the update
-> function may run more than once (Firebase retries). RNG-bearing actions (roll, buy dev
-> card, steal) must therefore derive their random results **once, before** entering the
-> transaction, and pass those results in as part of the action — so a retry replays the
-> same outcome rather than re-rolling. Actions already record their results in state
-> (parent spec §4 "Randomness"); Phase 3 formalizes "resolve randomness, then commit."
+> **Engine purity note (seed injection).** `apply()` takes injected RNG. Inside a
+> transaction the update function may run more than once (Firebase retries), so a freshly
+> seeded `cryptoRng()` per attempt would re-roll. Fix: `NetworkedGameStore.dispatch`
+> derives a single random **seed** *before* entering the transaction, then constructs
+> `mulberry32(seed)` *inside* each attempt. Every retry replays identical RNG draws because
+> the draws depend only on the seed (and deterministic state), not on attempt count. The
+> three RNG-bearing actions — `rollDice`, `moveRobber` (steal), `buyDevCard` — each draw at
+> a fixed point, so this is stable. **The engine, its action types, and all Phase 1 tests
+> are unchanged**; the change lives entirely in the new store. Drawn results are still
+> recorded in state (parent spec §4); the seed itself is not stored, so future draws remain
+> unpredictable from public state.
 
 ---
 
@@ -222,9 +228,9 @@ vite.config.ts                 add base: '/adultingcatan/'
 
 ## 12. Implementation order
 
-1. **Store seam + randomness-before-commit refactor** — introduce `NetworkedGameStore`
-   interface and the "resolve randomness, then apply" change; prove it with the hotseat
-   store still green.
+1. **Store seam** — introduce the `GameStore` interface type, the seed-injection helper,
+   and `useDispatchWithError`'s `await Promise.resolve(...)` change. No engine change; all
+   existing tests stay green. (`NetworkedGameStore` itself lands in step 2 with the adapter.)
 2. **Firebase adapter** (`net/`) + emulator integration tests for the transaction path.
 3. **Security rules** + emulator tests for version/seat/claim enforcement.
 4. **Lobby, routing, claim flow** + create-online-game UI with secret links.
