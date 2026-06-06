@@ -94,7 +94,7 @@ export function GameView() {
       ) : waiting ? (
         <>
           <div className="waiting-banner" role="status">
-            Waiting for <strong>{state.players[state.turn.activeSeat]!.name}</strong>…
+            {`Waiting for ${state.players[state.turn.activeSeat]!.name}…`}
           </div>
           <div className="bottom-sheet">
             <div className="tabs" role="tablist">

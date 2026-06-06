@@ -42,7 +42,10 @@ test("online: on your turn the controls are interactive", () => {
 
 test("online: when it is not your turn you see a read-only waiting view", () => {
   render(<GameProvider store={onlineStore(mainGame(), 1)}><GameView /></GameProvider>);
-  expect(screen.getByText(/waiting for/i)).toHaveTextContent("Alice");
+  const banner = screen.getByText(/waiting for/i);
+  expect(banner).toHaveTextContent("Waiting for Alice…");
+  expect(banner.textContent).not.toContain("forAlice");
+  expect(banner.childNodes[0]?.textContent).toBe("Waiting for Alice…");
   expect(screen.queryByRole("button", { name: /roll/i })).toBeNull();
 });
 
