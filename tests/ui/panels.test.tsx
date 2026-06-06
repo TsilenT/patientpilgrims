@@ -34,6 +34,17 @@ test("opponent bar shows counts for non-viewing seats only", () => {
   expect(screen.getByTestId("opp-2-resources")).toBeInTheDocument();
 });
 
+test("opponent bar uses compact stat labels with tooltips", () => {
+  const g = mainGame();
+  g.players[1]!.resources = { wood: 2, brick: 1, sheep: 0, wheat: 0, ore: 0 };
+  render(<GameProvider store={store(g)}><OpponentBar /></GameProvider>);
+  expect(screen.getByTestId("opp-1-resources")).toHaveTextContent("C 3");
+  expect(screen.getByTestId("opp-1-resources")).toHaveAttribute("title", "Resource cards");
+  expect(screen.getByTestId("opp-1-dev")).toHaveTextContent("D 0");
+  expect(screen.getByTestId("opp-1-dev")).toHaveAttribute("title", "Development cards");
+  expect(screen.getByTestId("opp-1-vp")).toHaveTextContent("VP 0");
+});
+
 test("log rail renders readable event lines", () => {
   const g = mainGame();
   g.log = [{ type: "roll", seat: 0, sum: 8 }, { type: "buildCity", seat: 1 }];

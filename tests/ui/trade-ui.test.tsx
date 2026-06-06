@@ -5,10 +5,12 @@ import userEvent from "@testing-library/user-event";
 import { GameProvider } from "../../src/state/GameProvider";
 import { GameStore } from "../../src/state/gameStore";
 import { GameView } from "../../src/ui/GameView";
-import { createInitialGame, mulberry32 } from "../../src/engine";
+import { TradePanel } from "../../src/ui/panels/TradePanel";
+import { createInitialGame, mulberry32, apply } from "../../src/engine";
 import { createBoard } from "../../src/board";
 import { LocalStoragePersistence } from "../../src/state/persistence";
 import type { GameState, ResourceMap } from "../../src/engine/types";
+import type { Store, DispatchResult } from "../../src/state/store";
 
 const rm = (wood = 0, brick = 0, sheep = 0, wheat = 0, ore = 0): ResourceMap =>
   ({ wood, brick, sheep, wheat, ore });
@@ -23,6 +25,23 @@ function mainGame(): GameState {
 }
 function store(g: GameState) {
   return new GameStore(g, new LocalStoragePersistence(), mulberry32(0));
+}
+
+function onlineStore(initial: GameState, mySeat: number): Store {
+  let s = initial;
+  const ls = new Set<() => void>();
+  return {
+    getState: () => s,
+    subscribe: (cb) => { ls.add(cb); return () => { ls.delete(cb); }; },
+    dispatch: (a): DispatchResult => {
+      const r = apply(s, a, mulberry32(0));
+      if (!r.ok) return { ok: false, error: r.error };
+      s = r.state;
+      ls.forEach((l) => l());
+      return { ok: true };
+    },
+    seat: () => mySeat,
+  };
 }
 
 test("bank trade swaps at the 4:1 default ratio", async () => {
@@ -50,6 +69,19 @@ test("propose then accept-on-behalf swaps resources between the two players", as
   expect(s.getState().players[0]!.resources.wheat).toBe(1);
   expect(s.getState().players[1]!.resources.wood).toBe(1);
   expect(s.getState().tradeOffers).toHaveLength(0);
+});
+
+test("online trade panel only lets the logged-in seat accept for themselves", () => {
+  const g = mainGame();
+  g.players[1]!.resources = rm(0, 0, 0, 1);
+  g.players[2]!.resources = rm(0, 0, 0, 1);
+  g.tradeOffers = [{ id: 0, from: 0, give: rm(1), want: rm(0, 0, 0, 1) }];
+  g.tradeSeq = 1;
+
+  render(<GameProvider store={onlineStore(g, 1)}><TradePanel /></GameProvider>);
+
+  expect(screen.getByTestId("accept-0-1")).toBeInTheDocument();
+  expect(screen.queryByTestId("accept-0-2")).toBeNull();
 });
 
 test("proposer can cancel their own open offer", async () => {

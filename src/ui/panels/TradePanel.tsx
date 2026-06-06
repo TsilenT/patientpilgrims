@@ -10,9 +10,9 @@ const summarize = (m: ResourceMap): string =>
   RESOURCE_LIST.filter((r) => m[r] > 0).map((r) => `${m[r]} ${r}`).join(", ") || "nothing";
 
 export function TradePanel() {
-  const { state } = useGame();
+  const { state, mySeat } = useGame();
   const { run, error, dismissError } = useDispatchWithError();
-  const seat = state.turn.activeSeat;
+  const seat = mySeat ?? state.turn.activeSeat;
   const [give, setGive] = useState<Resource>("wood");
   const [get, setGet] = useState<Resource>("brick");
   const [offerGive, setOfferGive] = useState<ResourceMap>(empty());
@@ -68,22 +68,24 @@ export function TradePanel() {
       <section aria-label="Open offers">
         <h3>Open offers</h3>
         <ul>
-          {state.tradeOffers.map((o) => (
-            <li key={o.id} data-offer={o.id}>
-              {state.players[o.from]!.name} gives {summarize(o.give)} for {summarize(o.want)}
-              {o.from === seat && (
-                <button onClick={() => run({ type: "cancelTrade", offerId: o.id })}>Cancel</button>
-              )}
-              {state.players
-                .filter((p) => p.seat !== o.from && (o.to === undefined || o.to === p.seat))
-                .map((p) => (
+          {state.tradeOffers.map((o) => {
+            const acceptors = (mySeat === null ? state.players : state.players.filter((p) => p.seat === mySeat))
+              .filter((p) => p.seat !== o.from && (o.to === undefined || o.to === p.seat));
+            return (
+              <li key={o.id} data-offer={o.id}>
+                {state.players[o.from]!.name} gives {summarize(o.give)} for {summarize(o.want)}
+                {o.from === seat && (
+                  <button onClick={() => run({ type: "cancelTrade", offerId: o.id })}>Cancel</button>
+                )}
+                {acceptors.map((p) => (
                   <button key={p.seat} data-testid={`accept-${o.id}-${p.seat}`}
                     onClick={() => run({ type: "acceptTrade", offerId: o.id, seat: p.seat })}>
                     {p.name} accepts
                   </button>
                 ))}
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       </section>
       <Toast message={error} onDismiss={dismissError} />

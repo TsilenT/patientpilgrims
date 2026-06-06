@@ -99,10 +99,13 @@ export function GameView() {
           <div className="bottom-sheet">
             <div className="tabs" role="tablist">
               <button role="tab" aria-selected={tab === "log"} onClick={() => setTab("log")}>Log</button>
-              <button role="tab" aria-selected={tab !== "log"} onClick={() => setTab("hand")}>Your hand</button>
+              {sub === "main" && <button role="tab" aria-selected={tab === "trades"} onClick={() => setTab("trades")}>Trades</button>}
+              <button role="tab" aria-selected={tab === "hand"} onClick={() => setTab("hand")}>Your hand</button>
             </div>
             <div className="tab-content" role="tabpanel" aria-label={tab}>
-              {tab === "log" ? <LogRail /> : <HandPanel />}
+              {tab === "log" && <LogRail />}
+              {tab === "trades" && (sub === "main" ? <TradePanel /> : <p>Trades open after the active player rolls.</p>)}
+              {tab === "hand" && <HandPanel />}
             </div>
           </div>
         </>

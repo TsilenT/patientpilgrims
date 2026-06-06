@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { test, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { GameProvider } from "../../src/state/GameProvider";
 import { GameView } from "../../src/ui/GameView";
 import { createInitialGame, mulberry32, apply } from "../../src/engine";
@@ -53,6 +54,18 @@ test("online: dice summary remains visible while waiting for another player", ()
   expect(dice).toHaveTextContent("4 + 6 = 10");
   expect(dice).toHaveClass("dice-summary");
   expect(dice.closest(".top-hud")).not.toBeNull();
+});
+
+test("online: waiting players can view trades but only accept as themselves", async () => {
+  const g = mainGame();
+  g.turn = { activeSeat: 0, subPhase: "main", dice: [4, 6] };
+  g.tradeOffers = [{ id: 0, from: 0, give: { wood: 1, brick: 0, sheep: 0, wheat: 0, ore: 0 }, want: { wood: 0, brick: 0, sheep: 0, wheat: 1, ore: 0 } }];
+  render(<GameProvider store={onlineStore(g, 1)}><GameView /></GameProvider>);
+
+  await userEvent.click(screen.getByRole("tab", { name: "Trades" }));
+
+  expect(screen.getByTestId("accept-0-1")).toBeInTheDocument();
+  expect(screen.queryByTestId("accept-0-2")).toBeNull();
 });
 
 test("online: you can resolve your own discard even when it is not your turn", () => {
