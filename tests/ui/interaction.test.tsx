@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { test, expect } from "vitest";
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { GameProvider } from "../../src/state/GameProvider";
 import { GameStore } from "../../src/state/gameStore";
@@ -30,7 +30,7 @@ test("clicking a legal setup vertex dispatches setupSettlement", async () => {
   expect(store.getState().board.buildings[legalV]).toEqual({ owner: g.turn.activeSeat, type: "settlement" });
 });
 
-test("clicking your settlement in main phase upgrades it to a city", async () => {
+test("selecting City then tapping your settlement upgrades it to a city", async () => {
   const g = newGame();
   g.phase = "main";
   g.turn = { activeSeat: 0, subPhase: "main" };
@@ -41,10 +41,12 @@ test("clicking your settlement in main phase upgrades it to a city", async () =>
 
   const store = new GameStore(g, new LocalStoragePersistence(), mulberry32(1));
   const { container } = render(<GameProvider store={store}><GameView /></GameProvider>);
-  const building = container.querySelector(`[data-building="${v}"]`)!;
-  expect(building.getAttribute("style")).toContain("pointer");
+  // conscious build: choose City first, then tap the settlement's (now enlarged) target
+  await userEvent.click(screen.getByRole("button", { name: /city/i }));
+  const slot = container.querySelector(`[data-vertex-slot="${v}"]`)!;
+  expect(slot).not.toBeNull();
 
-  await userEvent.click(building);
+  await userEvent.click(slot);
 
   expect(store.getState().board.buildings[v]).toEqual({ owner: 0, type: "city" });
 });

@@ -48,7 +48,7 @@ export function Slots({ state, layout, legal, onVertex, onEdge, onHex }: {
           // A placed building. In city mode it is a legal upgrade target → add a big hit zone.
           return (
             <g key={vid}>
-              {isLegal && <circle cx={p.x} cy={p.y} r={VERTEX_HIT} fill="transparent"
+              {isLegal && <circle data-vertex-slot={vid} cx={p.x} cy={p.y} r={VERTEX_HIT} fill="transparent"
                 style={{ cursor: "pointer" }} onClick={() => onVertex(vid)} />}
               <circle data-building={vid} cx={p.x} cy={p.y} r={b.type === "city" ? 11 : 8}
                 fill={color(b.owner)} stroke="#234" strokeWidth={2} pointerEvents="none" />
