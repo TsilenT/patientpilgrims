@@ -2,10 +2,11 @@ import type { GameState, Action } from "../engine/types";
 import type { Rng } from "../engine/rng";
 import { apply } from "../engine";
 import type { Persistence } from "./persistence";
+import type { Store, DispatchResult } from "./store";
 
-export type DispatchResult = { ok: true } | { ok: false; error: string };
+export type { DispatchResult };
 
-export class GameStore {
+export class GameStore implements Store {
   private state: GameState;
   private listeners = new Set<() => void>();
 
