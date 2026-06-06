@@ -36,7 +36,9 @@ export function Slots({ state, layout, legal, onVertex, onEdge, onHex }: {
         const p = layout.vertex[vid]!;
         const isLegal = legal.vertices.has(vid);
         if (b) return <circle key={vid} data-building={vid} cx={p.x} cy={p.y}
-          r={b.type === "city" ? 11 : 8} fill={color(b.owner)} stroke="#234" strokeWidth={2} />;
+          r={b.type === "city" ? 11 : 8} fill={color(b.owner)} stroke="#234" strokeWidth={2}
+          style={{ cursor: isLegal ? "pointer" : "default" }}
+          onClick={isLegal ? () => onVertex(vid) : undefined} />;
         return <circle key={vid} data-vertex-slot={vid} cx={p.x} cy={p.y} r={isLegal ? 8 : 6}
           fill={isLegal ? "#ffffff" : "transparent"} fillOpacity={isLegal ? 0.85 : 0}
           style={{ cursor: isLegal ? "pointer" : "default" }}
