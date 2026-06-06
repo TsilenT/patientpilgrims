@@ -52,6 +52,17 @@ export function Slots({ state, layout, legal, onVertex, onEdge, onHex }: {
                 style={{ cursor: "pointer" }} onClick={() => onVertex(vid)} />}
               <circle data-building={vid} cx={p.x} cy={p.y} r={b.type === "city" ? 11 : 8}
                 fill={color(b.owner)} stroke="#234" strokeWidth={2} pointerEvents="none" />
+              {b.type === "city" && (
+                <polygon
+                  points={`${p.x},${p.y - 6} ${p.x - 6},${p.y + 5} ${p.x + 6},${p.y + 5}`}
+                  fill="#ffffff"
+                  stroke="#234"
+                  strokeWidth={1}
+                  strokeLinejoin="round"
+                  pointerEvents="none"
+                  aria-hidden="true"
+                />
+              )}
             </g>
           );
         }
