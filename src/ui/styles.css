@@ -170,3 +170,7 @@ main { min-height: 100vh; }
   .action-bar { grid-area: actions; }
   .bottom-sheet { grid-area: sheet; border-radius: 14px; align-self: stretch; }
 }
+
+.seat-links { list-style: none; padding: 0; display: grid; gap: 0.5rem; }
+.seat-links li { display: flex; align-items: center; gap: 0.5rem; }
+.seat-links input { flex: 1; font-family: monospace; }

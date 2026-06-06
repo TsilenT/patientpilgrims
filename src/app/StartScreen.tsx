@@ -7,7 +7,10 @@ import { createBoard } from "../board";
 const COLORS = ["red", "blue", "white", "orange"];
 const DEFAULT_NAMES = ["Player 1", "Player 2", "Player 3", "Player 4"];
 
-export function StartScreen({ onStart }: { onStart: (store: GameStore) => void }) {
+export function StartScreen({ onStart, onCreateOnline }: {
+  onStart: (store: GameStore) => void;
+  onCreateOnline?: (() => void) | undefined;
+}) {
   const [count, setCount] = useState(3);
   const [names, setNames] = useState<string[]>(DEFAULT_NAMES);
   const [mode, setMode] = useState<"beginner" | "random">("beginner");
@@ -46,6 +49,7 @@ export function StartScreen({ onStart }: { onStart: (store: GameStore) => void }
         <label><input type="radio" name="mode" checked={mode === "random"} onChange={() => setMode("random")} /> Random</label>
       </fieldset>
       <button onClick={start}>Start Game</button>
+      {onCreateOnline && <button onClick={onCreateOnline}>New online game</button>}
     </div>
   );
 }
