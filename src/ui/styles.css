@@ -71,7 +71,8 @@ main { min-height: 100vh; }
 }
 
 /* ---- Opponent bar ---- */
-.opponent-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+.top-hud { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; }
+.opponent-bar { display: flex; gap: 8px; flex-wrap: wrap; flex: 1 1 auto; }
 .opponent {
   background: var(--panel);
   border: 2px solid transparent;
@@ -96,6 +97,7 @@ main { min-height: 100vh; }
   border-radius: 10px;
   padding: 6px 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  flex: 0 0 auto;
 }
 .dice-summary span { opacity: 0.72; }
 .dice-summary strong { color: var(--ocean-deep); }
@@ -195,7 +197,7 @@ main { min-height: 100vh; }
       "actions    sheet";
     align-items: start;
   }
-  .opponent-bar { grid-area: opponents; }
+  .top-hud { grid-area: opponents; }
   .board { grid-area: board; max-height: 78vh; }
   .action-bar { grid-area: actions; }
   .bottom-sheet { grid-area: sheet; border-radius: 14px; align-self: stretch; }

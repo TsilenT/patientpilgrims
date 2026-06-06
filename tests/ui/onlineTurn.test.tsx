@@ -45,6 +45,16 @@ test("online: when it is not your turn you see a read-only waiting view", () => 
   expect(screen.queryByRole("button", { name: /roll/i })).toBeNull();
 });
 
+test("online: dice summary remains visible while waiting for another player", () => {
+  const g = mainGame();
+  g.turn = { activeSeat: 0, subPhase: "main", dice: [4, 6] };
+  render(<GameProvider store={onlineStore(g, 1)}><GameView /></GameProvider>);
+  const dice = screen.getByRole("status", { name: /dice roll/i });
+  expect(dice).toHaveTextContent("4 + 6 = 10");
+  expect(dice).toHaveClass("dice-summary");
+  expect(dice.closest(".top-hud")).not.toBeNull();
+});
+
 test("online: you can resolve your own discard even when it is not your turn", () => {
   const g = mainGame();
   g.turn = { activeSeat: 0, subPhase: "movingRobber", robberReturn: "main" };

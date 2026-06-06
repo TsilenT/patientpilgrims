@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { GameProvider } from "../../src/state/GameProvider";
 import { GameStore } from "../../src/state/gameStore";
 import { ActionBar } from "../../src/ui/panels/ActionBar";
+import { DiceSummary } from "../../src/ui/panels/DiceSummary";
 import { createInitialGame, mulberry32 } from "../../src/engine";
 import { createBoard } from "../../src/board";
 import { LocalStoragePersistence } from "../../src/state/persistence";
@@ -32,10 +33,10 @@ test("End Turn appears in main and advances the active seat", async () => {
   expect(s.getState().turn.activeSeat).toBe(1);
 });
 
-test("shows the current turn dice roll outside the log", () => {
+test("DiceSummary shows the current turn dice roll", () => {
   const s = store("main");
   s.getState().turn.dice = [3, 5];
-  render(<GameProvider store={s}><ActionBar /></GameProvider>);
+  render(<GameProvider store={s}><DiceSummary /></GameProvider>);
   expect(screen.getByRole("status", { name: /dice roll/i })).toHaveTextContent("3 + 5 = 8");
 });
 

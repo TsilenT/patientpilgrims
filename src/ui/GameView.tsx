@@ -6,6 +6,7 @@ import { currentActor, eligibleVictims } from "../state/viewModel";
 import { BoardSvg } from "./board/BoardSvg";
 import { HandPanel } from "./panels/HandPanel";
 import { ActionBar } from "./panels/ActionBar";
+import { DiceSummary } from "./panels/DiceSummary";
 import { OpponentBar } from "./panels/OpponentBar";
 import { LogRail } from "./panels/LogRail";
 import { TradePanel } from "./panels/TradePanel";
@@ -83,7 +84,10 @@ export function GameView() {
 
   return (
     <div className="game-view">
-      <OpponentBar />
+      <div className="top-hud">
+        <OpponentBar />
+        <DiceSummary />
+      </div>
       <BoardSvg state={state} legal={legal} onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
       {needReveal ? (
         <PassDeviceScreen name={state.players[actor]!.name} onReveal={() => setRevealedSeat(actor)} />
