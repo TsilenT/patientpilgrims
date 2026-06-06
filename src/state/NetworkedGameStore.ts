@@ -12,17 +12,28 @@ import type { RtdbBackend, CommitResult } from "../net/types";
 export class NetworkedGameStore implements Store {
   private state: GameState | null;
   private listeners = new Set<() => void>();
+  private loaded = false;
+  private ready: Promise<void>;
+  private markReady!: () => void;
 
   constructor(private backend: RtdbBackend, private mySeat: number) {
     this.state = null;
+    this.ready = new Promise((resolve) => { this.markReady = resolve; });
     backend.subscribe((s) => {
       this.state = s;
+      if (!this.loaded) { this.loaded = true; this.markReady(); }
       this.listeners.forEach((l) => l());
     });
   }
 
   /** Which seat this device controls (for the UI's read-only / your-turn logic). */
   seat(): number { return this.mySeat; }
+
+  /** Resolves once the first remote snapshot (possibly null) has arrived. */
+  whenReady = (): Promise<void> => this.ready;
+
+  /** True once a non-null game state has loaded — false for a missing game. */
+  hasState = (): boolean => this.state !== null;
 
   getState = (): GameState => {
     if (this.state === null) throw new Error("Game state not loaded yet");

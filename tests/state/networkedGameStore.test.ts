@@ -72,4 +72,40 @@ describe("NetworkedGameStore", () => {
       }
     }
   });
+
+  it("is not ready and getState throws before the first remote snapshot", () => {
+    const store = new NetworkedGameStore(new ManualBackend(), 0);
+    expect(store.hasState()).toBe(false);
+    expect(() => store.getState()).toThrow();
+  });
+
+  it("resolves whenReady and exposes state once the first snapshot arrives", async () => {
+    const backend = new ManualBackend();
+    const store = new NetworkedGameStore(backend, 0);
+    let ready = false;
+    void store.whenReady().then(() => { ready = true; });
+    expect(ready).toBe(false); // not ready until the backend pushes
+    const game = freshGame();
+    backend.push(game);
+    await store.whenReady();
+    expect(ready).toBe(true);
+    expect(store.hasState()).toBe(true);
+    expect(store.getState()).toEqual(game);
+  });
+
+  it("is ready-but-stateless when the first snapshot is null (game not found)", async () => {
+    const backend = new ManualBackend();
+    const store = new NetworkedGameStore(backend, 0);
+    backend.push(null);
+    await store.whenReady();
+    expect(store.hasState()).toBe(false);
+  });
 });
+
+/** A backend whose first snapshot is pushed manually, to test the loading gate. */
+class ManualBackend implements RtdbBackend {
+  private cb: ((s: GameState | null) => void) | null = null;
+  subscribe(cb: (s: GameState | null) => void) { this.cb = cb; return () => { this.cb = null; }; }
+  push(s: GameState | null) { this.cb?.(s); }
+  async commit(): Promise<CommitResult> { return { ok: false, error: "unused" }; }
+}
