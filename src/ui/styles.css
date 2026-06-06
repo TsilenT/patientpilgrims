@@ -289,3 +289,6 @@ main { min-height: 100vh; }
   .waiting-banner { grid-area: actions; }
   .bottom-sheet { grid-area: sheet; border-radius: 14px; align-self: stretch; }
 }
+
+.build-controls { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
+.build-controls .build-prompt { color: var(--gold); font-weight: 700; }
