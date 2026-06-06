@@ -2,8 +2,8 @@ import { useGame } from "../../state/GameProvider";
 import { currentActor, opponentsOf } from "../../state/viewModel";
 
 export function OpponentBar() {
-  const { state } = useGame();
-  const viewer = currentActor(state);
+  const { state, mySeat } = useGame();
+  const viewer = mySeat ?? currentActor(state); // online: opponents are everyone but me
   const opponents = opponentsOf(state, viewer);
   return (
     <div className="opponent-bar">
