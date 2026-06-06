@@ -1,0 +1,28 @@
+{
+  "rules": {
+    "games": {
+      "$gameId": {
+        "meta": {
+          ".read": "auth != null",
+          ".write": "auth != null && !data.exists()"
+        },
+        "_claims": {
+          ".read": false,
+          ".write": "auth != null && !data.exists()"
+        },
+        "seats": {
+          ".read": "auth != null",
+          "$seat": {
+            ".write": "auth != null && newData.child('uid').val() === auth.uid && (data.child('uid').val() === auth.uid || newData.child('proof').val() === root.child('games/'+$gameId+'/_claims/'+$seat).val())",
+            ".validate": "newData.hasChildren(['uid'])",
+            "proof": { ".read": false }
+          }
+        },
+        "state": {
+          ".read": "auth != null",
+          ".write": "auth != null && newData.exists() && (!data.exists() || (newData.child('version').val() === data.child('version').val() + 1 && (root.child('games/'+$gameId+'/seats/'+data.child('turn/activeSeat').val()+'/uid').val() === auth.uid || data.child('discardObligations').exists())))"
+        }
+      }
+    }
+  }
+}
