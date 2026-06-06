@@ -1,6 +1,7 @@
 import { useGame } from "../../state/GameProvider";
 import { currentActor } from "../../state/viewModel";
 import { RESOURCE_LIST } from "../../engine/resources";
+import { RESOURCE_ICON } from "../icons";
 import type { PlayerDevCard } from "../../engine/types";
 import type { DevCardType } from "../../engine/devcards";
 import { CostReference } from "./CostReference";
@@ -22,7 +23,9 @@ export function HandPanel({ onPlayDev }: { onPlayDev?: (type: DevCardType) => vo
       <h2>{me.name}</h2>
       <ul className="resources" aria-label="Resources">
         {RESOURCE_LIST.map((r) => (
-          <li key={r} data-testid={`res-${r}`}>{r}: {me.resources[r]}</li>
+          <li key={r} data-testid={`res-${r}`} className="res-chip" title={r}>
+            <span aria-hidden="true">{RESOURCE_ICON[r]}</span> {me.resources[r]}
+          </li>
         ))}
       </ul>
       <ul className="dev-cards" aria-label="Development cards">

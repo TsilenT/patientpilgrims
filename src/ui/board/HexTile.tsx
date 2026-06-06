@@ -1,11 +1,7 @@
 import type { Tile } from "../../engine/types";
 import type { BoardLayout } from "./layout";
 import { topology } from "../../engine/board";
-
-const FILL: Record<string, string> = {
-  wood: "#3f7d3a", brick: "#b5562b", sheep: "#8fce6b",
-  wheat: "#e6c34d", ore: "#8a8f99", desert: "#d9c89a",
-};
+import { HEX_ICON } from "../icons";
 
 export function HexTile({ hid, tile, layout, hasRobber }: {
   hid: string; tile: Tile; layout: BoardLayout; hasRobber: boolean;
@@ -16,17 +12,21 @@ export function HexTile({ hid, tile, layout, hasRobber }: {
   const emphasized = tile.number === 6 || tile.number === 8;
   return (
     <g data-hex={hid} data-kind={tile.kind} data-robber={hasRobber}>
-      <polygon points={points} fill={FILL[tile.kind]} stroke="#234" strokeWidth={2} />
+      <polygon points={points} fill={`url(#hex-${tile.kind})`} stroke="rgba(255,255,255,.45)"
+               strokeWidth={1.5} strokeLinejoin="round" />
+      <text x={c.x} y={c.y - 16} textAnchor="middle" fontSize={18} aria-hidden="true">
+        {HEX_ICON[tile.kind]}
+      </text>
       {tile.number !== undefined && (
         <g>
-          <circle cx={c.x} cy={c.y} r={16} fill="#f4efe0" stroke="#234" />
-          <text x={c.x} y={c.y + 5} textAnchor="middle" fontSize={16}
-                fill={emphasized ? "#c0392b" : "#222"} fontWeight={emphasized ? 700 : 400}>
+          <circle cx={c.x} cy={c.y + 4} r={13} fill="#fbf7ee" stroke="#d8cfbb" />
+          <text x={c.x} y={c.y + 9} textAnchor="middle" fontSize={15}
+                fill={emphasized ? "#c0392b" : "#3a3a3a"} fontWeight={800}>
             {tile.number}
           </text>
         </g>
       )}
-      {hasRobber && <circle data-testid="robber" cx={c.x} cy={c.y} r={10} fill="#222" opacity={0.8} />}
+      {hasRobber && <circle data-testid="robber" cx={c.x} cy={c.y + 4} r={10} fill="#1a1a1a" opacity={0.82} />}
     </g>
   );
 }

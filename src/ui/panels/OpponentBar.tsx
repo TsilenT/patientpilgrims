@@ -10,12 +10,13 @@ export function OpponentBar() {
       {opponents.map((o) => (
         <div key={o.seat} className="opponent" data-seat={o.seat}
           data-active={state.turn.activeSeat === o.seat}>
-          <span className="opp-name" style={{ color: o.color }}>{o.name}</span>
-          <span data-testid={`opp-${o.seat}-resources`} title="Resource cards">C {o.resourceCount}</span>
-          <span data-testid={`opp-${o.seat}-dev`} title="Development cards">D {o.devCardCount}</span>
-          <span data-testid={`opp-${o.seat}-vp`} title="Victory points">VP {o.victoryPoints}</span>
-          <span title="Knights played">K {o.knightsPlayed}</span>
-          <span title="Longest road length">R {o.longestRoadLength}</span>
+          <span className="swatch" style={{ background: o.color }} aria-hidden="true" />
+          <span className="opp-name">{o.name}</span>
+          <span className="vp-pill" data-testid={`opp-${o.seat}-vp`} title="Victory points">VP {o.victoryPoints}</span>
+          <span className="opp-stat" data-testid={`opp-${o.seat}-resources`} title="Resource cards">C {o.resourceCount}</span>
+          <span className="opp-stat" data-testid={`opp-${o.seat}-dev`} title="Development cards">D {o.devCardCount}</span>
+          <span className="opp-stat" title="Knights played">K {o.knightsPlayed}</span>
+          <span className="opp-stat" title="Longest road length">R {o.longestRoadLength}</span>
           {o.hasLargestArmy && <span className="award" title="Largest Army">LA</span>}
           {o.hasLongestRoad && <span className="award" title="Longest Road">LR</span>}
         </div>

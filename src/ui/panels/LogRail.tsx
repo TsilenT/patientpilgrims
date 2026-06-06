@@ -35,7 +35,7 @@ export function LogRail() {
   return (
     <ul className="log-rail" aria-label="Game log">
       {entries.map((e, i) => (
-        <li key={start + i}>{describe(state, e)}</li>
+        <li key={start + i} data-log-type={e.type}>{describe(state, e)}</li>
       ))}
     </ul>
   );
