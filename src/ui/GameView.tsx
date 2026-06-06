@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useGame } from "../state/GameProvider";
 import { useDispatchWithError } from "./useDispatchWithError";
-import { legalTargets, legalRoadBuildingEdges } from "../state/legalTargets";
+import { legalTargets, legalRoadBuildingEdges, buildTargets } from "../state/legalTargets";
 import { currentActor, eligibleVictims } from "../state/viewModel";
 import { BoardSvg } from "./board/BoardSvg";
 import { HandPanel } from "./panels/HandPanel";
 import { ActionBar } from "./panels/ActionBar";
+import { BuildControls, type BuildMode } from "./panels/BuildControls";
 import { DiceSummary } from "./panels/DiceSummary";
 import { OpponentBar } from "./panels/OpponentBar";
 import { LogRail } from "./panels/LogRail";
@@ -32,6 +33,7 @@ export function GameView() {
   const [robberPick, setRobberPick] = useState<{ hex: string; victims: number[] } | null>(null);
   const [devModal, setDevModal] = useState<"monopoly" | "yearOfPlenty" | null>(null);
   const [roadEdges, setRoadEdges] = useState<string[] | null>(null);
+  const [buildMode, setBuildMode] = useState<BuildMode>(null);
   const [tab, setTab] = useState<"hand" | "trades" | "log">("hand");
 
   // Turn gating. Hotseat keeps the pass-the-device flow; online locks to your own seat.
@@ -40,32 +42,46 @@ export function GameView() {
   const waiting = online && !myTurn && owed === 0; // not your turn, nothing owed → read-only
   const interactive = !needReveal && !waiting && owed === 0;
 
-  // While a Road Building card is being placed, the board highlights its legal edges.
+  // Setup forces the build type; the main phase uses the player's selection.
+  const effectiveMode: BuildMode =
+    sub === "setupSettlement" ? "settlement"
+    : sub === "setupRoad" ? "road"
+    : buildMode;
+
   const legal = !interactive
     ? NO_TARGETS
     : roadEdges !== null
       ? { vertices: new Set<string>(), edges: legalRoadBuildingEdges(state, roadEdges), hexes: new Set<string>() }
-      : legalTargets(state);
+      : sub === "movingRobber"
+        ? legalTargets(state) // robber hex overlay
+        : effectiveMode !== null
+          ? buildTargets(state, effectiveMode)
+          : NO_TARGETS; // main-phase neutral → board read-only
 
-  const onVertex = (v: string) => {
-    if (!interactive) return;
-    if (sub === "setupSettlement") return run({ type: "setupSettlement", vertex: v });
-    if (sub === "main") {
-      const b = state.board.buildings[v];
-      if (b && b.owner === state.turn.activeSeat && b.type === "settlement") return run({ type: "buildCity", vertex: v });
-      return run({ type: "buildSettlement", vertex: v });
+  const finishBuild = (ok: boolean) => { if (ok) setBuildMode(null); };
+
+  const onVertex = async (v: string) => {
+    if (!interactive || roadEdges !== null) return;
+    if (effectiveMode === "settlement") {
+      if (sub === "setupSettlement") { await run({ type: "setupSettlement", vertex: v }); return; }
+      if (sub === "main") { const r = await run({ type: "buildSettlement", vertex: v }); finishBuild(r.ok); }
+      return;
+    }
+    if (effectiveMode === "city" && sub === "main") {
+      const r = await run({ type: "buildCity", vertex: v }); finishBuild(r.ok);
     }
   };
-  const onEdge = (e: string) => {
+  const onEdge = async (e: string) => {
     if (!interactive) return;
     if (roadEdges !== null) {
       const next = [...roadEdges, e];
-      if (next.length >= 2) { run({ type: "playRoadBuilding", edges: next }); setRoadEdges(null); }
+      if (next.length >= 2) { await run({ type: "playRoadBuilding", edges: next }); setRoadEdges(null); }
       else setRoadEdges(next);
       return;
     }
-    if (sub === "setupRoad") return run({ type: "setupRoad", edge: e });
-    if (sub === "main") return run({ type: "buildRoad", edge: e });
+    if (effectiveMode !== "road") return;
+    if (sub === "setupRoad") { await run({ type: "setupRoad", edge: e }); return; }
+    if (sub === "main") { const r = await run({ type: "buildRoad", edge: e }); finishBuild(r.ok); }
   };
   const onHex = (h: string) => {
     if (!interactive || sub !== "movingRobber") return;
@@ -114,7 +130,8 @@ export function GameView() {
           onDiscard={(cards) => run({ type: "discard", seat: viewer, cards })} />
       ) : (
         <>
-          <ActionBar />
+          {buildMode === null && <ActionBar />}
+          <BuildControls buildMode={buildMode} onSelect={setBuildMode} onCancel={() => setBuildMode(null)} />
           <div className="bottom-sheet">
             <div className="tabs" role="tablist">
               <button role="tab" aria-selected={tab === "hand"} onClick={() => setTab("hand")}>Hand</button>
