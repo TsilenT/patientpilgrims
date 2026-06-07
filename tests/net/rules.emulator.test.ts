@@ -69,4 +69,32 @@ describe("rtdb security rules (emulator)", () => {
     await assertSucceeds(set(ref(db, "games/wo/_claims/0"), "first"));
     await assertFails(set(ref(db, "games/wo/_claims/0"), "second"));
   });
+
+  it("lets a non-active seat write while a trade offer is open (async accept)", async () => {
+    await env.withSecurityRulesDisabled(async (c) => {
+      const db = c.database();
+      await set(ref(db, "games/trade/seats/0"), { uid: "alice" });
+      await set(ref(db, "games/trade/seats/1"), { uid: "bob" });
+      await set(ref(db, "games/trade/state"), {
+        version: 0, turn: { activeSeat: 0 },
+        tradeOffers: [{ id: 0, from: 0, give: { wood: 1 }, want: { wheat: 1 } }],
+      });
+    });
+    const db = env.authenticatedContext("bob").database(); // seat 1, NOT active
+    // bob accepts → writes version+1; allowed only because an offer is open
+    await assertSucceeds(set(ref(db, "games/trade/state"), {
+      version: 1, turn: { activeSeat: 0 }, tradeOffers: [],
+    }));
+  });
+
+  it("still rejects a non-active write when no trade offer is open", async () => {
+    await env.withSecurityRulesDisabled(async (c) => {
+      const db = c.database();
+      await set(ref(db, "games/notrade/seats/0"), { uid: "alice" });
+      await set(ref(db, "games/notrade/seats/1"), { uid: "bob" });
+      await set(ref(db, "games/notrade/state"), { version: 0, turn: { activeSeat: 0 } });
+    });
+    const db = env.authenticatedContext("bob").database();
+    await assertFails(set(ref(db, "games/notrade/state"), { version: 1, turn: { activeSeat: 0 } }));
+  });
 });
