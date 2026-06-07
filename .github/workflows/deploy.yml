@@ -14,6 +14,11 @@ concurrency:
   group: pages
   cancel-in-progress: true
 
+# GitHub Pages actions (upload-pages-artifact's internal upload-artifact, deploy-pages)
+# still ship a Node 20 runtime; force their JS to Node 24 to clear the deprecation warning.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
