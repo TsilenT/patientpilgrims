@@ -114,9 +114,9 @@ export function GameView() {
           </div>
           <div className="bottom-sheet">
             <div className="tabs" role="tablist">
-              <button role="tab" aria-selected={tab === "log"} onClick={() => setTab("log")}>Log</button>
-              {sub === "main" && <button role="tab" aria-selected={tab === "trades"} onClick={() => setTab("trades")}>Trades</button>}
               <button role="tab" aria-selected={tab === "hand"} onClick={() => setTab("hand")}>Your hand</button>
+              {sub === "main" && <button role="tab" aria-selected={tab === "trades"} onClick={() => setTab("trades")}>Trades</button>}
+              <button role="tab" aria-selected={tab === "log"} onClick={() => setTab("log")}>Log</button>
             </div>
             <div className="tab-content" role="tabpanel" aria-label={tab}>
               {tab === "log" && <LogRail />}
