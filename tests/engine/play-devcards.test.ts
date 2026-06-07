@@ -18,6 +18,11 @@ function mainGame(): GameState {
   g.phase = "main"; g.turn = { activeSeat: 0, subPhase: "main" }; delete g.setup;
   return g;
 }
+function awaitingRollGame(): GameState {
+  const g = mainGame();
+  g.turn.subPhase = "awaitingRoll";
+  return g;
+}
 function expectOk(r: { ok: boolean }): asserts r is { ok: true; state: GameState } {
   expect(r.ok).toBe(true);
 }
@@ -48,6 +53,14 @@ describe("monopoly", () => {
     expect(r.state.players[2]!.resources.brick).toBe(0);
     expect(r.state.turn.devCardPlayedThisTurn).toBe(true);
   });
+  it("can be played before rolling", () => {
+    const g = withMonopoly();
+    g.turn.subPhase = "awaitingRoll";
+    const r = apply(g, { type: "playMonopoly", resource: "brick" }, rngOf());
+    expectOk(r);
+    expect(r.state.players[0]!.resources.brick).toBe(5);
+    expect(r.state.turn.subPhase).toBe("awaitingRoll");
+  });
   it("rejects when no playable monopoly card is held", () => {
     const r = apply(mainGame(), { type: "playMonopoly", resource: "brick" }, rngOf());
     expect(r.ok).toBe(false);
@@ -69,6 +82,15 @@ describe("year of plenty", () => {
     expect(r.state.bank.wheat).toBe(18);
     expect(r.state.bank.ore).toBe(18);
   });
+  it("can be played before rolling", () => {
+    const g = withYoP();
+    g.turn.subPhase = "awaitingRoll";
+    const r = apply(g, { type: "playYearOfPlenty", resources: ["wheat", "ore"] }, rngOf());
+    expectOk(r);
+    expect(r.state.players[0]!.resources.wheat).toBe(1);
+    expect(r.state.players[0]!.resources.ore).toBe(1);
+    expect(r.state.turn.subPhase).toBe("awaitingRoll");
+  });
   it("can take two of the same resource", () => {
     const r = apply(withYoP(), { type: "playYearOfPlenty", resources: ["sheep", "sheep"] }, rngOf());
     expectOk(r);
@@ -83,7 +105,7 @@ describe("year of plenty", () => {
 });
 
 describe("road building", () => {
-  it("places two free roads connected to the player's network", () => {
+  function withRoadBuilding(): { g: GameState; e1: string; e2: string; before: number } {
     const g = mainGame();
     g.players[0]!.devCards.push({ type: "roadBuilding", boughtThisTurn: false, played: false });
     // seed a settlement so the player has a network anchor
@@ -95,12 +117,27 @@ describe("road building", () => {
     const [a, b] = topology().edgeVertices.get(e1)!;
     const farV = a === v ? b : a;
     const e2 = topology().vertexEdges.get(farV)!.find((e) => e !== e1)!;
+    return { g, e1, e2, before };
+  }
+
+  it("places two free roads connected to the player's network", () => {
+    const { g, e1, e2, before } = withRoadBuilding();
     const r = apply(g, { type: "playRoadBuilding", edges: [e1, e2] }, rngOf());
     expectOk(r);
     expect(r.state.board.roads[e1]!.owner).toBe(0);
     expect(r.state.board.roads[e2]!.owner).toBe(0);
     expect(r.state.players[0]!.pieces.roads).toBe(before - 2); // FREE but still uses stock
     expect(r.state.players[0]!.resources).toEqual({ wood: 0, brick: 0, sheep: 0, wheat: 0, ore: 0 });
+  });
+  it("can be played before rolling", () => {
+    const { g, e1, e2, before } = withRoadBuilding();
+    g.turn.subPhase = "awaitingRoll";
+    const r = apply(g, { type: "playRoadBuilding", edges: [e1, e2] }, rngOf());
+    expectOk(r);
+    expect(r.state.board.roads[e1]!.owner).toBe(0);
+    expect(r.state.board.roads[e2]!.owner).toBe(0);
+    expect(r.state.players[0]!.pieces.roads).toBe(before - 2);
+    expect(r.state.turn.subPhase).toBe("awaitingRoll");
   });
   it("rejects an edge that doesn't connect to the network", () => {
     const g = mainGame();
@@ -129,6 +166,19 @@ describe("dev-card timing rules", () => {
     expectOk(bought);
     const played = apply(bought.state, { type: "playMonopoly", resource: "brick" }, rngOf());
     expect(played.ok).toBe(false);
+  });
+  it("a card bought this turn cannot be played before rolling", () => {
+    const g = awaitingRollGame();
+    g.players[0]!.devCards.push({ type: "monopoly", boughtThisTurn: true, played: false });
+    const played = apply(g, { type: "playMonopoly", resource: "brick" }, rngOf());
+    expect(played.ok).toBe(false);
+  });
+  it("rejects non-knight dev cards while moving the robber", () => {
+    const g = mainGame();
+    g.turn.subPhase = "movingRobber";
+    g.players[0]!.devCards.push({ type: "yearOfPlenty", boughtThisTurn: false, played: false });
+    const r = apply(g, { type: "playYearOfPlenty", resources: ["wheat", "ore"] }, rngOf());
+    expect(r.ok).toBe(false);
   });
   it("after the turn ends, a card bought this turn becomes playable next turn", () => {
     let s = mainGame();

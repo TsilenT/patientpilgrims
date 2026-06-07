@@ -1,6 +1,7 @@
 import type { GameState } from "../engine/types";
 import { RESOURCE_LIST, totalCards } from "../engine/resources";
 import { topology } from "../engine/board";
+import { displayVictoryPoints } from "../engine/scoring/victory";
 
 /** Opponents with a building on `hex` who hold at least one card — the legal steal targets. */
 export function eligibleVictims(state: GameState, hex: string): number[] {
@@ -35,7 +36,7 @@ export function opponentView(state: GameState, seat: number): OpponentView {
     seat, name: p.name, color: p.color,
     resourceCount: RESOURCE_LIST.reduce((s, r) => s + p.resources[r], 0),
     devCardCount: p.devCards.length,
-    victoryPoints: p.victoryPoints, knightsPlayed: p.knightsPlayed,
+    victoryPoints: displayVictoryPoints(state, seat), knightsPlayed: p.knightsPlayed,
     longestRoadLength: p.longestRoadLength,
     hasLargestArmy: state.awards.largestArmy === seat,
     hasLongestRoad: state.awards.longestRoad === seat,

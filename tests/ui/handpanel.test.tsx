@@ -21,3 +21,19 @@ test("shows the viewing seat's resource counts", () => {
   const wood = screen.getByTestId("res-wood");
   expect(wood).toHaveTextContent("3");
 });
+
+test("shows own true VP with hidden victory-point card breakdown", () => {
+  const g = createInitialGame(
+    [{ name: "A", color: "red" }, { name: "B", color: "blue" }, { name: "C", color: "white" }],
+    createBoard({ mode: "beginner" }),
+  );
+  g.phase = "main"; g.turn = { activeSeat: 0, subPhase: "main" }; delete g.setup;
+  g.players[0]!.victoryPoints = 5;
+  g.players[0]!.devCards = [{ type: "victoryPoint", boughtThisTurn: false, played: false }];
+  const s = new GameStore(g, new LocalStoragePersistence(), mulberry32(1));
+  render(<GameProvider store={s}><HandPanel /></GameProvider>);
+
+  const summary = screen.getByTestId("hand-vp-summary");
+  expect(summary).toHaveAccessibleName("Victory points");
+  expect(summary).toHaveTextContent("6 VP (5 public + 1 from victory-point cards)");
+});

@@ -5,7 +5,7 @@ import { makeDevDeck } from "../../src/engine/devcards";
 import { apply } from "../../src/engine/apply";
 import type { GameState } from "../../src/engine/types";
 import type { Rng } from "../../src/engine/rng";
-import { recomputeVictoryPoints } from "../../src/engine/scoring/victory";
+import { displayVictoryPoints, recomputeVictoryPoints, totalVictoryPoints } from "../../src/engine/scoring/victory";
 import { topology } from "../../src/engine/board";
 
 const players3 = [
@@ -88,11 +88,12 @@ describe("buyDevCard", () => {
 });
 
 describe("victory-point dev cards", () => {
-  it("a held VP card adds 1 to recomputed victory points", () => {
+  it("a held VP card stays hidden from public victory points but counts in total", () => {
     const g = mainGame();
     g.players[0]!.devCards.push({ type: "victoryPoint", boughtThisTurn: true, played: false });
     recomputeVictoryPoints(g, 0);
-    expect(g.players[0]!.victoryPoints).toBe(1); // 0 buildings + 1 VP card
+    expect(g.players[0]!.victoryPoints).toBe(0); // public VP excludes hidden VP cards
+    expect(totalVictoryPoints(g, 0)).toBe(1);
   });
 
   it("buying the final VP card wins the game at 9 building VP", () => {
@@ -109,8 +110,20 @@ describe("victory-point dev cards", () => {
     g.devDeck = ["victoryPoint"];
     const r = apply(g, { type: "buyDevCard" }, rngOf(0));
     expectOk(r);
-    expect(r.state.players[0]!.victoryPoints).toBe(10);
+    expect(r.state.players[0]!.victoryPoints).toBe(9);
+    expect(totalVictoryPoints(r.state, 0)).toBe(10);
     expect(r.state.phase).toBe("finished");
     expect(r.state.winner).toBe(0);
+  });
+
+  it("displays public victory points during play and total points when finished", () => {
+    const g = mainGame();
+    g.players[0]!.victoryPoints = 9;
+    g.players[0]!.devCards.push({ type: "victoryPoint", boughtThisTurn: true, played: false });
+
+    expect(displayVictoryPoints(g, 0)).toBe(9);
+
+    g.phase = "finished";
+    expect(displayVictoryPoints(g, 0)).toBe(10);
   });
 });

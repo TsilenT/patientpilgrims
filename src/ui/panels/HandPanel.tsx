@@ -1,5 +1,6 @@
 import { useGame } from "../../state/GameProvider";
 import { currentActor } from "../../state/viewModel";
+import { totalVictoryPoints } from "../../engine";
 import { RESOURCE_LIST } from "../../engine/resources";
 import { RESOURCE_ICON } from "../icons";
 import type { PlayerDevCard } from "../../engine/types";
@@ -11,6 +12,9 @@ export function HandPanel({ onPlayDev }: { onPlayDev?: (type: DevCardType) => vo
   const seat = mySeat ?? currentActor(state); // online: always my hand; hotseat: the acting player
   const me = state.players[seat];
   if (!me) return null; // spectator (no claimed seat)
+  const publicVp = me.victoryPoints;
+  const totalVp = totalVictoryPoints(state, seat);
+  const cardVp = totalVp - publicVp;
   const canPlay = (c: PlayerDevCard) =>
     onPlayDev !== undefined &&
     c.type !== "victoryPoint" &&
@@ -21,6 +25,10 @@ export function HandPanel({ onPlayDev }: { onPlayDev?: (type: DevCardType) => vo
   return (
     <div className="hand-panel">
       <h2>{me.name}</h2>
+      <div className="vp-summary" data-testid="hand-vp-summary" aria-label="Victory points">
+        {totalVp} VP
+        {cardVp > 0 ? ` (${publicVp} public + ${cardVp} from victory-point cards)` : null}
+      </div>
       <ul className="resources" aria-label="Resources">
         {RESOURCE_LIST.map((r) => (
           <li key={r} data-testid={`res-${r}`} className="res-chip" title={r}>

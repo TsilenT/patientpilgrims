@@ -7,5 +7,11 @@ export {
 export { topology } from "./board";
 export { createInitialGame, snakeOrder, type NewPlayer } from "./state";
 export { apply } from "./apply";
-export { victoryPointsFromBuildings, recomputeVictoryPoints, checkVictory } from "./scoring/victory";
+export {
+  victoryPointsFromBuildings,
+  recomputeVictoryPoints,
+  totalVictoryPoints,
+  displayVictoryPoints,
+  checkVictory,
+} from "./scoring/victory";
 export { mulberry32, cryptoRng, type Rng } from "./rng";

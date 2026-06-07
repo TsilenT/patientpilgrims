@@ -33,4 +33,22 @@ describe("opponentView", () => {
     expect(view.devCardCount).toBe(1);
     expect((view as unknown as Record<string, unknown>).resources).toBeUndefined();
   });
+
+  it("shows an opponent's public victory points during play", () => {
+    const g = mainGame();
+    g.players[1]!.victoryPoints = 5;
+    g.players[1]!.devCards = [{ type: "victoryPoint", boughtThisTurn: false, played: false }];
+
+    expect(opponentView(g, 1).victoryPoints).toBe(5);
+  });
+
+  it("reveals an opponent's full victory points when finished", () => {
+    const g = mainGame();
+    g.phase = "finished";
+    g.winner = 1;
+    g.players[1]!.victoryPoints = 5;
+    g.players[1]!.devCards = [{ type: "victoryPoint", boughtThisTurn: false, played: false }];
+
+    expect(opponentView(g, 1).victoryPoints).toBe(6);
+  });
 });
