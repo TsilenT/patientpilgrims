@@ -41,6 +41,7 @@ export function GameView() {
   const myTurn = online ? state.turn.activeSeat === mySeat : true;
   const waiting = online && !myTurn && owed === 0; // not your turn, nothing owed → read-only
   const interactive = !needReveal && !waiting && owed === 0;
+  const placingRobber = interactive && sub === "movingRobber";
 
   // Setup forces the build type; the main phase uses the player's selection.
   const effectiveMode: BuildMode =
@@ -104,7 +105,14 @@ export function GameView() {
         <OpponentBar />
         <DiceSummary />
       </div>
-      <BoardSvg state={state} legal={legal} onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
+      {placingRobber && (
+        <div className="robber-placement-banner" role="status" aria-label="Robber placement">
+          <strong>Roll 7: Move the robber</strong>
+          <span>Choose a highlighted hex to block production and steal from an adjacent player.</span>
+        </div>
+      )}
+      <BoardSvg state={state} legal={legal} robberPlacement={placingRobber}
+        onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
       {needReveal ? (
         <PassDeviceScreen name={state.players[actor]!.name} onReveal={() => setRevealedSeat(actor)} />
       ) : waiting ? (

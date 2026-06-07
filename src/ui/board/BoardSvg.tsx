@@ -8,6 +8,7 @@ import { Slots } from "./Slots";
 export interface BoardSvgProps {
   state: GameState;
   legal: LegalTargets;
+  robberPlacement?: boolean;
   onVertex: (v: string) => void;
   onEdge: (e: string) => void;
   onHex: (h: string) => void;
@@ -26,11 +27,12 @@ const HEX_GRADIENT: Record<string, [string, string]> = {
   desert: ["#efe4c0", "#e3d5a8"],
 };
 
-export function BoardSvg({ state, legal, onVertex, onEdge, onHex }: BoardSvgProps) {
+export function BoardSvg({ state, legal, robberPlacement = false, onVertex, onEdge, onHex }: BoardSvgProps) {
   const layout = LAYOUT;
   const { minX, minY, width, height } = layout.viewBox;
   return (
-    <svg className="board" viewBox={`${minX} ${minY} ${width} ${height}`} role="img" aria-label="Catan board">
+    <svg className={`board${robberPlacement ? " board--robber-placement" : ""}`}
+      viewBox={`${minX} ${minY} ${width} ${height}`} role="img" aria-label="Catan board">
       <defs>
         {Object.entries(HEX_GRADIENT).map(([kind, [top, bottom]]) => (
           <linearGradient key={kind} id={`hex-${kind}`} x1="0" y1="0" x2="0" y2="1">

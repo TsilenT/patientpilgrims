@@ -98,6 +98,17 @@ main { min-height: 100vh; }
   display: block;
   filter: drop-shadow(0 8px 22px rgba(0, 0, 0, 0.5));
 }
+.board--robber-placement {
+  filter:
+    drop-shadow(0 0 18px rgba(242, 193, 78, 0.38))
+    drop-shadow(0 8px 22px rgba(0, 0, 0, 0.5));
+}
+.board--robber-placement [data-hex-slot] {
+  fill: var(--gold);
+  fill-opacity: 0.28;
+  stroke: #fff3c4;
+  stroke-width: 3px;
+}
 
 /* ---- Opponent bar ---- */
 .top-hud { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; }
@@ -136,6 +147,27 @@ main { min-height: 100vh; }
 }
 .dice-summary span { color: var(--muted); }
 .dice-summary strong { color: var(--gold); }
+
+.robber-placement-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: linear-gradient(135deg, #4b1f1f 0%, #7b3a21 55%, #8a6420 100%);
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  padding: 9px 12px;
+  color: #fff8dc;
+  box-shadow: 0 0 0 4px rgba(242, 193, 78, 0.16), 0 8px 24px rgba(0, 0, 0, 0.35);
+  text-align: center;
+}
+.robber-placement-banner strong {
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.robber-placement-banner span { color: #ffe9a8; }
 
 .bottom-sheet {
   background: var(--panel);

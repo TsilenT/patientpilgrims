@@ -10,6 +10,20 @@ import { createBoard } from "../../src/board";
 import { LocalStoragePersistence } from "../../src/state/persistence";
 import { topology } from "../../src/engine/board";
 
+test("moving robber phase shows an obvious robber placement prompt", () => {
+  const g = createInitialGame(
+    [{ name: "A", color: "red" }, { name: "B", color: "blue" }, { name: "C", color: "white" }],
+    createBoard({ mode: "beginner" }),
+  );
+  g.phase = "main"; g.turn = { activeSeat: 0, subPhase: "movingRobber" }; delete g.setup;
+  const s = new GameStore(g, new LocalStoragePersistence(), mulberry32(0));
+  const { container } = render(<GameProvider store={s}><GameView /></GameProvider>);
+
+  expect(screen.getByRole("status", { name: /robber placement/i }))
+    .toHaveTextContent("Roll 7: Move the robber");
+  expect(container.querySelector(".board--robber-placement")).toBeTruthy();
+});
+
 test("clicking a robber hex with one victim steals and returns to main", async () => {
   const g = createInitialGame(
     [{ name: "A", color: "red" }, { name: "B", color: "blue" }, { name: "C", color: "white" }],
