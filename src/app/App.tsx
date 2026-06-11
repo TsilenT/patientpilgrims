@@ -25,7 +25,18 @@ export function App() {
   const [joinError, setJoinError] = useState<string | null>(null);
 
   useEffect(() => {
-    const onHash = () => setRoute(parseRoute(location.hash));
+    const onHash = () => {
+      const r = parseRoute(location.hash);
+      setRoute(r);
+      if (r.kind === "start") {
+        // Leaving a game (e.g. "New game" on the win screen): drop the store and re-check saves.
+        setStore(null);
+        setJoinError(null);
+        void persistence.load().then((saved) => {
+          setResumable(saved ? new GameStore(saved, persistence, cryptoRng()) : null);
+        });
+      }
+    };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
   }, []);

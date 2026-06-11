@@ -38,5 +38,5 @@ test("a winning action dispatched through the store shows the game-over banner",
   expect(store.getState().winner).toBe(0);
 
   render(<GameProvider store={store}><GameView /></GameProvider>);
-  expect(screen.getByText(/A wins/i)).toBeInTheDocument();
+  expect(screen.getByRole("dialog", { name: /game over/i })).toHaveTextContent("Long live A!");
 });

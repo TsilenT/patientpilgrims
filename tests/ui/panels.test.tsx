@@ -6,7 +6,7 @@ import { GameStore } from "../../src/state/gameStore";
 import { OpponentBar } from "../../src/ui/panels/OpponentBar";
 import { LogRail } from "../../src/ui/panels/LogRail";
 import { HandPanel } from "../../src/ui/panels/HandPanel";
-import { GameOverBanner } from "../../src/ui/overlays/GameOverBanner";
+import { WinScreen } from "../../src/ui/overlays/WinScreen";
 import { createInitialGame, mulberry32 } from "../../src/engine";
 import { createBoard } from "../../src/board";
 import { LocalStoragePersistence } from "../../src/state/persistence";
@@ -74,14 +74,14 @@ test("cost reference rows expose tooltip details", () => {
   );
 });
 
-test("game over banner names the winner when finished", () => {
+test("win screen crowns the winner when finished", () => {
   const g = mainGame();
   g.phase = "finished"; g.winner = 1;
-  render(<GameProvider store={store(g)}><GameOverBanner /></GameProvider>);
-  expect(screen.getByText(/B wins/i)).toBeInTheDocument();
+  render(<GameProvider store={store(g)}><WinScreen /></GameProvider>);
+  expect(screen.getByText(/long live B/i)).toBeInTheDocument();
 });
 
-test("game over banner renders nothing during play", () => {
-  const { container } = render(<GameProvider store={store(mainGame())}><GameOverBanner /></GameProvider>);
+test("win screen renders nothing during play", () => {
+  const { container } = render(<GameProvider store={store(mainGame())}><WinScreen /></GameProvider>);
   expect(container).toBeEmptyDOMElement();
 });
