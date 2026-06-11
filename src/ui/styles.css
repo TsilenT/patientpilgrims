@@ -263,6 +263,12 @@ main { min-height: 100vh; }
 }
 .discard-row { display: flex; gap: 8px; align-items: center; justify-content: space-between; margin: 5px 0; }
 .robber-victims button, .dev-modal button, .road-building button { margin: 4px; }
+/* ---- Host game-links modal ---- */
+.host-links-btn { padding: 6px 10px; flex: none; }
+.host-links .host-link-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+.host-links .host-link-row .who { flex: 1; text-align: left; font-weight: 600; }
+.host-links-hint { color: var(--muted); font-size: 0.85rem; margin: 10px 0 6px; }
+
 /* ---- Lobby ---- */
 .lobby-code { text-align: center; color: var(--muted); margin: 0; }
 .lobby-code strong { color: var(--gold); letter-spacing: 0.08em; }

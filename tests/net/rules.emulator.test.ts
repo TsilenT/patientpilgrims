@@ -131,6 +131,27 @@ describe("start + rescue rules", () => {
   });
 });
 
+describe("pre-lobby games (old schema, no host/status in meta)", () => {
+  it("keeps playing and rescue-rebinding under the new rules", async () => {
+    await env.withSecurityRulesDisabled(async (c) => {
+      const db = c.database();
+      // exactly what createGame wrote before the lobby existed
+      await set(ref(db, "games/old/meta"), { createdAt: 1, playerCount: 3, names: ["A", "B", "C"], seatColors: ["red", "blue", "white"] });
+      await set(ref(db, "games/old/_claims/0"), "tok0");
+      await set(ref(db, "games/old/seats/0"), { uid: "alice" });
+      await set(ref(db, "games/old/state"), { version: 7, turn: { activeSeat: 0 } });
+    });
+    // the active player still advances the game
+    const alice = env.authenticatedContext("alice").database();
+    await assertSucceeds(set(ref(alice, "games/old/state"), { version: 8, turn: { activeSeat: 0 } }));
+    // an old claim link still rebinds the seat to a new device
+    const fresh = env.authenticatedContext("alice-new-phone").database();
+    await assertSucceeds(set(ref(fresh, "games/old/seats/0"), { uid: "alice-new-phone", proof: "tok0" }));
+    // and the meta read used for routing still works
+    await assertSucceeds(get(ref(alice, "games/old/meta")));
+  });
+});
+
 describe("state rules", () => {
   it("only the host creates the state", async () => {
     await env.withSecurityRulesDisabled(async (c) => {

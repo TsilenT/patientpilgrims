@@ -17,6 +17,9 @@ import { DiscardModal } from "./overlays/DiscardModal";
 import { MonopolyPicker, YearOfPlentyPicker } from "./overlays/DevCardModals";
 import { WinScreen } from "./overlays/WinScreen";
 import { OrderRollReveal } from "./overlays/OrderRollReveal";
+import { HostLinksModal } from "./overlays/HostLinksModal";
+import { hostRescueLinks } from "../net/lobby";
+import { parseRoute } from "../app/router";
 import { Toast } from "./Toast";
 import type { DevCardType } from "../engine/devcards";
 
@@ -36,6 +39,12 @@ export function GameView() {
   const [roadEdges, setRoadEdges] = useState<string[] | null>(null);
   const [buildMode, setBuildMode] = useState<BuildMode>(null);
   const [tab, setTab] = useState<"hand" | "trades" | "log">("hand");
+  const [showLinks, setShowLinks] = useState(false);
+
+  // Online + this device hosted the game → it holds the per-seat rescue links.
+  const r = parseRoute(location.hash);
+  const gameId = online && r.kind === "game" ? r.id : null;
+  const rescueLinks = gameId !== null ? hostRescueLinks(gameId) : null;
 
   // Turn gating. Hotseat keeps the pass-the-device flow; online locks to your own seat.
   const needReveal = !online && actor !== revealedSeat;
@@ -105,6 +114,10 @@ export function GameView() {
       <div className="top-hud">
         <OpponentBar />
         <DiceSummary />
+        {rescueLinks !== null && (
+          <button className="host-links-btn" aria-label="Game links" title="Game links"
+            onClick={() => setShowLinks(true)}>🔗</button>
+        )}
       </div>
       {placingRobber && (
         <div className="robber-placement-banner" role="status" aria-label="Robber placement">
@@ -174,6 +187,9 @@ export function GameView() {
       {robberPick && sub === "movingRobber" && (
         <RobberVictimPicker state={state} victims={robberPick.victims}
           onPick={(victim) => { run({ type: "moveRobber", hex: robberPick.hex, victim }); setRobberPick(null); }} />
+      )}
+      {showLinks && gameId !== null && rescueLinks !== null && (
+        <HostLinksModal id={gameId} links={rescueLinks} onClose={() => setShowLinks(false)} />
       )}
       <OrderRollReveal />
       <WinScreen />
