@@ -48,3 +48,17 @@ test("main action buttons explain their costs", () => {
     "Costs sheep, wheat, ore",
   );
 });
+
+test("Buy Dev Card is disabled when the active player cannot afford it", () => {
+  const s = store("main");
+  s.getState().players[0]!.resources = { wood: 0, brick: 0, sheep: 0, wheat: 0, ore: 0 };
+  render(<GameProvider store={s}><ActionBar /></GameProvider>);
+  expect(screen.getByRole("button", { name: /buy dev card/i })).toBeDisabled();
+});
+
+test("Buy Dev Card is enabled when the active player can afford it", () => {
+  const s = store("main");
+  s.getState().players[0]!.resources = { wood: 0, brick: 0, sheep: 1, wheat: 1, ore: 1 };
+  render(<GameProvider store={s}><ActionBar /></GameProvider>);
+  expect(screen.getByRole("button", { name: /buy dev card/i })).toBeEnabled();
+});
