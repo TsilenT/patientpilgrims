@@ -16,6 +16,7 @@ import { RobberVictimPicker } from "./overlays/RobberVictimPicker";
 import { DiscardModal } from "./overlays/DiscardModal";
 import { MonopolyPicker, YearOfPlentyPicker } from "./overlays/DevCardModals";
 import { WinScreen } from "./overlays/WinScreen";
+import { OrderRollReveal } from "./overlays/OrderRollReveal";
 import { Toast } from "./Toast";
 import type { DevCardType } from "../engine/devcards";
 
@@ -174,6 +175,7 @@ export function GameView() {
         <RobberVictimPicker state={state} victims={robberPick.victims}
           onPick={(victim) => { run({ type: "moveRobber", hex: robberPick.hex, victim }); setRobberPick(null); }} />
       )}
+      <OrderRollReveal />
       <WinScreen />
       <Toast message={error} onDismiss={dismissError} />
     </div>

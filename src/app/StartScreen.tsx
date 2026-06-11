@@ -24,7 +24,7 @@ export function StartScreen({ onStart, onCreateOnline }: {
     const board = mode === "random"
       ? createBoard({ mode: "random", rng })
       : createBoard({ mode: "beginner" });
-    onStart(new GameStore(createInitialGame(players, board), new LocalStoragePersistence(), rng));
+    onStart(new GameStore(createInitialGame(players, board, rng), new LocalStoragePersistence(), rng));
   };
 
   return (
