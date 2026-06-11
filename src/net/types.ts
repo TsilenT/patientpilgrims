@@ -17,9 +17,10 @@ export interface RtdbBackend {
 
 export interface GameMeta {
   createdAt: number;
-  playerCount: number;
-  names: string[];
-  seatColors: string[];
+  /** uid of the device that created the game; only it can start and mint rescue links. */
+  host: string;
+  status: "lobby" | "active";
+  mode: "beginner" | "random";
 }
 
 export interface SeatLink {

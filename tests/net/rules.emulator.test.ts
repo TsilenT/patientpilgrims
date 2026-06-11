@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { initializeTestEnvironment, assertSucceeds, assertFails, type RulesTestEnvironment } from "@firebase/rules-unit-testing";
-import { ref, set, get } from "firebase/database";
+import { ref, set, get, update } from "firebase/database";
 import { readFileSync } from "node:fs";
 
 let env: RulesTestEnvironment;
@@ -13,66 +13,161 @@ beforeAll(async () => {
 });
 afterAll(async () => { await env.cleanup(); });
 
+const meta = (over: object = {}) =>
+  ({ createdAt: 1, host: "host", status: "active", mode: "beginner", ...over });
+
 async function seed() {
   await env.withSecurityRulesDisabled(async (c) => {
     const db = c.database();
+    await set(ref(db, "games/g/meta"), meta());
     await set(ref(db, "games/g/_claims/0"), "tokenZero");
     await set(ref(db, "games/g/state"), { version: 0, turn: { activeSeat: 0 } });
   });
 }
 
-describe("rtdb security rules (emulator)", () => {
-  beforeAll(seed);
+describe("meta rules", () => {
+  it("creates only with host = self, and only host updates it", async () => {
+    const h = env.authenticatedContext("h").database();
+    await assertSucceeds(set(ref(h, "games/m1/meta"), meta({ host: "h", status: "lobby" })));
+    await assertFails(set(ref(h, "games/m2/meta"), meta({ host: "someone-else", status: "lobby" })));
+    await assertSucceeds(set(ref(h, "games/m1/meta/mode"), "random"));
+    await assertFails(set(ref(h, "games/m1/meta/host"), "takeover"));
+    const eve = env.authenticatedContext("eve").database();
+    await assertFails(set(ref(eve, "games/m1/meta/mode"), "beginner"));
+  });
+});
 
-  it("denies reading another seat's claim token", async () => {
+describe("lobby rules", () => {
+  async function lobbyGame(id: string) {
+    await env.withSecurityRulesDisabled(async (c) => {
+      await set(ref(c.database(), `games/${id}/meta`), meta({ status: "lobby" }));
+    });
+  }
+
+  it("claims an empty slot with own uid; stealing and impersonation are denied", async () => {
+    await lobbyGame("l1");
+    const alice = env.authenticatedContext("alice").database();
+    await assertSucceeds(set(ref(alice, "games/l1/lobby/0"), { uid: "alice", name: "Alice", color: "red" }));
+    const bob = env.authenticatedContext("bob").database();
+    await assertFails(set(ref(bob, "games/l1/lobby/0"), { uid: "bob", name: "Bob", color: "blue" }));
+    await assertFails(set(ref(bob, "games/l1/lobby/1"), { uid: "alice", name: "Fake", color: "blue" }));
+  });
+
+  it("lets a player edit their own seat", async () => {
+    await lobbyGame("l2");
+    const alice = env.authenticatedContext("alice").database();
+    await set(ref(alice, "games/l2/lobby/0"), { uid: "alice", name: "Alice", color: "red" });
+    await assertSucceeds(set(ref(alice, "games/l2/lobby/0"), { uid: "alice", name: "Queen Alice", color: "blue" }));
+  });
+
+  it("only the owner or the host can clear a seat", async () => {
+    await lobbyGame("l3");
+    const alice = env.authenticatedContext("alice").database();
+    await set(ref(alice, "games/l3/lobby/0"), { uid: "alice", name: "Alice", color: "red" });
+    const eve = env.authenticatedContext("eve").database();
+    await assertFails(set(ref(eve, "games/l3/lobby/0"), null));
+    const host = env.authenticatedContext("host").database();
+    await assertSucceeds(set(ref(host, "games/l3/lobby/0"), null));
+  });
+
+  it("rejects malformed seats and claims after the game started", async () => {
+    await lobbyGame("l4");
+    const alice = env.authenticatedContext("alice").database();
+    await assertFails(set(ref(alice, "games/l4/lobby/0"), { uid: "alice", name: "Alice" })); // no color
+    await assertFails(set(ref(alice, "games/l4/lobby/1"), { uid: "alice", name: "", color: "red" }));
+    await env.withSecurityRulesDisabled(async (c) => {
+      await set(ref(c.database(), "games/l4/meta/status"), "active");
+    });
+    await assertFails(set(ref(alice, "games/l4/lobby/2"), { uid: "alice", name: "Alice", color: "red" }));
+  });
+});
+
+describe("start + rescue rules", () => {
+  it("denies reading a claim token", async () => {
+    await seed();
     const db = env.authenticatedContext("eve").database();
     await assertFails(get(ref(db, "games/g/_claims/0")));
   });
 
-  it("binds a seat when the proof token matches", async () => {
-    const db = env.authenticatedContext("alice").database();
-    await assertSucceeds(set(ref(db, "games/g/seats/0"), { uid: "alice", proof: "tokenZero" }));
+  it("host mints tokens and seats once; non-host cannot", async () => {
+    await env.withSecurityRulesDisabled(async (c) => {
+      await set(ref(c.database(), "games/s1/meta"), meta({ status: "lobby" }));
+    });
+    const host = env.authenticatedContext("host").database();
+    await assertSucceeds(set(ref(host, "games/s1/_claims/0"), "t0"));
+    await assertFails(set(ref(host, "games/s1/_claims/0"), "t0-again")); // write-once
+    await assertSucceeds(set(ref(host, "games/s1/seats/0"), { uid: "alice" }));
+    const eve = env.authenticatedContext("eve").database();
+    await assertFails(set(ref(eve, "games/s1/_claims/1"), "t1"));
+    await assertFails(set(ref(eve, "games/s1/seats/1"), { uid: "eve-friend" }));
   });
 
-  it("rejects a seat bind with a wrong token", async () => {
-    const db = env.authenticatedContext("mallory").database();
-    await assertFails(set(ref(db, "games/g/seats/1"), { uid: "mallory", proof: "wrong" }));
+  it("host starts with one atomic multi-path update", async () => {
+    await env.withSecurityRulesDisabled(async (c) => {
+      await set(ref(c.database(), "games/s2/meta"), meta({ status: "lobby" }));
+    });
+    const host = env.authenticatedContext("host").database();
+    await assertSucceeds(update(ref(host, "games/s2"), {
+      state: { version: 0, turn: { activeSeat: 0 } },
+      "meta/status": "active",
+      "seats/0": { uid: "alice" },
+      "seats/1": { uid: "bob" },
+      "seats/2": { uid: "carol" },
+      "_claims/0": "t0", "_claims/1": "t1", "_claims/2": "t2",
+    }));
+    const snap = await get(ref(env.authenticatedContext("alice").database(), "games/s2/meta"));
+    expect(snap.val().status).toBe("active");
+  });
+
+  it("rebinds a seat to a new device with the proof token (rescue link)", async () => {
+    await seed();
+    await env.withSecurityRulesDisabled(async (c) => {
+      await set(ref(c.database(), "games/g/seats/0"), { uid: "old-device" });
+    });
+    const fresh = env.authenticatedContext("new-device").database();
+    await assertSucceeds(set(ref(fresh, "games/g/seats/0"), { uid: "new-device", proof: "tokenZero" }));
+    const thief = env.authenticatedContext("thief").database();
+    await assertFails(set(ref(thief, "games/g/seats/0"), { uid: "thief", proof: "wrong" }));
+  });
+});
+
+describe("state rules", () => {
+  it("only the host creates the state", async () => {
+    await env.withSecurityRulesDisabled(async (c) => {
+      await set(ref(c.database(), "games/st1/meta"), meta({ status: "lobby" }));
+    });
+    const eve = env.authenticatedContext("eve").database();
+    await assertFails(set(ref(eve, "games/st1/state"), { version: 0, turn: { activeSeat: 0 } }));
+    const host = env.authenticatedContext("host").database();
+    await assertSucceeds(set(ref(host, "games/st1/state"), { version: 0, turn: { activeSeat: 0 } }));
   });
 
   it("lets the active seat advance version by exactly 1", async () => {
-    const db = env.authenticatedContext("alice").database(); // alice owns seat 0 (active)
+    await seed();
+    await env.withSecurityRulesDisabled(async (c) => {
+      await set(ref(c.database(), "games/g/seats/0"), { uid: "alice" });
+    });
+    const db = env.authenticatedContext("alice").database();
     await assertSucceeds(set(ref(db, "games/g/state"), { version: 1, turn: { activeSeat: 0 } }));
+    await assertFails(set(ref(db, "games/g/state"), { version: 99, turn: { activeSeat: 0 } }));
   });
 
   it("rejects a write from a non-active seat", async () => {
     await env.withSecurityRulesDisabled(async (c) => {
-      await set(ref(c.database(), "games/g/seats/1"), { uid: "bob" });
+      const db = c.database();
+      await set(ref(db, "games/na/meta"), meta());
+      await set(ref(db, "games/na/seats/0"), { uid: "alice" });
+      await set(ref(db, "games/na/seats/1"), { uid: "bob" });
+      await set(ref(db, "games/na/state"), { version: 0, turn: { activeSeat: 0 } });
     });
-    const db = env.authenticatedContext("bob").database(); // seat 1, not active
-    await assertFails(set(ref(db, "games/g/state"), { version: 2, turn: { activeSeat: 0 } }));
-  });
-
-  it("rejects a version skip", async () => {
-    const db = env.authenticatedContext("alice").database();
-    await assertFails(set(ref(db, "games/g/state"), { version: 99, turn: { activeSeat: 0 } }));
-  });
-
-  it("lets the creator write ALL seat claim tokens (createGame writes them one by one)", async () => {
-    const db = env.authenticatedContext("creator").database();
-    await assertSucceeds(set(ref(db, "games/multi/_claims/0"), "t0"));
-    await assertSucceeds(set(ref(db, "games/multi/_claims/1"), "t1")); // regression: must not be denied
-    await assertSucceeds(set(ref(db, "games/multi/_claims/2"), "t2"));
-  });
-
-  it("rejects overwriting an existing claim token (write-once)", async () => {
-    const db = env.authenticatedContext("x").database();
-    await assertSucceeds(set(ref(db, "games/wo/_claims/0"), "first"));
-    await assertFails(set(ref(db, "games/wo/_claims/0"), "second"));
+    const bob = env.authenticatedContext("bob").database();
+    await assertFails(set(ref(bob, "games/na/state"), { version: 1, turn: { activeSeat: 0 } }));
   });
 
   it("lets a non-active seat write while a trade offer is open (async accept)", async () => {
     await env.withSecurityRulesDisabled(async (c) => {
       const db = c.database();
+      await set(ref(db, "games/trade/meta"), meta());
       await set(ref(db, "games/trade/seats/0"), { uid: "alice" });
       await set(ref(db, "games/trade/seats/1"), { uid: "bob" });
       await set(ref(db, "games/trade/state"), {
@@ -80,21 +175,9 @@ describe("rtdb security rules (emulator)", () => {
         tradeOffers: [{ id: 0, from: 0, give: { wood: 1 }, want: { wheat: 1 } }],
       });
     });
-    const db = env.authenticatedContext("bob").database(); // seat 1, NOT active
-    // bob accepts → writes version+1; allowed only because an offer is open
-    await assertSucceeds(set(ref(db, "games/trade/state"), {
+    const bob = env.authenticatedContext("bob").database();
+    await assertSucceeds(set(ref(bob, "games/trade/state"), {
       version: 1, turn: { activeSeat: 0 }, tradeOffers: [],
     }));
-  });
-
-  it("still rejects a non-active write when no trade offer is open", async () => {
-    await env.withSecurityRulesDisabled(async (c) => {
-      const db = c.database();
-      await set(ref(db, "games/notrade/seats/0"), { uid: "alice" });
-      await set(ref(db, "games/notrade/seats/1"), { uid: "bob" });
-      await set(ref(db, "games/notrade/state"), { version: 0, turn: { activeSeat: 0 } });
-    });
-    const db = env.authenticatedContext("bob").database();
-    await assertFails(set(ref(db, "games/notrade/state"), { version: 1, turn: { activeSeat: 0 } }));
   });
 });

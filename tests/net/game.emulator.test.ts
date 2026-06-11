@@ -17,6 +17,8 @@ describe("rtdb game lifecycle (emulator)", () => {
   it("writes and reads back a state blob under a transaction", async () => {
     const ctx = env.authenticatedContext("uid-a");
     const db = ctx.database();
+    // uid-a hosts the game: creates meta, mints a token, seats itself, writes state.
+    await set(ref(db, "games/g1/meta"), { createdAt: 1, host: "uid-a", status: "lobby", mode: "beginner" });
     await set(ref(db, "games/g1/_claims/0"), "tok0");
     await set(ref(db, "games/g1/seats/0"), { uid: "uid-a", proof: "tok0" });
     await set(ref(db, "games/g1/state"), { version: 0, turn: { activeSeat: 0 } });
