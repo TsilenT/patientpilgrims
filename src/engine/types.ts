@@ -69,7 +69,7 @@ export interface Turn {
 
 export interface LogEntry {
   type:
-    | "setupSettlement" | "setupRoad"
+    | "setupSettlement" | "setupRoad" | "orderRoll"
     | "roll" | "buildRoad" | "buildSettlement" | "buildCity"
     | "endTurn" | "win" | "discard"
     | "moveRobber" | "steal" | "buyDevCard" | "playMonopoly" | "playYearOfPlenty" | "playRoadBuilding"
@@ -83,6 +83,8 @@ export interface LogEntry {
   hex?: string;
   victim?: number;
   resource?: Resource;
+  /** Roll-off round for orderRoll entries: 1 is the opening round, 2+ are tie-breaks. */
+  round?: number;
 }
 
 export interface GameState {

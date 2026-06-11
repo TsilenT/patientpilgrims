@@ -1,7 +1,9 @@
 import type { Board } from "../board";
-import type { GameState, Player, BoardState } from "./types";
+import type { GameState, Player, BoardState, LogEntry } from "./types";
+import type { Rng } from "./rng";
 import { emptyResources, fullBank } from "./resources";
 import { makeDevDeck } from "./devcards";
+import { rollTurnOrder } from "./order";
 
 export interface NewPlayer {
   name: string;
@@ -14,7 +16,7 @@ export function snakeOrder(playerCount: number): number[] {
   return [...forward, ...[...forward].reverse()];
 }
 
-export function createInitialGame(players: NewPlayer[], board: Board): GameState {
+export function createInitialGame(players: NewPlayer[], board: Board, rng?: Rng): GameState {
   if (players.length < 3 || players.length > 4) {
     throw new Error("Catan base game supports 3-4 players");
   }
@@ -36,7 +38,18 @@ export function createInitialGame(players: NewPlayer[], board: Board): GameState
     knightsPlayed: 0,
     longestRoadLength: 0,
   }));
-  const order = snakeOrder(players.length);
+  // With an rng, an opening roll-off decides who goes first (highest → lowest,
+  // ties re-rolled within the tied group); without one, seats play in index order.
+  let seatOrder = playerStates.map((p) => p.seat);
+  const log: LogEntry[] = [];
+  if (rng) {
+    const { order: rolled, rounds } = rollTurnOrder(seatOrder, rng);
+    seatOrder = rolled;
+    rounds.forEach((round, i) => {
+      for (const r of round) log.push({ type: "orderRoll", seat: r.seat, dice: r.dice, sum: r.sum, round: i + 1 });
+    });
+  }
+  const order = [...seatOrder, ...[...seatOrder].reverse()];
   return {
     version: 0,
     phase: "setup",
@@ -49,6 +62,6 @@ export function createInitialGame(players: NewPlayer[], board: Board): GameState
     tradeOffers: [],
     tradeSeq: 0,
     setup: { order, pos: 0 },
-    log: [],
+    log,
   };
 }

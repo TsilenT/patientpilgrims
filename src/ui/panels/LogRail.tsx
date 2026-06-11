@@ -5,6 +5,7 @@ function describe(state: GameState, e: LogEntry): string {
   const name = state.players[e.seat]?.name ?? `Seat ${e.seat}`;
   switch (e.type) {
     case "roll": return `${name} rolled ${e.sum}`;
+    case "orderRoll": return `${name} rolled ${e.sum} for turn order`;
     case "buildRoad": return `${name} built a road`;
     case "buildSettlement": return `${name} built a settlement`;
     case "buildCity": return `${name} built a city`;
