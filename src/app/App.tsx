@@ -112,8 +112,8 @@ export function App() {
       <main data-testid="app-root">
         <div className="start-screen">
           <h1>Adulting Catan</h1>
-          <button onClick={() => setStore(resumable)}>Resume game</button>
-          <button onClick={() => { void persistence.clear(); setResumable(null); }}>New game</button>
+          <button onClick={() => setStore(resumable)}>Resume hotseat game</button>
+          <button onClick={() => { void persistence.clear(); setResumable(null); }}>Delete saved game</button>
         </div>
       </main>
     );

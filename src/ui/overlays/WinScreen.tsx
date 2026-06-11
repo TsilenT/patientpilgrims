@@ -74,7 +74,7 @@ export function WinScreen() {
         </ol>
         <div className="win-actions">
           <button onClick={() => setOpen(false)}>View the realm</button>
-          <button className="btn-primary" onClick={newGame}>New game</button>
+          <button className="btn-primary" onClick={newGame}>Back to menu</button>
         </div>
       </div>
     </div>

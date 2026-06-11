@@ -49,10 +49,10 @@ test("view the realm dismisses the screen and the results pill reopens it", asyn
   expect(screen.getByRole("dialog", { name: /game over/i })).toBeInTheDocument();
 });
 
-test("new game clears the hotseat save and navigates to the start screen", async () => {
+test("back to menu clears the hotseat save and navigates to the start screen", async () => {
   localStorage.setItem("adultingcatan:game", JSON.stringify(finishedGame()));
   renderFinished();
-  await userEvent.click(screen.getByRole("button", { name: /new game/i }));
+  await userEvent.click(screen.getByRole("button", { name: /back to menu/i }));
   expect(localStorage.getItem("adultingcatan:game")).toBeNull();
   expect(location.hash).toBe("#/");
 });

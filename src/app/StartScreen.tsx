@@ -48,7 +48,7 @@ export function StartScreen({ onStart, onCreateOnline }: {
         <label><input type="radio" name="mode" checked={mode === "beginner"} onChange={() => setMode("beginner")} /> Beginner</label>
         <label><input type="radio" name="mode" checked={mode === "random"} onChange={() => setMode("random")} /> Random</label>
       </fieldset>
-      <button onClick={start}>Start Game</button>
+      <button onClick={start}>Start hotseat game</button>
       {onCreateOnline && <button onClick={onCreateOnline}>New online game</button>}
     </div>
   );
