@@ -56,8 +56,11 @@ export function Lobby({ id, backend, onEnterGame }: {
     void fn().catch(() => setError(friendly)).finally(() => setBusy(false));
   };
 
+  // Seated players see their roster name even if this device never typed one.
+  const formName = name !== "" ? name : (mySlot >= 0 ? slots[mySlot]!.name : "");
+
   const join = () => {
-    const n = name.trim();
+    const n = formName.trim();
     if (n === "" || selectedColor === undefined) return;
     try { localStorage.setItem(NAME_KEY, n); } catch { /* non-fatal */ }
     const slot = mySlot >= 0 ? mySlot : freeSlot;
@@ -116,7 +119,7 @@ export function Lobby({ id, backend, onEnterGame }: {
       {(mySlot >= 0 || freeSlot >= 0) && (
         <div className="lobby-join">
           <input aria-label="Your name" placeholder="Your name" maxLength={24}
-            value={name} onChange={(e) => setName(e.target.value)} />
+            value={formName} onChange={(e) => setName(e.target.value)} />
           <div className="color-picker" role="radiogroup" aria-label="Color">
             {COLORS.map((c) => (
               <button key={c} role="radio" aria-checked={selectedColor === c} aria-label={c}
@@ -125,7 +128,7 @@ export function Lobby({ id, backend, onEnterGame }: {
                 style={{ background: c }} onClick={() => setColor(c)} />
             ))}
           </div>
-          <button className="btn-primary" disabled={busy || name.trim() === ""} onClick={join}>
+          <button className="btn-primary" disabled={busy || formName.trim() === ""} onClick={join}>
             {mySlot >= 0 ? "Update seat" : "Join game"}
           </button>
         </div>
