@@ -21,6 +21,13 @@ export function HandPanel({ onPlayDev }: { onPlayDev?: (type: DevCardType) => vo
     !c.boughtThisTurn &&
     !c.played &&
     !state.turn.devCardPlayedThisTurn;
+  const cardStatus = (c: PlayerDevCard): "active" | "blocked" | "played" => {
+    if (c.played) return "played";
+    if (c.type === "victoryPoint" || canPlay(c)) return "active";
+    return "blocked";
+  };
+  const handCards = me.devCards.map((card, index) => ({ card, index })).filter(({ card }) => !card.played);
+  const playedCards = me.devCards.map((card, index) => ({ card, index })).filter(({ card }) => card.played);
 
   return (
     <div className="hand-panel">
@@ -36,17 +43,37 @@ export function HandPanel({ onPlayDev }: { onPlayDev?: (type: DevCardType) => vo
           </li>
         ))}
       </ul>
-      <ul className="dev-cards" aria-label="Development cards">
-        {me.devCards.map((c, i) => (
-          <li key={i} data-dev={c.type}>
-            {onPlayDev ? (
-              <button disabled={!canPlay(c)} onClick={() => onPlayDev(c.type)}>{c.type}</button>
-            ) : (
-              c.type
-            )}
-          </li>
-        ))}
-      </ul>
+      <div className="dev-card-section">
+        <h3>Hand</h3>
+        <ul className="dev-cards" aria-label="Development hand">
+          {handCards.map(({ card: c, index }) => {
+            const status = cardStatus(c);
+            return (
+              <li key={index} data-dev={c.type} data-testid={`dev-card-${c.type}-${index}`}
+                className={`dev-card dev-card--${status}`}>
+                {onPlayDev && c.type !== "victoryPoint" ? (
+                  <button disabled={status !== "active"} onClick={() => onPlayDev(c.type)}>{c.type}</button>
+                ) : (
+                  <span className="dev-card-chip">{c.type}</span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+      {playedCards.length > 0 && (
+        <div className="dev-card-section dev-card-section--played">
+          <h3>Played</h3>
+          <ul className="dev-cards dev-cards--played" aria-label="Played development cards">
+            {playedCards.map(({ card: c, index }) => (
+              <li key={index} data-dev={c.type} data-testid={`dev-card-${c.type}-${index}`}
+                className="dev-card dev-card--played">
+                <span className="dev-card-chip">{c.type}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <CostReference />
     </div>
   );

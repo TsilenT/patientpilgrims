@@ -37,10 +37,14 @@ test("opponent bar shows counts for non-viewing seats only", () => {
 test("opponent bar shows icon stats with tooltips", () => {
   const g = mainGame();
   g.players[1]!.resources = { wood: 2, brick: 1, sheep: 0, wheat: 0, ore: 0 };
+  g.players[1]!.devCards = [
+    { type: "knight", boughtThisTurn: false, played: false },
+    { type: "monopoly", boughtThisTurn: false, played: true },
+  ];
   render(<GameProvider store={store(g)}><OpponentBar /></GameProvider>);
   expect(screen.getByTestId("opp-1-resources")).toHaveTextContent("3");
   expect(screen.getByTestId("opp-1-resources")).toHaveAttribute("title", "Resource cards");
-  expect(screen.getByTestId("opp-1-dev")).toHaveTextContent("0");
+  expect(screen.getByTestId("opp-1-dev")).toHaveTextContent("1");
   expect(screen.getByTestId("opp-1-dev")).toHaveAttribute("title", "Development cards");
   expect(screen.getByTestId("opp-1-vp")).toHaveTextContent("0");
 });

@@ -43,10 +43,13 @@ test("playing a knight enters the robber move phase and counts the knight", asyn
   expect(s.getState().players[0]!.knightsPlayed).toBe(1);
 });
 
-test("a victory-point card is shown but not playable", () => {
+test("a victory-point card is shown as active but not playable", () => {
   const g = mainGame();
   g.players[0]!.devCards = [{ type: "victoryPoint", boughtThisTurn: false, played: false }];
   const s = new GameStore(g, new LocalStoragePersistence(), mulberry32(0));
   render(<GameProvider store={s}><GameView /></GameProvider>);
-  expect(screen.getByRole("button", { name: "victoryPoint" })).toBeDisabled();
+  const card = screen.getByTestId("dev-card-victoryPoint-0");
+  expect(card).toHaveTextContent("victoryPoint");
+  expect(card).toHaveClass("dev-card--active");
+  expect(screen.queryByRole("button", { name: "victoryPoint" })).toBeNull();
 });

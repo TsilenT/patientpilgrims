@@ -37,3 +37,30 @@ test("shows own true VP with hidden victory-point card breakdown", () => {
   expect(summary).toHaveAccessibleName("Victory points");
   expect(summary).toHaveTextContent("6 VP (5 public + 1 from victory-point cards)");
 });
+
+test("splits development cards into hand and played sections with blocked cards grayed", () => {
+  const g = createInitialGame(
+    [{ name: "A", color: "red" }, { name: "B", color: "blue" }, { name: "C", color: "white" }],
+    createBoard({ mode: "beginner" }),
+  );
+  g.phase = "main";
+  g.turn = { activeSeat: 0, subPhase: "main", devCardPlayedThisTurn: true };
+  delete g.setup;
+  g.players[0]!.devCards = [
+    { type: "knight", boughtThisTurn: false, played: false },
+    { type: "victoryPoint", boughtThisTurn: false, played: false },
+    { type: "monopoly", boughtThisTurn: false, played: true },
+  ];
+  const s = new GameStore(g, new LocalStoragePersistence(), mulberry32(1));
+  render(<GameProvider store={s}><HandPanel onPlayDev={() => undefined} /></GameProvider>);
+
+  const hand = screen.getByRole("list", { name: "Development hand" });
+  const played = screen.getByRole("list", { name: "Played development cards" });
+
+  expect(hand).toHaveTextContent("knight");
+  expect(hand).toHaveTextContent("victoryPoint");
+  expect(played).toHaveTextContent("monopoly");
+  expect(screen.getByTestId("dev-card-knight-0")).toHaveClass("dev-card--blocked");
+  expect(screen.getByTestId("dev-card-victoryPoint-1")).toHaveClass("dev-card--active");
+  expect(screen.getByTestId("dev-card-monopoly-2")).toHaveClass("dev-card--played");
+});

@@ -188,16 +188,34 @@ main { min-height: 100vh; }
 
 /* ---- Hand ---- */
 .hand-panel h2 { margin: 0 0 8px; font-size: 16px; }
+.dev-card-section { margin-top: 8px; }
+.dev-card-section h3 { margin: 4px 0; font-size: 13px; color: var(--muted); }
 .resources, .dev-cards { list-style: none; padding: 0; margin: 6px 0; display: flex; gap: 7px; flex-wrap: wrap; }
 .res-chip {
   display: inline-flex; align-items: center; gap: 5px;
   background: var(--panel-2); border: 1px solid var(--panel-edge);
   border-radius: 8px; padding: 4px 10px; font-weight: 700; font-size: 13px;
 }
-.dev-cards li { display: inline-flex; }
-.dev-cards button, .dev-cards li {
+.dev-cards .dev-card { display: inline-flex; }
+.dev-card button, .dev-card-chip {
   background: #241a2e; border: 1px solid #5a3f70; color: var(--ink);
   border-radius: 8px; padding: 4px 10px; font-weight: 600;
+}
+.dev-card-chip { display: inline-flex; align-items: center; }
+.dev-card--blocked button {
+  background: #20252b;
+  border-color: #3a444f;
+  color: var(--muted);
+  opacity: 0.62;
+}
+.dev-card--active .dev-card-chip,
+.dev-card--active button { box-shadow: 0 0 0 1px rgba(242, 193, 78, 0.16) inset; }
+.dev-card--played .dev-card-chip {
+  background: #171d23;
+  border-color: #33404c;
+  color: var(--muted);
+  opacity: 0.72;
+  text-decoration: line-through;
 }
 .cost-reference { margin-top: 10px; }
 .cost-reference h3 { margin: 6px 0 4px; font-size: 14px; color: var(--muted); }

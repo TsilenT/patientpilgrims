@@ -35,7 +35,7 @@ export function opponentView(state: GameState, seat: number): OpponentView {
   return {
     seat, name: p.name, color: p.color,
     resourceCount: RESOURCE_LIST.reduce((s, r) => s + p.resources[r], 0),
-    devCardCount: p.devCards.length,
+    devCardCount: p.devCards.filter((c) => !c.played).length,
     victoryPoints: displayVictoryPoints(state, seat), knightsPlayed: p.knightsPlayed,
     longestRoadLength: p.longestRoadLength,
     hasLargestArmy: state.awards.largestArmy === seat,
