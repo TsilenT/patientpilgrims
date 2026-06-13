@@ -81,4 +81,24 @@ describe("setup snake draft", () => {
     expect(granted).toBeGreaterThan(0);
     expect(g.setup).toBeUndefined();
   });
+
+  it("starts main play with the first setup-order seat after a roll-off", () => {
+    let g = createInitialGame(players3, createBoard({ mode: "beginner" }), mulberry32(0));
+    const firstSetupSeat = g.setup!.order[0]!;
+    expect(firstSetupSeat).not.toBe(0);
+
+    while (g.phase === "setup") {
+      const sv = legalSetupSettlements(g.board)[0]!;
+      let r = apply(g, { type: "setupSettlement", vertex: sv }, rng);
+      expectOk(r);
+      g = r.state;
+      const se = legalSetupRoads(g.board, sv)[0]!;
+      r = apply(g, { type: "setupRoad", edge: se }, rng);
+      expectOk(r);
+      g = r.state;
+    }
+
+    expect(g.phase).toBe("main");
+    expect(g.turn).toEqual({ activeSeat: firstSetupSeat, subPhase: "awaitingRoll" });
+  });
 });

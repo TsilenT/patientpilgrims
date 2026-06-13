@@ -56,9 +56,10 @@ export function applySetupRoad(state: GameState, edge: string): string | null {
   setup.pos += 1;
   delete state.turn.setupSettlement;
   if (setup.pos >= setup.order.length) {
+    const firstSeat = setup.order[0]!;
     delete state.setup;
     state.phase = "main";
-    state.turn = { activeSeat: 0, subPhase: "awaitingRoll" };
+    state.turn = { activeSeat: firstSeat, subPhase: "awaitingRoll" };
   } else {
     state.turn.activeSeat = setup.order[setup.pos]!;
     state.turn.subPhase = "setupSettlement";
