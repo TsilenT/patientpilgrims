@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { test, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import { GameProvider } from "../../src/state/GameProvider";
 import { GameStore } from "../../src/state/gameStore";
 import { OpponentBar } from "../../src/ui/panels/OpponentBar";
@@ -86,6 +86,22 @@ test("log rail renders the full log newest first", () => {
     "A rolled 3",
     "A rolled 2",
   ]);
+});
+
+test("log rail keeps new entries visible at the top after updates", () => {
+  const g = mainGame();
+  g.log = [{ type: "roll", seat: 0, sum: 8 }];
+  const s = store(g);
+  render(<GameProvider store={s}><LogRail /></GameProvider>);
+  const rail = screen.getByLabelText("Game log");
+  rail.scrollTop = 40;
+
+  act(() => {
+    s.dispatch({ type: "endTurn" });
+  });
+
+  expect(screen.getAllByRole("listitem")[0]).toHaveTextContent("A ended their turn");
+  expect(rail.scrollTop).toBe(0);
 });
 
 test("hand panel includes a build cost reference", () => {

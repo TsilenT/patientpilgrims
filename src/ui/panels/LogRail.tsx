@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from "react";
 import { useGame } from "../../state/GameProvider";
 import type { GameState, LogEntry } from "../../engine/types";
 
@@ -31,9 +32,15 @@ function describe(state: GameState, e: LogEntry): string {
 
 export function LogRail() {
   const { state } = useGame();
+  const railRef = useRef<HTMLUListElement>(null);
   const entries = [...state.log].reverse();
+
+  useLayoutEffect(() => {
+    if (railRef.current) railRef.current.scrollTop = 0;
+  }, [state.log.length]);
+
   return (
-    <ul className="log-rail" aria-label="Game log">
+    <ul ref={railRef} className="log-rail" aria-label="Game log">
       {entries.map((e, i) => (
         <li key={state.log.length - 1 - i} data-log-type={e.type}>{describe(state, e)}</li>
       ))}
