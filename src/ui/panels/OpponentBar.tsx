@@ -7,8 +7,9 @@ export function OpponentBar() {
   const { state, mySeat } = useGame();
   const viewer = mySeat ?? currentActor(state); // online: opponents are everyone but me
   const opponents = opponentsOf(state, viewer);
+  // Cards render straight into the .top-hud grid so the dice can fill the empty cell.
   return (
-    <div className="opponent-bar">
+    <>
       {opponents.map((o) => {
         const active = state.turn.activeSeat === o.seat;
         return (
@@ -17,7 +18,6 @@ export function OpponentBar() {
             <div className="opp-top">
               <span className="swatch" style={{ background: o.color }} aria-hidden="true" />
               <span className="opp-name">{o.name}</span>
-              {active && <span className="opp-turn">turn</span>}
               <span className="vp-pill" data-testid={`opp-${o.seat}-vp`} title="Victory points">
                 {o.victoryPoints}<span className="vp-label">VP</span>
               </span>
@@ -41,6 +41,6 @@ export function OpponentBar() {
           </div>
         );
       })}
-    </div>
+    </>
   );
 }

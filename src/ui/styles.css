@@ -125,15 +125,14 @@ main { min-height: 100vh; }
 }
 
 /* ---- Opponent bar ---- */
-.top-hud { display: flex; gap: 8px; align-items: flex-start; }
-/* Grid with auto-fill keeps every card the same width — a lone card on the last
-   row stays one column wide instead of stretching across. */
-.opponent-bar {
-  flex: 1 1 auto;
+/* The opponent cards AND the dice share one auto-fill grid, so every card is the
+   same width and the dice fills the empty cell (under player 2 in a 4-player game)
+   instead of stealing width from the top row. */
+.top-hud {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(146px, 1fr));
   gap: 8px;
-  align-content: start;
+  align-items: start;
 }
 .opponent {
   background: var(--panel);
@@ -153,10 +152,6 @@ main { min-height: 100vh; }
 .opp-top { display: flex; align-items: center; gap: 7px; }
 .opponent .swatch { width: 13px; height: 13px; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.35); flex: none; }
 .opp-name { font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.opp-turn {
-  font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
-  color: #1a1300; background: var(--gold); border-radius: 5px; padding: 1px 5px; flex: none;
-}
 .opponent .vp-pill {
   background: var(--gold); color: #1a1300; border-radius: 8px; padding: 1px 7px;
   font-weight: 800; font-size: 14px; flex: none; display: inline-flex; align-items: baseline; gap: 3px;
@@ -182,8 +177,8 @@ main { min-height: 100vh; }
   border-radius: 10px;
   padding: 7px 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-  flex: 0 0 auto;
-  align-self: flex-start;
+  justify-self: start;
+  align-self: start;
 }
 .dice-readout { color: var(--muted); font-weight: 800; white-space: nowrap; font-size: 13px; line-height: 1; }
 .dice-readout[data-rolled="true"] { color: var(--gold); font-size: 16px; }
