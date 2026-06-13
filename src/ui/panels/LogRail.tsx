@@ -31,12 +31,11 @@ function describe(state: GameState, e: LogEntry): string {
 
 export function LogRail() {
   const { state } = useGame();
-  const start = Math.max(0, state.log.length - 15);
-  const entries = state.log.slice(start);
+  const entries = [...state.log].reverse();
   return (
     <ul className="log-rail" aria-label="Game log">
       {entries.map((e, i) => (
-        <li key={start + i} data-log-type={e.type}>{describe(state, e)}</li>
+        <li key={state.log.length - 1 - i} data-log-type={e.type}>{describe(state, e)}</li>
       ))}
     </ul>
   );

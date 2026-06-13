@@ -45,12 +45,47 @@ test("opponent bar shows icon stats with tooltips", () => {
   expect(screen.getByTestId("opp-1-vp")).toHaveTextContent("0");
 });
 
-test("log rail renders readable event lines", () => {
+test("log rail renders the full log newest first", () => {
   const g = mainGame();
-  g.log = [{ type: "roll", seat: 0, sum: 8 }, { type: "buildCity", seat: 1 }];
+  g.log = [
+    { type: "roll", seat: 0, sum: 2 },
+    { type: "roll", seat: 0, sum: 3 },
+    { type: "roll", seat: 0, sum: 4 },
+    { type: "roll", seat: 0, sum: 5 },
+    { type: "roll", seat: 0, sum: 6 },
+    { type: "roll", seat: 0, sum: 7 },
+    { type: "roll", seat: 0, sum: 8 },
+    { type: "roll", seat: 0, sum: 9 },
+    { type: "roll", seat: 0, sum: 10 },
+    { type: "roll", seat: 0, sum: 11 },
+    { type: "roll", seat: 0, sum: 12 },
+    { type: "buildRoad", seat: 1 },
+    { type: "buildSettlement", seat: 2 },
+    { type: "tradeBank", seat: 0 },
+    { type: "buyDevCard", seat: 1 },
+    { type: "buildCity", seat: 2 },
+  ];
   render(<GameProvider store={store(g)}><LogRail /></GameProvider>);
-  expect(screen.getByText("A rolled 8")).toBeInTheDocument();
-  expect(screen.getByText("B built a city")).toBeInTheDocument();
+
+  const lines = screen.getAllByRole("listitem").map((li) => li.textContent);
+  expect(lines).toEqual([
+    "C built a city",
+    "B bought a development card",
+    "A traded with the bank",
+    "C built a settlement",
+    "B built a road",
+    "A rolled 12",
+    "A rolled 11",
+    "A rolled 10",
+    "A rolled 9",
+    "A rolled 8",
+    "A rolled 7",
+    "A rolled 6",
+    "A rolled 5",
+    "A rolled 4",
+    "A rolled 3",
+    "A rolled 2",
+  ]);
 });
 
 test("hand panel includes a build cost reference", () => {
