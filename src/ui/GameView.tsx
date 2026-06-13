@@ -38,6 +38,11 @@ export function GameView() {
   const [devModal, setDevModal] = useState<"monopoly" | "yearOfPlenty" | null>(null);
   const [roadEdges, setRoadEdges] = useState<string[] | null>(null);
   const [buildMode, setBuildMode] = useState<BuildMode>(null);
+  const [pendingSetup, setPendingSetup] = useState<
+    | { kind: "settlement"; vertex: string }
+    | { kind: "road"; edge: string }
+    | null
+  >(null);
   const [tab, setTab] = useState<"hand" | "trades" | "log">("hand");
   const [showLinks, setShowLinks] = useState(false);
 
@@ -74,7 +79,7 @@ export function GameView() {
   const onVertex = async (v: string) => {
     if (!interactive || roadEdges !== null) return;
     if (effectiveMode === "settlement") {
-      if (sub === "setupSettlement") { await run({ type: "setupSettlement", vertex: v }); return; }
+      if (sub === "setupSettlement") { setPendingSetup({ kind: "settlement", vertex: v }); return; }
       if (sub === "main") { const r = await run({ type: "buildSettlement", vertex: v }); finishBuild(r.ok); }
       return;
     }
@@ -91,7 +96,7 @@ export function GameView() {
       return;
     }
     if (effectiveMode !== "road") return;
-    if (sub === "setupRoad") { await run({ type: "setupRoad", edge: e }); return; }
+    if (sub === "setupRoad") { setPendingSetup({ kind: "road", edge: e }); return; }
     if (sub === "main") { const r = await run({ type: "buildRoad", edge: e }); finishBuild(r.ok); }
   };
   const onHex = (h: string) => {
@@ -107,6 +112,14 @@ export function GameView() {
     if (type === "monopoly") return setDevModal("monopoly");
     if (type === "yearOfPlenty") return setDevModal("yearOfPlenty");
     if (type === "roadBuilding") return setRoadEdges([]);
+  };
+
+  const confirmSetupPlacement = async () => {
+    if (pendingSetup === null) return;
+    const result = pendingSetup.kind === "settlement"
+      ? await run({ type: "setupSettlement", vertex: pendingSetup.vertex })
+      : await run({ type: "setupRoad", edge: pendingSetup.edge });
+    if (result.ok) setPendingSetup(null);
   };
 
   return (
@@ -167,6 +180,17 @@ export function GameView() {
             </div>
           </div>
         </>
+      )}
+      {pendingSetup !== null && (
+        <div className="setup-confirm" role="dialog" aria-modal="true" aria-label="Confirm placement">
+          <p>
+            Confirm {pendingSetup.kind} placement?
+          </p>
+          <button className="btn-primary" onClick={() => { void confirmSetupPlacement(); }}>
+            Confirm
+          </button>
+          <button onClick={() => setPendingSetup(null)}>Cancel</button>
+        </div>
       )}
       {roadEdges !== null && (
         <div className="road-building" role="dialog" aria-modal="true" aria-label="Road building">

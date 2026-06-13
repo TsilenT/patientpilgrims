@@ -245,7 +245,7 @@ main { min-height: 100vh; }
 .log-rail li[data-log-type="acceptTrade"] { color: var(--gold); border-left-color: var(--gold); }
 
 /* ---- Dialog overlays ---- */
-.pass-device, .discard-modal, .robber-victims, .dev-modal, .road-building {
+.pass-device, .discard-modal, .robber-victims, .dev-modal, .road-building, .setup-confirm {
   position: fixed;
   inset: 0;
   margin: auto;

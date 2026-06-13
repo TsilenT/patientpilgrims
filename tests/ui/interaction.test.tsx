@@ -20,14 +20,43 @@ function newGame() {
   return createInitialGame(players3, createBoard({ mode: "beginner" }));
 }
 
-test("clicking a legal setup vertex dispatches setupSettlement", async () => {
+test("setup settlement placement requires confirmation", async () => {
   const g = newGame();
+  const activeSeat = g.turn.activeSeat;
   const store = new GameStore(g, new LocalStoragePersistence(), mulberry32(1));
   const { container } = render(<GameProvider store={store}><GameView /></GameProvider>);
   const legalV = [...legalTargets(g).vertices][0]!;
   const slot = container.querySelector(`[data-vertex-slot="${legalV}"]`)!;
+
   await userEvent.click(slot);
-  expect(store.getState().board.buildings[legalV]).toEqual({ owner: g.turn.activeSeat, type: "settlement" });
+
+  expect(store.getState().board.buildings[legalV]).toBeUndefined();
+  expect(screen.getByRole("dialog", { name: /confirm placement/i })).toHaveTextContent("settlement");
+
+  await userEvent.click(screen.getByRole("button", { name: /confirm/i }));
+
+  expect(store.getState().board.buildings[legalV]).toEqual({ owner: activeSeat, type: "settlement" });
+});
+
+test("setup road placement requires confirmation", async () => {
+  const g = newGame();
+  const activeSeat = g.turn.activeSeat;
+  const store = new GameStore(g, new LocalStoragePersistence(), mulberry32(1));
+  const { container } = render(<GameProvider store={store}><GameView /></GameProvider>);
+  const legalV = [...legalTargets(g).vertices][0]!;
+  await userEvent.click(container.querySelector(`[data-vertex-slot="${legalV}"]`)!);
+  await userEvent.click(screen.getByRole("button", { name: /confirm/i }));
+
+  const roadState = store.getState();
+  const legalE = [...legalTargets(roadState).edges][0]!;
+  await userEvent.click(container.querySelector(`[data-edge-slot="${legalE}"]`)!);
+
+  expect(store.getState().board.roads[legalE]).toBeUndefined();
+  expect(screen.getByRole("dialog", { name: /confirm placement/i })).toHaveTextContent("road");
+
+  await userEvent.click(screen.getByRole("button", { name: /confirm/i }));
+
+  expect(store.getState().board.roads[legalE]).toEqual({ owner: activeSeat });
 });
 
 test("selecting City then tapping your settlement upgrades it to a city", async () => {
