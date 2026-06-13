@@ -1,6 +1,17 @@
-import type { GameState } from "../engine/types";
+import type { GameState, LogEntry } from "../engine/types";
 import { emptyResources } from "../engine";
 import { recomputeVictoryPoints } from "../engine/scoring/victory";
+
+function deriveTurnOrder(s: GameState): number[] {
+  if (s.setup?.order && s.players?.length) return s.setup.order.slice(0, s.players.length);
+  const order: number[] = [];
+  for (const e of (s.log ?? []) as LogEntry[]) {
+    if (e.type !== "setupSettlement") continue;
+    if (!order.includes(e.seat)) order.push(e.seat);
+    if (order.length >= (s.players?.length ?? 0)) break;
+  }
+  return order.length > 0 ? order : (s.players ?? []).map((p) => p.seat);
+}
 
 /**
  * Firebase RTDB does not store empty objects or arrays — a field that was `{}` or
@@ -22,7 +33,7 @@ export function normalizeState(raw: GameState | null): GameState | null {
   s.tradeOffers = s.tradeOffers ?? [];
   s.awards = s.awards ?? {};
   s.devDeck = s.devDeck ?? [];
-  s.turnOrder = s.turnOrder ?? (s.players ?? []).map((p) => p.seat);
+  s.turnOrder = s.turnOrder ?? deriveTurnOrder(s);
 
   s.players = (s.players ?? []).map((p) => ({
     ...p,

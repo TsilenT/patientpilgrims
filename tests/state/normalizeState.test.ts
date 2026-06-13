@@ -60,6 +60,32 @@ describe("normalizeState", () => {
     expect(s.bank).toEqual(g.bank);
   });
 
+  it("derives missing turnOrder from the setup placement log", () => {
+    const g = freshGame();
+    g.phase = "main";
+    g.turn = { activeSeat: 2, subPhase: "awaitingRoll" };
+    delete g.setup;
+    delete (g as { turnOrder?: unknown }).turnOrder;
+    g.log = [
+      { type: "setupSettlement", seat: 2, vertex: "v1" },
+      { type: "setupRoad", seat: 2, edge: "e1" },
+      { type: "setupSettlement", seat: 0, vertex: "v2" },
+      { type: "setupRoad", seat: 0, edge: "e2" },
+      { type: "setupSettlement", seat: 1, vertex: "v3" },
+      { type: "setupRoad", seat: 1, edge: "e3" },
+      { type: "setupSettlement", seat: 1, vertex: "v4" },
+      { type: "setupRoad", seat: 1, edge: "e4" },
+      { type: "setupSettlement", seat: 0, vertex: "v5" },
+      { type: "setupRoad", seat: 0, edge: "e5" },
+      { type: "setupSettlement", seat: 2, vertex: "v6" },
+      { type: "setupRoad", seat: 2, edge: "e6" },
+    ];
+
+    const s = normalizeState(g)!;
+
+    expect(s.turnOrder).toEqual([2, 0, 1]);
+  });
+
   it("migrates saved VP totals back to public-only victory points", () => {
     const g = freshGame();
     g.phase = "main"; g.turn = { activeSeat: 0, subPhase: "main" }; delete g.setup;
