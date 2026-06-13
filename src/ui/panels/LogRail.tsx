@@ -15,7 +15,10 @@ function describe(state: GameState, e: LogEntry): string {
     case "win": return `${name} won the game!`;
     case "discard": return `${name} discarded ${e.count ?? 0}`;
     case "moveRobber": return `${name} moved the robber`;
-    case "steal": return `${name} stole a card`;
+    case "steal": {
+      const victim = state.players[e.victim!]?.name ?? `Seat ${e.victim}`;
+      return `${name} stole a card from ${victim}`;
+    }
     case "buyDevCard": return `${name} bought a development card`;
     case "playMonopoly": return `${name} played Monopoly`;
     case "playYearOfPlenty": return `${name} played Year of Plenty`;

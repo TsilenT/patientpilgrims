@@ -14,10 +14,11 @@ export function applyRollDice(state: GameState, rng: Rng): string | null {
   state.log.push({ type: "roll", seat: state.turn.activeSeat, dice: [d1, d2], sum });
 
   if (sum === 7) {
-    const owed: Record<number, number> = {};
+    const owed: Record<number, number> = { ...(state.discardObligations ?? {}) };
     for (const p of state.players) {
-      const total = totalCards(p.resources);
-      if (total > DISCARD_LIMIT) owed[p.seat] = Math.floor(total / 2);
+      const priorOwed = owed[p.seat] ?? 0;
+      const virtualTotal = Math.max(0, totalCards(p.resources) - priorOwed);
+      if (virtualTotal > DISCARD_LIMIT) owed[p.seat] = priorOwed + Math.floor(virtualTotal / 2);
     }
     if (Object.keys(owed).length > 0) state.discardObligations = owed;
     state.turn.robberReturn = "main";

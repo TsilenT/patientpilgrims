@@ -104,6 +104,15 @@ test("log rail inserts new entries at the top without changing scroll position",
   expect(rail.scrollTop).toBe(40);
 });
 
+test("log rail names the robber steal victim", () => {
+  const g = mainGame();
+  g.log = [{ type: "steal", seat: 0, victim: 1, resource: "wood" }];
+
+  render(<GameProvider store={store(g)}><LogRail /></GameProvider>);
+
+  expect(screen.getByRole("listitem")).toHaveTextContent("A stole a card from B");
+});
+
 test("hand panel includes a build cost reference", () => {
   render(<GameProvider store={store(mainGame())}><HandPanel /></GameProvider>);
   const costs = screen.getByRole("region", { name: /cost reference/i });

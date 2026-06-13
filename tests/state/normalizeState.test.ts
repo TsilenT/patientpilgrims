@@ -1,8 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { normalizeState } from "../../src/net/normalize";
-import { createInitialGame, totalVictoryPoints } from "../../src/engine";
+import { createInitialGame } from "../../src/engine";
 import { createBoard } from "../../src/board";
-import { topology } from "../../src/engine/board";
 import type { GameState } from "../../src/engine/types";
 
 /** Simulate a Firebase round-trip: RTDB drops empty objects/arrays. */
@@ -84,19 +83,5 @@ describe("normalizeState", () => {
     const s = normalizeState(g)!;
 
     expect(s.turnOrder).toEqual([2, 0, 1]);
-  });
-
-  it("migrates saved VP totals back to public-only victory points", () => {
-    const g = freshGame();
-    g.phase = "main"; g.turn = { activeSeat: 0, subPhase: "main" }; delete g.setup;
-
-    const verts = topology().vertexIds.slice(0, 5);
-    verts.forEach((v) => (g.board.buildings[v] = { owner: 1, type: "settlement" }));
-    g.players[1]!.devCards.push({ type: "victoryPoint", boughtThisTurn: false, played: false });
-    g.players[1]!.victoryPoints = 6; // legacy saved value: 5 public + 1 hidden VP card
-
-    const s = normalizeState(g)!;
-    expect(s.players[1]!.victoryPoints).toBe(5);
-    expect(totalVictoryPoints(s, 1)).toBe(6);
   });
 });

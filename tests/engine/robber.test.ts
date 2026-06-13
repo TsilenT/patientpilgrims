@@ -61,6 +61,26 @@ describe("rolling a 7 -> robber move", () => {
     expect(r.state.turn.subPhase).toBe("movingRobber");
     expect(r.state.discardObligations).toBeUndefined();
   });
+
+  it("stacks repeated 7 discard obligations against the virtual hand after prior owed cards", () => {
+    const g = mainGame();
+    g.players[1]!.resources = { wood: 15, brick: 0, sheep: 0, wheat: 0, ore: 0 };
+
+    const first = apply(g, { type: "rollDice" }, sevenRng());
+    expectOk(first);
+    expect(first.state.discardObligations).toEqual({ 1: 7 });
+
+    const targetHex = topology().hexIds.find((h) => h !== first.state.board.robber)!;
+    const movedRobber = apply(first.state, { type: "moveRobber", hex: targetHex }, rngOf());
+    expectOk(movedRobber);
+    const endedTurn = apply(movedRobber.state, { type: "endTurn" }, rngOf());
+    expectOk(endedTurn);
+
+    const second = apply(endedTurn.state, { type: "rollDice" }, sevenRng());
+    expectOk(second);
+    // 15 cards - 7 already owed = virtual hand of 8; a second 7 adds floor(8 / 2) = 4.
+    expect(second.state.discardObligations).toEqual({ 1: 11 });
+  });
 });
 
 describe("discard action", () => {
