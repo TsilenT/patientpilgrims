@@ -16,7 +16,7 @@ export function HexTile({ hid, tile, layout, hasRobber }: {
       <polygon points={points} fill={`url(#hex-${tile.kind})`} stroke="rgba(255,255,255,.45)"
                strokeWidth={1.5} strokeLinejoin="round" />
       {TileIcon && (
-        <TileIcon x={c.x - 11} y={c.y - 28} width={22} height={22} stroke="#1b2027" strokeWidth={1.6} />
+        <TileIcon className="hex-icon" x={c.x - 12} y={c.y - 30} width={24} height={24} />
       )}
       {tile.number !== undefined && (
         <g>

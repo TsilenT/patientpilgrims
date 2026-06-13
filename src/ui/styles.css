@@ -64,8 +64,10 @@ button:disabled { opacity: 0.4; cursor: default; }
 .dev-modal-icon { font-size: 22px; vertical-align: -0.22em; }
 .chips span { display: inline-flex; align-items: center; gap: 3px; }
 .chip-icon { font-size: 0.95rem; }
-.host-crown { color: var(--gold); font-size: 16px; }
+.host-crown { font-size: 16px; }
 .dice-icon { font-size: 1em; }
+/* Dark edge keeps the colored hex icons legible over the (light-to-mid) tiles. */
+.hex-icon { filter: drop-shadow(0 0 0.7px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 0.7px rgba(0, 0, 0, 0.7)); }
 
 /* ---- App shell / start screen ---- */
 main { min-height: 100vh; }
