@@ -49,6 +49,18 @@ test("opponent bar shows icon stats with tooltips", () => {
   expect(screen.getByTestId("opp-1-vp")).toHaveTextContent("0");
 });
 
+test("opponent bar highlights the knight stat for the Largest Army holder", () => {
+  const g = mainGame();
+  g.players[1]!.knightsPlayed = 3;
+  g.awards.largestArmy = 1;
+  render(<GameProvider store={store(g)}><OpponentBar /></GameProvider>);
+  const knightStat = screen.getByTitle("Largest Army (3+ knights)");
+  expect(knightStat).toHaveClass("is-award");
+  expect(knightStat).toHaveTextContent("3");
+  // seat 2 holds no army → its knight stat is the plain "Knights played" variant
+  expect(screen.getByTitle("Knights played")).not.toHaveClass("is-award");
+});
+
 test("log rail renders the full log newest first", () => {
   const g = mainGame();
   g.log = [

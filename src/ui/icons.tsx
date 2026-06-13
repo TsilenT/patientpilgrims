@@ -136,6 +136,21 @@ export const StarIcon: IconComponent = (p) => (
   </Icon>
 );
 
+// ---- Counters (opponent stats) ----
+export const CardsIcon: IconComponent = (p) => (
+  <Icon {...p}>
+    <rect x="4.5" y="8" width="9.5" height="12.5" rx="1.6" fill="#6f7f96" transform="rotate(-13 9.2 14)" />
+    <rect x="9" y="6.5" width="9.5" height="12.5" rx="1.6" fill="#a7b7cc" transform="rotate(10 13.7 12.7)" />
+  </Icon>
+);
+export const DevCardBackIcon: IconComponent = (p) => (
+  <Icon {...p}>
+    <rect x="5" y="3.5" width="14" height="17" rx="2" fill="#4a3661" />
+    <rect x="5" y="3.5" width="14" height="17" rx="2" fill="none" stroke="#6f5189" strokeWidth="1.2" />
+    <path d="M12 8l1.3 3 3.2.3-2.4 2.1.8 3.1L12 15l-2.9 1.6.8-3.1L7.5 11.3l3.2-.3z" fill="#e8c24e" />
+  </Icon>
+);
+
 // ---- Misc UI ----
 export const CrownIcon: IconComponent = (p) => (
   <Icon {...p}>

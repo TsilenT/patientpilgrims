@@ -125,29 +125,45 @@ main { min-height: 100vh; }
 }
 
 /* ---- Opponent bar ---- */
-.top-hud { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; }
-.opponent-bar { display: flex; gap: 8px; flex-wrap: wrap; flex: 1 1 auto; }
+.top-hud { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+.opponent-bar { display: flex; gap: 8px; flex-wrap: wrap; flex: 1 1 100%; }
 .opponent {
   background: var(--panel);
-  border: 2px solid var(--panel-edge);
-  border-radius: 8px;
-  padding: 4px 7px;
-  font-size: 12px;
-  line-height: 1.15;
+  border: 1px solid var(--panel-edge);
+  border-left: 4px solid var(--seat-color, var(--panel-edge));
+  border-radius: 10px;
+  padding: 6px 9px 7px 10px;
   display: flex;
-  gap: 6px;
-  align-items: center;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1 1 160px;
+  min-width: 150px;
+  max-width: 220px;
 }
 .opponent[data-active="true"] {
   border-color: var(--gold);
-  box-shadow: 0 0 0 4px rgba(242, 193, 78, 0.15);
+  border-left-color: var(--seat-color, var(--gold));
+  box-shadow: 0 0 0 2px rgba(242, 193, 78, 0.28);
 }
-.opponent .swatch { width: 12px; height: 12px; border-radius: 3px; border: 1px solid rgba(255, 255, 255, 0.35); }
-.opponent .opp-name { font-weight: 700; }
-.opponent .vp-pill { background: var(--gold); color: #1a1300; border-radius: 10px; padding: 0 7px; font-weight: 800; font-size: 11px; }
-.opponent .opp-stat { color: var(--muted); }
-.opponent .award { background: var(--accent); color: #fff; border-radius: 6px; padding: 0 5px; font-size: 10px; font-weight: 700; }
+.opp-top { display: flex; align-items: center; gap: 7px; }
+.opponent .swatch { width: 13px; height: 13px; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.35); flex: none; }
+.opp-name { font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.opp-turn {
+  font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+  color: #1a1300; background: var(--gold); border-radius: 5px; padding: 1px 5px; flex: none;
+}
+.opponent .vp-pill {
+  background: var(--gold); color: #1a1300; border-radius: 8px; padding: 1px 7px;
+  font-weight: 800; font-size: 14px; flex: none; display: inline-flex; align-items: baseline; gap: 3px;
+}
+.opponent .vp-label { font-size: 9px; font-weight: 800; }
+.opp-stats { display: flex; gap: 9px; flex-wrap: wrap; }
+.opp-stat {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 12px; font-weight: 700; color: var(--muted);
+}
+.opp-stat .icon { font-size: 14px; }
+.opp-stat.is-award { color: #1a1300; background: var(--gold); border-radius: 6px; padding: 0 5px; }
 
 /* ---- Action bar + dice HUD + bottom sheet + tabs ---- */
 .action-bar { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
@@ -575,7 +591,8 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
       "actions    sheet";
     align-items: start;
   }
-  .top-hud { grid-area: opponents; }
+  .top-hud { grid-area: opponents; flex-wrap: nowrap; }
+  .opponent-bar { flex: 1 1 auto; }
   .board { grid-area: board; max-height: 78vh; }
   .action-bar { grid-area: actions; }
   .waiting-banner { grid-area: actions; }
