@@ -125,8 +125,16 @@ main { min-height: 100vh; }
 }
 
 /* ---- Opponent bar ---- */
-.top-hud { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
-.opponent-bar { display: flex; gap: 8px; flex-wrap: wrap; flex: 1 1 100%; }
+.top-hud { display: flex; gap: 8px; align-items: flex-start; }
+/* Grid with auto-fill keeps every card the same width — a lone card on the last
+   row stays one column wide instead of stretching across. */
+.opponent-bar {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 8px;
+  align-content: start;
+}
 .opponent {
   background: var(--panel);
   border: 1px solid var(--panel-edge);
@@ -136,9 +144,6 @@ main { min-height: 100vh; }
   display: flex;
   flex-direction: column;
   gap: 5px;
-  flex: 1 1 160px;
-  min-width: 150px;
-  max-width: 220px;
 }
 .opponent[data-active="true"] {
   border-color: var(--gold);
@@ -169,16 +174,19 @@ main { min-height: 100vh; }
 .action-bar { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
 .dice-summary {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
   background: var(--panel);
   border: 1px solid var(--panel-edge);
   border-radius: 10px;
-  padding: 6px 12px;
+  padding: 7px 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   flex: 0 0 auto;
+  align-self: flex-start;
 }
-.dice-readout { color: var(--muted); font-weight: 600; white-space: nowrap; }
+.dice-readout { color: var(--muted); font-weight: 800; white-space: nowrap; font-size: 13px; line-height: 1; }
+.dice-readout[data-rolled="true"] { color: var(--gold); font-size: 16px; }
 .dice-faces { display: flex; gap: 6px; }
 .die {
   display: grid;
@@ -200,6 +208,7 @@ main { min-height: 100vh; }
   background: #1c2027;
   box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.6);
 }
+.die--placeholder { opacity: 0.35; }
 .die--rolling { animation: die-tumble 0.6s ease-in-out; }
 @keyframes die-tumble {
   0% { transform: rotate(0) scale(1); }
@@ -361,8 +370,7 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
 }
 .discard-row { display: flex; gap: 8px; align-items: center; justify-content: space-between; margin: 5px 0; }
 .robber-victims button, .dev-modal button, .road-building button { margin: 4px; }
-/* ---- Host game-links modal ---- */
-.host-links-btn { padding: 6px 10px; flex: none; }
+/* ---- Host game-links panel (bottom-sheet tab) ---- */
 .host-links .host-link-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
 .host-links .host-link-row .who { flex: 1; text-align: left; font-weight: 600; }
 .host-links-hint { color: var(--muted); font-size: 0.85rem; margin: 10px 0 6px; }
@@ -591,8 +599,7 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
       "actions    sheet";
     align-items: start;
   }
-  .top-hud { grid-area: opponents; flex-wrap: nowrap; }
-  .opponent-bar { flex: 1 1 auto; }
+  .top-hud { grid-area: opponents; }
   .board { grid-area: board; max-height: 78vh; }
   .action-bar { grid-area: actions; }
   .waiting-banner { grid-area: actions; }

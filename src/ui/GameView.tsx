@@ -17,8 +17,7 @@ import { DiscardModal } from "./overlays/DiscardModal";
 import { MonopolyPicker, YearOfPlentyPicker } from "./overlays/DevCardModals";
 import { WinScreen } from "./overlays/WinScreen";
 import { OrderRollReveal } from "./overlays/OrderRollReveal";
-import { HostLinksModal } from "./overlays/HostLinksModal";
-import { LinkIcon } from "./icons";
+import { HostLinksPanel } from "./overlays/HostLinksPanel";
 import { hostRescueLinks } from "../net/lobby";
 import { parseRoute } from "../app/router";
 import { Toast } from "./Toast";
@@ -44,8 +43,7 @@ export function GameView() {
     | { kind: "road"; edge: string }
     | null
   >(null);
-  const [tab, setTab] = useState<"hand" | "trades" | "log">("hand");
-  const [showLinks, setShowLinks] = useState(false);
+  const [tab, setTab] = useState<"hand" | "trades" | "log" | "links">("hand");
 
   // Online + this device hosted the game → it holds the per-seat rescue links.
   const r = parseRoute(location.hash);
@@ -128,10 +126,6 @@ export function GameView() {
       <div className="top-hud">
         <OpponentBar />
         <DiceSummary />
-        {rescueLinks !== null && (
-          <button className="host-links-btn" aria-label="Game links" title="Game links"
-            onClick={() => setShowLinks(true)}><LinkIcon /></button>
-        )}
       </div>
       {placingRobber && (
         <div className="robber-placement-banner" role="status" aria-label="Robber placement">
@@ -153,11 +147,13 @@ export function GameView() {
               <button role="tab" aria-selected={tab === "hand"} onClick={() => setTab("hand")}>Your hand</button>
               {sub === "main" && <button role="tab" aria-selected={tab === "trades"} onClick={() => setTab("trades")}>Trades</button>}
               <button role="tab" aria-selected={tab === "log"} onClick={() => setTab("log")}>Log</button>
+              {rescueLinks !== null && <button role="tab" aria-selected={tab === "links"} onClick={() => setTab("links")}>Links</button>}
             </div>
             <div className="tab-content" role="tabpanel" aria-label={tab}>
               {tab === "log" && <LogRail />}
               {tab === "trades" && (sub === "main" ? <TradePanel /> : <p>Trades open after the active player rolls.</p>)}
               {tab === "hand" && <HandPanel />}
+              {tab === "links" && gameId !== null && rescueLinks !== null && <HostLinksPanel id={gameId} links={rescueLinks} />}
             </div>
           </div>
         </>
@@ -173,11 +169,13 @@ export function GameView() {
               <button role="tab" aria-selected={tab === "hand"} onClick={() => setTab("hand")}>Hand</button>
               <button role="tab" aria-selected={tab === "trades"} onClick={() => setTab("trades")}>Trades</button>
               <button role="tab" aria-selected={tab === "log"} onClick={() => setTab("log")}>Log</button>
+              {rescueLinks !== null && <button role="tab" aria-selected={tab === "links"} onClick={() => setTab("links")}>Links</button>}
             </div>
             <div className="tab-content" role="tabpanel" aria-label={tab}>
               {tab === "hand" && <HandPanel onPlayDev={onPlayDev} />}
               {tab === "trades" && (sub === "main" ? <TradePanel /> : <p>Trades open after you roll.</p>)}
               {tab === "log" && <LogRail />}
+              {tab === "links" && gameId !== null && rescueLinks !== null && <HostLinksPanel id={gameId} links={rescueLinks} />}
             </div>
           </div>
         </>
@@ -212,9 +210,6 @@ export function GameView() {
       {robberPick && sub === "movingRobber" && (
         <RobberVictimPicker state={state} victims={robberPick.victims}
           onPick={(victim) => { run({ type: "moveRobber", hex: robberPick.hex, victim }); setRobberPick(null); }} />
-      )}
-      {showLinks && gameId !== null && rescueLinks !== null && (
-        <HostLinksModal id={gameId} links={rescueLinks} onClose={() => setShowLinks(false)} />
       )}
       <OrderRollReveal />
       <WinScreen />

@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useGame } from "../../state/GameProvider";
 
-function diceText(dice?: [number, number]): string {
-  if (!dice) return "No roll yet";
-  const [a, b] = dice;
-  return `${a} + ${b} = ${a + b}`;
+// The two pip faces already show the breakdown, so the readout is just the total.
+function diceText(dice: [number, number] | undefined, rolling: boolean): string {
+  if (rolling) return "…";
+  if (!dice) return "—";
+  return `${dice[0] + dice[1]}`;
 }
 
 // Pip layout per face: which cells of a 3×3 grid (0–8) carry a dot.
@@ -17,16 +18,14 @@ const PIPS: Record<number, number[]> = {
   6: [0, 2, 3, 5, 6, 8],
 };
 
-function Die({ value, rolling, index }: { value: number; rolling: boolean; index: number }) {
+function Die({ value, rolling, placeholder, index }: {
+  value: number; rolling: boolean; placeholder: boolean; index: number;
+}) {
   const pips = PIPS[value] ?? [];
+  const cls = ["die", rolling && "die--rolling", placeholder && "die--placeholder"].filter(Boolean).join(" ");
   return (
-    <span
-      className={rolling ? "die die--rolling" : "die"}
-      data-testid={`die-${index}`}
-      data-value={value}
-      style={{ animationDelay: `${index * 80}ms` }}
-      aria-hidden="true"
-    >
+    <span className={cls} data-testid={`die-${index}`} data-value={value}
+      style={{ animationDelay: `${index * 80}ms` }} aria-hidden="true">
       {Array.from({ length: 9 }, (_, cell) => (
         <span key={cell} className={pips.includes(cell) ? "pip pip--on" : "pip"} />
       ))}
@@ -68,16 +67,17 @@ export function DiceSummary() {
   }, [key]);
 
   const shown = rolling && flash ? flash : dice;
+  // Always render two faces (blank before the first roll) so the block never changes height.
+  const faces = shown ?? [0, 0];
+  const placeholder = !dice && !rolling;
 
   return (
     <div className="dice-summary" role="status" aria-label="Dice roll">
-      {dice && (
-        <span className="dice-faces" aria-hidden="true">
-          <Die index={0} value={shown![0]} rolling={rolling} />
-          <Die index={1} value={shown![1]} rolling={rolling} />
-        </span>
-      )}
-      <span className="dice-readout">{rolling ? "Rolling…" : diceText(dice)}</span>
+      <span className="dice-faces" aria-hidden="true">
+        <Die index={0} value={faces[0]} rolling={rolling} placeholder={placeholder} />
+        <Die index={1} value={faces[1]} rolling={rolling} placeholder={placeholder} />
+      </span>
+      <span className="dice-readout" data-rolled={dice !== undefined && !rolling}>{diceText(dice, rolling)}</span>
     </div>
   );
 }

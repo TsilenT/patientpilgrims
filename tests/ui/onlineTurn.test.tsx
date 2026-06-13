@@ -56,7 +56,7 @@ test("online: dice summary remains visible while waiting for another player", ()
   g.turn = { activeSeat: 0, subPhase: "main", dice: [4, 6] };
   render(<GameProvider store={onlineStore(g, 1)}><GameView /></GameProvider>);
   const dice = screen.getByRole("status", { name: /dice roll/i });
-  expect(dice).toHaveTextContent("4 + 6 = 10");
+  expect(dice).toHaveTextContent("10");
   expect(dice).toHaveClass("dice-summary");
   expect(dice.closest(".top-hud")).not.toBeNull();
 });

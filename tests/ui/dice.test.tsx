@@ -21,9 +21,9 @@ function game(dice?: [number, number]): GameState {
 }
 const store = (g: GameState) => new GameStore(g, new LocalStoragePersistence(), mulberry32(0));
 
-test("keeps the accessible readout for the current roll", () => {
+test("shows the roll total as the readout", () => {
   render(<GameProvider store={store(game([3, 5]))}><DiceSummary /></GameProvider>);
-  expect(screen.getByRole("status", { name: /dice roll/i })).toHaveTextContent("3 + 5 = 8");
+  expect(screen.getByRole("status", { name: /dice roll/i })).toHaveTextContent("8");
 });
 
 test("renders a pip die for each value of the roll", () => {
@@ -32,8 +32,9 @@ test("renders a pip die for each value of the roll", () => {
   expect(screen.getByTestId("die-1")).toHaveAttribute("data-value", "6");
 });
 
-test("shows no dice before the first roll", () => {
+test("shows faint placeholder dice before the first roll (reserves height)", () => {
   render(<GameProvider store={store(game(undefined))}><DiceSummary /></GameProvider>);
-  expect(screen.getByRole("status", { name: /dice roll/i })).toHaveTextContent(/no roll yet/i);
-  expect(screen.queryByTestId("die-0")).toBeNull();
+  // Two faces still render (so the block doesn't grow on the first roll), but as placeholders.
+  expect(screen.getByTestId("die-0")).toHaveClass("die--placeholder");
+  expect(screen.getByTestId("die-1")).toHaveClass("die--placeholder");
 });

@@ -37,7 +37,10 @@ test("DiceSummary shows the current turn dice roll", () => {
   const s = store("main");
   s.getState().turn.dice = [3, 5];
   render(<GameProvider store={s}><DiceSummary /></GameProvider>);
-  expect(screen.getByRole("status", { name: /dice roll/i })).toHaveTextContent("3 + 5 = 8");
+  // Faces show each die; the readout shows the total.
+  expect(screen.getByTestId("die-0")).toHaveAttribute("data-value", "3");
+  expect(screen.getByTestId("die-1")).toHaveAttribute("data-value", "5");
+  expect(screen.getByRole("status", { name: /dice roll/i })).toHaveTextContent("8");
 });
 
 test("main action buttons explain their costs", () => {

@@ -38,7 +38,7 @@ afterEach(() => {
   location.hash = "";
 });
 
-test("the hosting device gets a game-links button with per-seat rescue links", async () => {
+test("the hosting device gets a Links tab with per-seat rescue links", async () => {
   location.hash = "#/g/abc123";
   localStorage.setItem("adultingcatan:claims:abc123", JSON.stringify([
     { seat: 0, url: "https://x/#/g/abc123/claim/0/t0" },
@@ -46,17 +46,16 @@ test("the hosting device gets a game-links button with per-seat rescue links", a
     { seat: 2, url: "https://x/#/g/abc123/claim/2/t2" },
   ]));
   render(<GameProvider store={onlineStore(mainGame(), 0)}><GameView /></GameProvider>);
-  await userEvent.click(screen.getByRole("button", { name: /game links/i }));
-  const dialog = screen.getByRole("dialog", { name: /game links/i });
-  expect(dialog).toHaveTextContent("Alice");
-  expect(dialog).toHaveTextContent("Bob");
-  expect(dialog).toHaveTextContent("Carol");
-  await userEvent.click(screen.getByRole("button", { name: /close/i }));
-  expect(screen.queryByRole("dialog", { name: /game links/i })).toBeNull();
+  await userEvent.click(screen.getByRole("tab", { name: /links/i }));
+  const panel = screen.getByLabelText("Game links");
+  expect(panel).toHaveTextContent("Alice");
+  expect(panel).toHaveTextContent("Bob");
+  expect(panel).toHaveTextContent("Carol");
+  expect(screen.getAllByRole("button", { name: /rescue link/i }).length).toBe(3);
 });
 
-test("non-hosting devices see no game-links button", () => {
+test("non-hosting devices see no Links tab", () => {
   location.hash = "#/g/abc123";
   render(<GameProvider store={onlineStore(mainGame(), 1)}><GameView /></GameProvider>);
-  expect(screen.queryByRole("button", { name: /game links/i })).toBeNull();
+  expect(screen.queryByRole("tab", { name: /links/i })).toBeNull();
 });
