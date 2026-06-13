@@ -10,13 +10,14 @@ export function HexTile({ hid, tile, layout, hasRobber }: {
   const points = corners.map((p) => `${p.x},${p.y}`).join(" ");
   const c = layout.hex[hid]!;
   const emphasized = tile.number === 6 || tile.number === 8;
+  const TileIcon = HEX_ICON[tile.kind];
   return (
     <g data-hex={hid} data-kind={tile.kind} data-robber={hasRobber}>
       <polygon points={points} fill={`url(#hex-${tile.kind})`} stroke="rgba(255,255,255,.45)"
                strokeWidth={1.5} strokeLinejoin="round" />
-      <text x={c.x} y={c.y - 16} textAnchor="middle" fontSize={18} aria-hidden="true">
-        {HEX_ICON[tile.kind]}
-      </text>
+      {TileIcon && (
+        <TileIcon x={c.x - 11} y={c.y - 28} width={22} height={22} stroke="#1b2027" strokeWidth={1.6} />
+      )}
       {tile.number !== undefined && (
         <g>
           <circle cx={c.x} cy={c.y + 4} r={13} fill="#fbf7ee" stroke="#d8cfbb" />

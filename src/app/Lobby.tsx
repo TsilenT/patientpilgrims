@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { LobbyBackend, LobbyView } from "../net/lobby";
 import { MAX_SLOTS } from "../net/lobby";
+import { CrownIcon } from "../ui/icons";
 
 const COLORS = ["red", "blue", "white", "orange"];
 const NAME_KEY = "adultingcatan:name";
@@ -94,7 +95,7 @@ export function Lobby({ id, backend, onEnterGame }: {
                 <span className="swatch" style={{ background: s.color }} aria-hidden="true" />
                 <span className="lobby-name">
                   {s.name}
-                  {s.uid === meta.host && <span title="Host" aria-label="host"> 👑</span>}
+                  {s.uid === meta.host && <CrownIcon className="host-crown" aria-label="host" />}
                   {s.uid === myUid && <span className="you"> (you)</span>}
                 </span>
                 {s.uid === myUid && (

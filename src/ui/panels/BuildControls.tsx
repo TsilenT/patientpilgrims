@@ -1,13 +1,14 @@
 import { useGame } from "../../state/GameProvider";
 import { buildTargetCount } from "../../state/legalTargets";
 import { canAfford, COSTS } from "../../engine";
+import { BUILD_ICON } from "../icons";
 
 export type BuildMode = "road" | "settlement" | "city" | null;
 
 const OPTIONS: { mode: "road" | "settlement" | "city"; label: string; hint: string }[] = [
-  { mode: "road", label: "🛣️ Road", hint: "Costs 1 wood, 1 brick" },
-  { mode: "settlement", label: "🏠 Settlement", hint: "Costs 1 wood, 1 brick, 1 sheep, 1 wheat" },
-  { mode: "city", label: "🏙️ City", hint: "Upgrade a settlement — costs 2 wheat, 3 ore" },
+  { mode: "road", label: "Road", hint: "Costs 1 wood, 1 brick" },
+  { mode: "settlement", label: "Settlement", hint: "Costs 1 wood, 1 brick, 1 sheep, 1 wheat" },
+  { mode: "city", label: "City", hint: "Upgrade a settlement — costs 2 wheat, 3 ore" },
 ];
 
 /** Main-phase build selector + placement prompt. Renders nothing outside the main phase. */
@@ -33,9 +34,10 @@ export function BuildControls({ buildMode, onSelect, onCancel }: {
     <div className="build-controls" role="group" aria-label="Build">
       {OPTIONS.map(({ mode, label, hint }) => {
         const enabled = canAfford(me.resources, COSTS[mode]) && buildTargetCount(state, mode) > 0;
+        const BuildIcon = BUILD_ICON[mode];
         return (
           <button key={mode} disabled={!enabled} title={hint} onClick={() => onSelect(mode)}>
-            {label}
+            <BuildIcon className="btn-icon" /> {label}
           </button>
         );
       })}

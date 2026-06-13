@@ -2,7 +2,7 @@ import { useGame } from "../../state/GameProvider";
 import { currentActor } from "../../state/viewModel";
 import { totalVictoryPoints } from "../../engine";
 import { RESOURCE_LIST } from "../../engine/resources";
-import { RESOURCE_ICON } from "../icons";
+import { RESOURCE_ICON, DEV_CARD_ICON } from "../icons";
 import { DEV_CARD_INFO } from "../devCardInfo";
 import type { PlayerDevCard } from "../../engine/types";
 import type { DevCardType } from "../../engine/devcards";
@@ -38,11 +38,14 @@ export function HandPanel({ onPlayDev }: { onPlayDev?: (type: DevCardType) => vo
         {cardVp > 0 ? ` (${publicVp} public + ${cardVp} from victory-point cards)` : null}
       </div>
       <ul className="resources" aria-label="Resources">
-        {RESOURCE_LIST.map((r) => (
-          <li key={r} data-testid={`res-${r}`} className="res-chip" title={r}>
-            <span aria-hidden="true">{RESOURCE_ICON[r]}</span> {me.resources[r]}
-          </li>
-        ))}
+        {RESOURCE_LIST.map((r) => {
+          const ResIcon = RESOURCE_ICON[r];
+          return (
+            <li key={r} data-testid={`res-${r}`} className="res-chip" title={r}>
+              <ResIcon className="res-icon" /> {me.resources[r]}
+            </li>
+          );
+        })}
       </ul>
       <div className="dev-card-section">
         <h3>Hand</h3>
@@ -50,6 +53,7 @@ export function HandPanel({ onPlayDev }: { onPlayDev?: (type: DevCardType) => vo
           {handCards.map(({ card: c, index }) => {
             const status = cardStatus(c);
             const info = DEV_CARD_INFO[c.type];
+            const CardIcon = DEV_CARD_ICON[c.type];
             return (
               <li key={index} data-dev={c.type} data-testid={`dev-card-${c.type}-${index}`}
                 className={`dev-card dev-card--${status}`}>
@@ -57,7 +61,7 @@ export function HandPanel({ onPlayDev }: { onPlayDev?: (type: DevCardType) => vo
                   <button className="dev-card-tile" disabled={status !== "active"}
                     aria-label={info.name} title={info.description} onClick={() => onPlayDev(c.type)}>
                     <span className="dev-card-head">
-                      <span className="dev-card-icon" aria-hidden="true">{info.icon}</span>
+                      <CardIcon className="dev-card-icon" />
                       <span className="dev-card-name">{info.name}</span>
                     </span>
                     <span className="dev-card-desc">{info.description}</span>
@@ -65,7 +69,7 @@ export function HandPanel({ onPlayDev }: { onPlayDev?: (type: DevCardType) => vo
                 ) : (
                   <span className="dev-card-tile dev-card-chip" title={info.description}>
                     <span className="dev-card-head">
-                      <span className="dev-card-icon" aria-hidden="true">{info.icon}</span>
+                      <CardIcon className="dev-card-icon" />
                       <span className="dev-card-name">{info.name}</span>
                     </span>
                     <span className="dev-card-desc">{info.description}</span>
@@ -82,12 +86,13 @@ export function HandPanel({ onPlayDev }: { onPlayDev?: (type: DevCardType) => vo
           <ul className="dev-cards dev-cards--played" aria-label="Played development cards">
             {playedCards.map(({ card: c, index }) => {
               const info = DEV_CARD_INFO[c.type];
+              const CardIcon = DEV_CARD_ICON[c.type];
               return (
                 <li key={index} data-dev={c.type} data-testid={`dev-card-${c.type}-${index}`}
                   className="dev-card dev-card--played">
                   <span className="dev-card-tile dev-card-chip" title={info.description}>
                     <span className="dev-card-head">
-                      <span className="dev-card-icon" aria-hidden="true">{info.icon}</span>
+                      <CardIcon className="dev-card-icon" />
                       <span className="dev-card-name">{info.name}</span>
                     </span>
                   </span>

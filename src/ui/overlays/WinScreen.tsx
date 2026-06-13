@@ -2,6 +2,7 @@ import { useState, type CSSProperties } from "react";
 import { useGame } from "../../state/GameProvider";
 import { gameSummary } from "../../engine/scoring/summary";
 import { LocalStoragePersistence } from "../../state/persistence";
+import { CrownIcon, SettlementIcon, CityIcon, StarIcon, KnightIcon, RoadIcon } from "../icons";
 
 function Crown() {
   return (
@@ -21,7 +22,7 @@ export function WinScreen() {
   if (state.phase !== "finished" || state.winner === undefined) return null;
 
   if (!open) {
-    return <button className="results-pill" onClick={() => setOpen(true)}>👑 Results</button>;
+    return <button className="results-pill" onClick={() => setOpen(true)}><CrownIcon className="btn-icon" /> Results</button>;
   }
 
   const summary = gameSummary(state);
@@ -62,11 +63,11 @@ export function WinScreen() {
               <span className="tally">
                 <strong className="vp">{p.totalVp} VP</strong>
                 <span className="chips">
-                  {p.breakdown.settlements > 0 && <span>⌂ {p.breakdown.settlements}</span>}
-                  {p.breakdown.cities > 0 && <span>🏰 {p.breakdown.cities}</span>}
-                  {p.breakdown.vpCards > 0 && <span>📜 {p.breakdown.vpCards}</span>}
-                  {p.breakdown.largestArmy && <span>⚔️ Army</span>}
-                  {p.breakdown.longestRoad && <span>🛤️ Road</span>}
+                  {p.breakdown.settlements > 0 && <span><SettlementIcon className="chip-icon" /> {p.breakdown.settlements}</span>}
+                  {p.breakdown.cities > 0 && <span><CityIcon className="chip-icon" /> {p.breakdown.cities}</span>}
+                  {p.breakdown.vpCards > 0 && <span><StarIcon className="chip-icon" /> {p.breakdown.vpCards}</span>}
+                  {p.breakdown.largestArmy && <span><KnightIcon className="chip-icon" /> Army</span>}
+                  {p.breakdown.longestRoad && <span><RoadIcon className="chip-icon" /> Road</span>}
                 </span>
               </span>
             </li>

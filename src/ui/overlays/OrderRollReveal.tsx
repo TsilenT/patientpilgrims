@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useGame } from "../../state/GameProvider";
+import { DiceIcon } from "../icons";
 import type { LogEntry } from "../../engine/types";
 
 /** Plays back the opening roll-off (from the log) before setup begins. */
@@ -29,7 +30,7 @@ export function OrderRollReveal() {
                 <li key={`${round}-${e.seat}`} style={{ animationDelay: `${row++ * 350}ms` }}>
                   <span className="swatch" style={{ background: p.color }} aria-hidden="true" />
                   <span className="who">{p.name}</span>
-                  <span className="dice">🎲 {e.dice![0]} + {e.dice![1]} = <strong>{e.sum}</strong></span>
+                  <span className="dice"><DiceIcon className="dice-icon" /> {e.dice![0]} + {e.dice![1]} = <strong>{e.sum}</strong></span>
                 </li>
               );
             })}

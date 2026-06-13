@@ -18,6 +18,7 @@ import { MonopolyPicker, YearOfPlentyPicker } from "./overlays/DevCardModals";
 import { WinScreen } from "./overlays/WinScreen";
 import { OrderRollReveal } from "./overlays/OrderRollReveal";
 import { HostLinksModal } from "./overlays/HostLinksModal";
+import { LinkIcon } from "./icons";
 import { hostRescueLinks } from "../net/lobby";
 import { parseRoute } from "../app/router";
 import { Toast } from "./Toast";
@@ -129,7 +130,7 @@ export function GameView() {
         <DiceSummary />
         {rescueLinks !== null && (
           <button className="host-links-btn" aria-label="Game links" title="Game links"
-            onClick={() => setShowLinks(true)}>🔗</button>
+            onClick={() => setShowLinks(true)}><LinkIcon /></button>
         )}
       </div>
       {placingRobber && (
