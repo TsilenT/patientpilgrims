@@ -22,6 +22,7 @@ export function normalizeState(raw: GameState | null): GameState | null {
   s.tradeOffers = s.tradeOffers ?? [];
   s.awards = s.awards ?? {};
   s.devDeck = s.devDeck ?? [];
+  s.turnOrder = s.turnOrder ?? (s.players ?? []).map((p) => p.seat);
 
   s.players = (s.players ?? []).map((p) => ({
     ...p,

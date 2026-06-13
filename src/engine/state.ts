@@ -61,6 +61,7 @@ export function createInitialGame(players: NewPlayer[], board: Board, rng?: Rng)
     awards: {},
     tradeOffers: [],
     tradeSeq: 0,
+    turnOrder: seatOrder,
     setup: { order, pos: 0 },
     log,
   };

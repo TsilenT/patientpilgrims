@@ -98,6 +98,8 @@ export interface GameState {
   awards: Awards;
   tradeOffers: TradeOffer[];
   tradeSeq: number;
+  /** Main-phase turn cycle in roll-off/setup order. */
+  turnOrder: number[];
   setup?: { order: number[]; pos: number };
   discardObligations?: Record<number, number>; // seat -> cards still owed after a 7
   log: LogEntry[];

@@ -34,12 +34,24 @@ describe("endTurn", () => {
     expect(r.state.turn.dice).toBeUndefined();
   });
 
-  it("wraps around from the last seat to seat 0", () => {
-    const g = mainGame();
-    g.turn.activeSeat = 2;
-    const r = apply(g, { type: "endTurn" }, rng);
+  it("advances through the rolled turn order, not seat-number order", () => {
+    let g = mainGame();
+    g.turnOrder = [2, 1, 0];
+    g.turn = { activeSeat: 2, subPhase: "main", dice: [3, 4] };
+
+    let r = apply(g, { type: "endTurn" }, rng);
+    expectOk(r);
+    expect(r.state.turn.activeSeat).toBe(1);
+
+    r.state.turn.subPhase = "main";
+    r = apply(r.state, { type: "endTurn" }, rng);
     expectOk(r);
     expect(r.state.turn.activeSeat).toBe(0);
+
+    r.state.turn.subPhase = "main";
+    r = apply(r.state, { type: "endTurn" }, rng);
+    expectOk(r);
+    expect(r.state.turn.activeSeat).toBe(2);
   });
 
   it("requires having rolled before ending the turn", () => {

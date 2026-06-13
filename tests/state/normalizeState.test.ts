@@ -14,6 +14,7 @@ function stripEmpties(state: GameState): GameState {
   delete s.log; // was []
   delete s.tradeOffers; // was []
   delete s.awards; // was {}
+  delete s.turnOrder; // legacy games saved before turn order was explicit
   for (const p of s.players as Array<Record<string, unknown>>) delete p.devCards; // was []
   return s as unknown as GameState;
 }
@@ -41,6 +42,7 @@ describe("normalizeState", () => {
     expect(s.log).toEqual([]);
     expect(s.tradeOffers).toEqual([]);
     expect(s.awards).toEqual({});
+    expect(s.turnOrder).toEqual([0, 1, 2]);
     for (const p of s.players) expect(p.devCards).toEqual([]);
   });
 
