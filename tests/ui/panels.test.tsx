@@ -88,7 +88,7 @@ test("log rail renders the full log newest first", () => {
   ]);
 });
 
-test("log rail keeps new entries visible at the top after updates", () => {
+test("log rail inserts new entries at the top without changing scroll position", () => {
   const g = mainGame();
   g.log = [{ type: "roll", seat: 0, sum: 8 }];
   const s = store(g);
@@ -101,7 +101,7 @@ test("log rail keeps new entries visible at the top after updates", () => {
   });
 
   expect(screen.getAllByRole("listitem")[0]).toHaveTextContent("A ended their turn");
-  expect(rail.scrollTop).toBe(0);
+  expect(rail.scrollTop).toBe(40);
 });
 
 test("hand panel includes a build cost reference", () => {
