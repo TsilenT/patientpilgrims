@@ -3,6 +3,7 @@ import { currentActor } from "../../state/viewModel";
 import { totalVictoryPoints } from "../../engine";
 import { RESOURCE_LIST } from "../../engine/resources";
 import { RESOURCE_ICON } from "../icons";
+import { DEV_CARD_INFO } from "../devCardInfo";
 import type { PlayerDevCard } from "../../engine/types";
 import type { DevCardType } from "../../engine/devcards";
 import { CostReference } from "./CostReference";
@@ -48,13 +49,27 @@ export function HandPanel({ onPlayDev }: { onPlayDev?: (type: DevCardType) => vo
         <ul className="dev-cards" aria-label="Development hand">
           {handCards.map(({ card: c, index }) => {
             const status = cardStatus(c);
+            const info = DEV_CARD_INFO[c.type];
             return (
               <li key={index} data-dev={c.type} data-testid={`dev-card-${c.type}-${index}`}
                 className={`dev-card dev-card--${status}`}>
                 {onPlayDev && c.type !== "victoryPoint" ? (
-                  <button disabled={status !== "active"} onClick={() => onPlayDev(c.type)}>{c.type}</button>
+                  <button className="dev-card-tile" disabled={status !== "active"}
+                    aria-label={info.name} title={info.description} onClick={() => onPlayDev(c.type)}>
+                    <span className="dev-card-head">
+                      <span className="dev-card-icon" aria-hidden="true">{info.icon}</span>
+                      <span className="dev-card-name">{info.name}</span>
+                    </span>
+                    <span className="dev-card-desc">{info.description}</span>
+                  </button>
                 ) : (
-                  <span className="dev-card-chip">{c.type}</span>
+                  <span className="dev-card-tile dev-card-chip" title={info.description}>
+                    <span className="dev-card-head">
+                      <span className="dev-card-icon" aria-hidden="true">{info.icon}</span>
+                      <span className="dev-card-name">{info.name}</span>
+                    </span>
+                    <span className="dev-card-desc">{info.description}</span>
+                  </span>
                 )}
               </li>
             );
@@ -65,12 +80,20 @@ export function HandPanel({ onPlayDev }: { onPlayDev?: (type: DevCardType) => vo
         <div className="dev-card-section dev-card-section--played">
           <h3>Played</h3>
           <ul className="dev-cards dev-cards--played" aria-label="Played development cards">
-            {playedCards.map(({ card: c, index }) => (
-              <li key={index} data-dev={c.type} data-testid={`dev-card-${c.type}-${index}`}
-                className="dev-card dev-card--played">
-                <span className="dev-card-chip">{c.type}</span>
-              </li>
-            ))}
+            {playedCards.map(({ card: c, index }) => {
+              const info = DEV_CARD_INFO[c.type];
+              return (
+                <li key={index} data-dev={c.type} data-testid={`dev-card-${c.type}-${index}`}
+                  className="dev-card dev-card--played">
+                  <span className="dev-card-tile dev-card-chip" title={info.description}>
+                    <span className="dev-card-head">
+                      <span className="dev-card-icon" aria-hidden="true">{info.icon}</span>
+                      <span className="dev-card-name">{info.name}</span>
+                    </span>
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}

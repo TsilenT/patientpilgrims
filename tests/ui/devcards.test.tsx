@@ -26,7 +26,7 @@ test("playing monopoly takes all of a chosen resource from opponents", async () 
   g.players[2]!.resources = { wood: 0, brick: 2, sheep: 0, wheat: 0, ore: 0 };
   const s = new GameStore(g, new LocalStoragePersistence(), mulberry32(0));
   render(<GameProvider store={s}><GameView /></GameProvider>);
-  await userEvent.click(screen.getByRole("button", { name: "monopoly" }));
+  await userEvent.click(screen.getByRole("button", { name: "Monopoly" }));
   const modal = screen.getByRole("dialog", { name: /monopoly/i });
   await userEvent.click(within(modal).getByRole("button", { name: "brick" }));
   expect(s.getState().players[0]!.resources.brick).toBe(5);
@@ -38,7 +38,7 @@ test("playing a knight enters the robber move phase and counts the knight", asyn
   g.players[0]!.devCards = [{ type: "knight", boughtThisTurn: false, played: false }];
   const s = new GameStore(g, new LocalStoragePersistence(), mulberry32(0));
   render(<GameProvider store={s}><GameView /></GameProvider>);
-  await userEvent.click(screen.getByRole("button", { name: "knight" }));
+  await userEvent.click(screen.getByRole("button", { name: "Knight" }));
   expect(s.getState().turn.subPhase).toBe("movingRobber");
   expect(s.getState().players[0]!.knightsPlayed).toBe(1);
 });
@@ -49,7 +49,7 @@ test("a victory-point card is shown as active but not playable", () => {
   const s = new GameStore(g, new LocalStoragePersistence(), mulberry32(0));
   render(<GameProvider store={s}><GameView /></GameProvider>);
   const card = screen.getByTestId("dev-card-victoryPoint-0");
-  expect(card).toHaveTextContent("victoryPoint");
+  expect(card).toHaveTextContent("Victory Point");
   expect(card).toHaveClass("dev-card--active");
-  expect(screen.queryByRole("button", { name: "victoryPoint" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Victory Point" })).toBeNull();
 });

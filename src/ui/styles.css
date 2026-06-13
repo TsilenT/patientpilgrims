@@ -230,27 +230,43 @@ main { min-height: 100vh; }
   background: var(--panel-2); border: 1px solid var(--panel-edge);
   border-radius: 8px; padding: 4px 10px; font-weight: 700; font-size: 13px;
 }
-.dev-cards .dev-card { display: inline-flex; }
-.dev-card button, .dev-card-chip {
-  background: #241a2e; border: 1px solid #5a3f70; color: var(--ink);
-  border-radius: 8px; padding: 4px 10px; font-weight: 600;
+.dev-cards .dev-card { display: flex; }
+.dev-card-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 165px;
+  text-align: left;
+  background: #241a2e;
+  border: 1px solid #5a3f70;
+  color: var(--ink);
+  border-radius: 10px;
+  padding: 8px 10px;
 }
-.dev-card-chip { display: inline-flex; align-items: center; }
-.dev-card--blocked button {
+.dev-card-head { display: flex; align-items: center; gap: 6px; }
+.dev-card-icon { font-size: 18px; line-height: 1; }
+.dev-card-name { font-weight: 700; }
+.dev-card-desc { font-weight: 400; font-size: 0.74rem; color: var(--muted); line-height: 1.25; }
+button.dev-card-tile { cursor: pointer; }
+button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #7a5993; }
+.dev-card--blocked .dev-card-tile {
   background: #20252b;
   border-color: #3a444f;
   color: var(--muted);
   opacity: 0.62;
 }
-.dev-card--active .dev-card-chip,
-.dev-card--active button { box-shadow: 0 0 0 1px rgba(242, 193, 78, 0.16) inset; }
-.dev-card--played .dev-card-chip {
+.dev-card--active .dev-card-tile { box-shadow: 0 0 0 1px rgba(242, 193, 78, 0.22) inset; }
+.dev-card--played .dev-card-tile {
+  width: auto;
   background: #171d23;
   border-color: #33404c;
   color: var(--muted);
-  opacity: 0.72;
-  text-decoration: line-through;
+  opacity: 0.8;
 }
+.dev-card--played .dev-card-name { text-decoration: line-through; }
+
+/* Resource choices inside dev-card modals */
+.resource-choices { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 8px 0; }
 .cost-reference { margin-top: 10px; }
 .cost-reference h3 { margin: 6px 0 4px; font-size: 14px; color: var(--muted); }
 .cost-reference ul {

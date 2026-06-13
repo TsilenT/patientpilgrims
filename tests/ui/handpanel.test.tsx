@@ -57,9 +57,9 @@ test("splits development cards into hand and played sections with blocked cards 
   const hand = screen.getByRole("list", { name: "Development hand" });
   const played = screen.getByRole("list", { name: "Played development cards" });
 
-  expect(hand).toHaveTextContent("knight");
-  expect(hand).toHaveTextContent("victoryPoint");
-  expect(played).toHaveTextContent("monopoly");
+  expect(hand).toHaveTextContent("Knight");
+  expect(hand).toHaveTextContent("Victory Point");
+  expect(played).toHaveTextContent("Monopoly");
   expect(screen.getByTestId("dev-card-knight-0")).toHaveClass("dev-card--blocked");
   expect(screen.getByTestId("dev-card-victoryPoint-1")).toHaveClass("dev-card--active");
   expect(screen.getByTestId("dev-card-monopoly-2")).toHaveClass("dev-card--played");
