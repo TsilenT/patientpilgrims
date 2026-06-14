@@ -18,15 +18,25 @@ export function HexTile({ hid, tile, layout, hasRobber }: {
       {TileIcon && (
         <TileIcon className="hex-icon" x={c.x - 12} y={c.y - 30} width={24} height={24} />
       )}
-      {tile.number !== undefined && (
-        <g>
-          <circle cx={c.x} cy={c.y + 4} r={13} fill="#fbf7ee" stroke="#d8cfbb" />
-          <text x={c.x} y={c.y + 9} textAnchor="middle" fontSize={15}
-                fill={emphasized ? "#c0392b" : "#3a3a3a"} fontWeight={800}>
-            {tile.number}
-          </text>
-        </g>
-      )}
+      {tile.number !== undefined && (() => {
+        const ink = emphasized ? "#c0392b" : "#3a3a3a";
+        // Probability pips: ways to roll the number on 2d6 (6/8 → 5, 2/12 → 1).
+        const pips = 6 - Math.abs(7 - tile.number);
+        const gap = 2.7;
+        const startX = c.x - ((pips - 1) * gap) / 2;
+        return (
+          <g>
+            <circle cx={c.x} cy={c.y + 4} r={13} fill="#fbf7ee" stroke="#d8cfbb" />
+            <text x={c.x} y={c.y + 5} textAnchor="middle" fontSize={13}
+                  fill={ink} fontWeight={800}>
+              {tile.number}
+            </text>
+            {Array.from({ length: pips }, (_, i) => (
+              <circle key={i} cx={startX + i * gap} cy={c.y + 12} r={1} fill={ink} />
+            ))}
+          </g>
+        );
+      })()}
       {hasRobber && <circle data-testid="robber" cx={c.x} cy={c.y + 4} r={10} fill="#1a1a1a" opacity={0.82} />}
     </g>
   );
