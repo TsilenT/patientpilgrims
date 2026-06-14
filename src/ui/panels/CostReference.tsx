@@ -1,5 +1,6 @@
 import { DEV_CARD_COST } from "../../engine/devcards";
 import { COSTS, RESOURCE_LIST, type ResourceMap } from "../../engine/resources";
+import { ResTile } from "../icons";
 
 type CostItem = {
   label: string;
@@ -30,13 +31,6 @@ const COST_ITEMS: CostItem[] = [
   },
 ];
 
-function formatCost(cost: ResourceMap): string {
-  const parts = RESOURCE_LIST
-    .filter((r) => cost[r] > 0)
-    .map((r) => (cost[r] === 1 ? r : `${cost[r]} ${r}`));
-  return parts.join(" + ");
-}
-
 export function CostReference() {
   return (
     <section className="cost-reference" role="region" aria-label="Cost reference">
@@ -45,7 +39,11 @@ export function CostReference() {
         {COST_ITEMS.map((item) => (
           <li key={item.label} title={item.title}>
             <span className="cost-label">{item.label}</span>
-            <span className="cost-value">{formatCost(item.cost)}</span>
+            <span className="cost-tiles">
+              {RESOURCE_LIST.flatMap((r) =>
+                Array.from({ length: item.cost[r] }, (_, i) => <ResTile key={`${r}${i}`} r={r} />),
+              )}
+            </span>
           </li>
         ))}
       </ul>

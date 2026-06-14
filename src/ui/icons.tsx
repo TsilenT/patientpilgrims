@@ -175,6 +175,12 @@ export const DiceIcon: IconComponent = (p) => (
   </Icon>
 );
 
+/** A resource icon on its colored tile (matches the board hexes / hand chips). */
+export function ResTile({ r }: { r: Resource }) {
+  const Icon = RESOURCE_ICON[r];
+  return <span className="res-tile" data-res={r}><Icon /></span>;
+}
+
 export const RESOURCE_ICON: Record<Resource, IconComponent> = {
   wood: WoodIcon,
   brick: BrickIcon,

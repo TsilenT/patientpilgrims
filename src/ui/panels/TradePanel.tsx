@@ -4,26 +4,21 @@ import { useDispatchWithError } from "../useDispatchWithError";
 import { Toast } from "../Toast";
 import { RESOURCE_LIST, totalCards } from "../../engine/resources";
 import { portRatio } from "../../engine/actions/trade";
-import { RESOURCE_ICON } from "../icons";
+import { ResTile } from "../icons";
 import type { Action, GameState, Player, Resource, ResourceMap } from "../../engine/types";
 import type { DispatchResult } from "../../state/store";
 
 type RunFn = (a: Action) => Promise<DispatchResult>;
 const empty = (): ResourceMap => ({ wood: 0, brick: 0, sheep: 0, wheat: 0, ore: 0 });
 
-function ResIcon({ r }: { r: Resource }) {
-  const Icon = RESOURCE_ICON[r];
-  return <Icon className="res-icon" />;
-}
-
-/** Compact icon+count list for a resource bundle ("nothing" when empty). */
+/** Compact tile+count list for a resource bundle ("nothing" when empty). */
 function ResList({ map }: { map: ResourceMap }) {
   const items = RESOURCE_LIST.filter((r) => map[r] > 0);
   if (items.length === 0) return <span className="res-none">nothing</span>;
   return (
     <span className="res-list">
       {items.map((r) => (
-        <span key={r} className="res-mini"><ResIcon r={r} /> {map[r]}</span>
+        <span key={r} className="res-mini"><ResTile r={r} /> {map[r]}</span>
       ))}
     </span>
   );
@@ -50,7 +45,7 @@ function ProposeTrade({ me, run }: { me: Player; run: RunFn }) {
         <span className="col-h">Want</span>
         {RESOURCE_LIST.map((r) => (
           <Fragment key={r}>
-            <span className="res-own"><ResIcon r={r} /> {me.resources[r]}</span>
+            <span className="res-own"><ResTile r={r} /> {me.resources[r]}</span>
             <span className="stepper">
               <button data-testid={`give-sub-${r}`} disabled={give[r] <= 0} onClick={() => bump("give", r, -1)}>−</button>
               <span className="stepper-n">{give[r]}</span>
@@ -90,7 +85,7 @@ function BankTrade({ state, seat, run }: { state: GameState; seat: number; run: 
           <button key={r} data-testid={`bank-give-${r}`} disabled={me.resources[r] < ratioOf(r)}
             className={giveRes === r ? "picked" : undefined} aria-pressed={giveRes === r}
             title={`Trade ${ratioOf(r)} ${r} for 1`} onClick={() => setGiveRes(r)}>
-            <ResIcon r={r} /><span className="ratio">×{ratioOf(r)}</span>
+            <ResTile r={r} /><span className="ratio">×{ratioOf(r)}</span>
           </button>
         ))}
       </div>
@@ -100,13 +95,13 @@ function BankTrade({ state, seat, run }: { state: GameState; seat: number; run: 
           <button key={r} data-testid={`bank-get-${r}`} disabled={r === giveRes || state.bank[r] < 1}
             className={getRes === r ? "picked" : undefined} aria-pressed={getRes === r}
             onClick={() => setGetRes(r)}>
-            <ResIcon r={r} />
+            <ResTile r={r} />
           </button>
         ))}
       </div>
       <button className="btn-primary" data-testid="bank-trade" disabled={!ready} onClick={trade}>
         {ready
-          ? <>Trade {ratioOf(giveRes)} <ResIcon r={giveRes} /> → 1 <ResIcon r={getRes} /></>
+          ? <>Trade {ratioOf(giveRes)} <ResTile r={giveRes} /> → 1 <ResTile r={getRes} /></>
           : "Trade with bank"}
       </button>
     </div>

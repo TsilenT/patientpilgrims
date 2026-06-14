@@ -129,17 +129,18 @@ test("log rail names the robber steal victim", () => {
   expect(screen.getByRole("listitem")).toHaveTextContent("A stole a card from B");
 });
 
-test("hand panel includes a build cost reference", () => {
+test("hand panel includes a build cost reference with resource tiles", () => {
   render(<GameProvider store={store(mainGame())}><HandPanel /></GameProvider>);
   const costs = screen.getByRole("region", { name: /cost reference/i });
-  expect(costs).toHaveTextContent("Road");
-  expect(costs).toHaveTextContent("wood + brick");
-  expect(costs).toHaveTextContent("Settlement");
-  expect(costs).toHaveTextContent("wood + brick + sheep + wheat");
-  expect(costs).toHaveTextContent("City upgrade");
-  expect(costs).toHaveTextContent("2 wheat + 3 ore");
-  expect(costs).toHaveTextContent("Dev card");
-  expect(costs).toHaveTextContent("sheep + wheat + ore");
+  for (const label of ["Road", "Settlement", "City upgrade", "Dev card"]) {
+    expect(costs).toHaveTextContent(label);
+  }
+  const road = screen.getByText("Road").closest("li")!;
+  expect(road.querySelectorAll('.res-tile[data-res="wood"]')).toHaveLength(1);
+  expect(road.querySelectorAll('.res-tile[data-res="brick"]')).toHaveLength(1);
+  const city = screen.getByText("City upgrade").closest("li")!;
+  expect(city.querySelectorAll('.res-tile[data-res="wheat"]')).toHaveLength(2);
+  expect(city.querySelectorAll('.res-tile[data-res="ore"]')).toHaveLength(3);
 });
 
 test("cost reference rows expose tooltip details", () => {

@@ -275,11 +275,21 @@ main { min-height: 100vh; }
   font-size: 18px;
   filter: drop-shadow(0 0 0.7px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 0.7px rgba(0, 0, 0, 0.6));
 }
-.res-chip[data-res="wood"] { background: #5bbf6e; }
-.res-chip[data-res="brick"] { background: #df7b50; }
-.res-chip[data-res="sheep"] { background: #bfe487; }
-.res-chip[data-res="wheat"] { background: #f7d873; }
-.res-chip[data-res="ore"] { background: #b3c0cb; }
+/* Small resource tile (icon on its resource color) — used in trades and costs. */
+.res-tile {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.22); flex: none;
+}
+.res-tile svg {
+  width: 15px; height: 15px;
+  filter: drop-shadow(0 0 0.7px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 0.7px rgba(0, 0, 0, 0.6));
+}
+.res-chip[data-res="wood"], .res-tile[data-res="wood"] { background: #5bbf6e; }
+.res-chip[data-res="brick"], .res-tile[data-res="brick"] { background: #df7b50; }
+.res-chip[data-res="sheep"], .res-tile[data-res="sheep"] { background: #bfe487; }
+.res-chip[data-res="wheat"], .res-tile[data-res="wheat"] { background: #f7d873; }
+.res-chip[data-res="ore"], .res-tile[data-res="ore"] { background: #b3c0cb; }
 .dev-cards .dev-card { display: flex; }
 .dev-card-tile {
   display: flex;
@@ -331,13 +341,13 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
   background: var(--panel-2);
   border: 1px solid var(--panel-edge);
   border-radius: 8px;
-  padding: 5px 8px;
+  padding: 6px 9px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 5px;
 }
-.cost-label { font-weight: 700; }
-.cost-value { font-size: 13px; color: var(--muted); }
+.cost-label { font-weight: 700; font-size: 13px; }
+.cost-tiles { display: flex; gap: 4px; flex-wrap: wrap; }
 
 /* ---- Resource-gain feedback (pulse + floating +N on a roll) ---- */
 .res-chip--gain { animation: gain-flash 1.5s ease-out; }
