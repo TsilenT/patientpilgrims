@@ -159,6 +159,7 @@ main { min-height: 100vh; }
 .vp-label { font-size: 9px; font-weight: 800; }
 .opp-stats { display: flex; gap: 9px; flex-wrap: wrap; }
 .opp-stat {
+  position: relative;
   display: inline-flex; align-items: center; gap: 3px;
   font-size: 12px; font-weight: 700; color: var(--muted);
 }
@@ -264,6 +265,7 @@ main { min-height: 100vh; }
 /* Resource chips mirror the board tiles: the resource's hex color behind a
    dark-haloed icon, so the icons read the same way they do on the board. */
 .res-chip {
+  position: relative;
   display: inline-flex; align-items: center; gap: 5px;
   border: 1px solid rgba(0, 0, 0, 0.18);
   border-radius: 8px; padding: 4px 10px; font-weight: 800; font-size: 14px;
@@ -336,6 +338,38 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
 }
 .cost-label { font-weight: 700; }
 .cost-value { font-size: 13px; color: var(--muted); }
+
+/* ---- Resource-gain feedback (pulse + floating +N on a roll) ---- */
+.res-chip--gain { animation: gain-flash 1.5s ease-out; }
+.opp-stat--gain { animation: gain-color 1.5s ease-out; }
+.gain-float {
+  position: absolute;
+  top: -8px;
+  right: -2px;
+  font-size: 12px;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  pointer-events: none;
+  animation: gain-rise 1.5s ease-out forwards;
+}
+@keyframes gain-flash {
+  0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+  18% { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9); transform: scale(1.13); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); transform: scale(1); }
+}
+@keyframes gain-color {
+  0%, 100% { color: var(--muted); }
+  20% { color: var(--gold); }
+}
+@keyframes gain-rise {
+  0% { opacity: 0; transform: translateY(5px); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-16px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .res-chip--gain, .opp-stat--gain, .gain-float { animation: none; }
+}
 
 /* ---- Trade panel ---- */
 .trade-panel section { margin-bottom: 12px; }

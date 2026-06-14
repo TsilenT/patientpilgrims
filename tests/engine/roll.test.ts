@@ -108,3 +108,41 @@ describe("rollDice + production", () => {
     expect(r.state.bank[kind]).toBe(0);
   });
 });
+
+describe("roll gains recorded in the log", () => {
+  const lastRoll = (g: GameState) => g.log[g.log.length - 1]!;
+
+  it("records each seat's actual gains on the roll entry", () => {
+    const { g, v, number, kind } = setup();
+    g.board.buildings[v] = { owner: 0, type: "city" }; // 2 of kind
+    const r = apply(g, { type: "rollDice" }, scriptedRng(...diceFor(number)));
+    expectOk(r);
+    expect(lastRoll(r.state).gains).toEqual({ 0: { [kind]: 2 } });
+  });
+
+  it("omits gains on a 7", () => {
+    const { g } = setup();
+    const r = apply(g, { type: "rollDice" }, scriptedRng(3, 4));
+    expectOk(r);
+    expect(lastRoll(r.state).gains).toBeUndefined();
+  });
+
+  it("omits gains when nothing is produced", () => {
+    const { g, hid, number } = setup();
+    g.board.robber = hid; // robbed hex → no production
+    const r = apply(g, { type: "rollDice" }, scriptedRng(...diceFor(number)));
+    expectOk(r);
+    expect(lastRoll(r.state).gains).toBeUndefined();
+  });
+
+  it("records only what the bank could pay a lone claimant", () => {
+    const { g, hid, number, kind } = setup();
+    const vs = topology().hexVertices.get(hid)!;
+    g.board.buildings = {};
+    g.board.buildings[vs[0]!] = { owner: 0, type: "city" }; // wants 2
+    g.bank[kind] = 1;
+    const r = apply(g, { type: "rollDice" }, scriptedRng(...diceFor(number)));
+    expectOk(r);
+    expect(lastRoll(r.state).gains).toEqual({ 0: { [kind]: 1 } });
+  });
+});

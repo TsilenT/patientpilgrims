@@ -4,6 +4,7 @@ import { totalVictoryPoints } from "../../engine";
 import { RESOURCE_LIST } from "../../engine/resources";
 import { RESOURCE_ICON, DEV_CARD_ICON } from "../icons";
 import { DEV_CARD_INFO } from "../devCardInfo";
+import { useGainPulse } from "../useGainPulse";
 import type { PlayerDevCard } from "../../engine/types";
 import type { DevCardType } from "../../engine/devcards";
 import { CostReference } from "./CostReference";
@@ -11,6 +12,7 @@ import { CostReference } from "./CostReference";
 export function HandPanel({ onPlayDev }: { onPlayDev?: (type: DevCardType) => void }) {
   const { state, mySeat } = useGame();
   const seat = mySeat ?? currentActor(state); // online: always my hand; hotseat: the acting player
+  const gained = useGainPulse(seat);
   const me = state.players[seat];
   if (!me) return null; // spectator (no claimed seat)
   const publicVp = me.victoryPoints;
@@ -42,9 +44,12 @@ export function HandPanel({ onPlayDev }: { onPlayDev?: (type: DevCardType) => vo
       <ul className="resources" aria-label="Resources">
         {RESOURCE_LIST.map((r) => {
           const ResIcon = RESOURCE_ICON[r];
+          const got = gained?.[r];
           return (
-            <li key={r} data-testid={`res-${r}`} className="res-chip" data-res={r} title={r}>
+            <li key={r} data-testid={`res-${r}`} className={got ? "res-chip res-chip--gain" : "res-chip"}
+              data-res={r} title={r}>
               <ResIcon className="res-icon" /> {me.resources[r]}
+              {got ? <span className="gain-float" data-testid={`gain-${r}`}>+{got}</span> : null}
             </li>
           );
         })}

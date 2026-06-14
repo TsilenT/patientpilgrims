@@ -85,6 +85,8 @@ export interface LogEntry {
   resource?: Resource;
   /** Roll-off round for orderRoll entries: 1 is the opening round, 2+ are tie-breaks. */
   round?: number;
+  /** For roll entries: resources produced this roll, by seat (only non-zero entries). */
+  gains?: Record<number, Partial<ResourceMap>>;
 }
 
 export interface GameState {

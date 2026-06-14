@@ -1,4 +1,4 @@
-import type { GameState, Resource } from "../types";
+import type { GameState, LogEntry, Resource } from "../types";
 import type { Rng } from "../rng";
 import { topology } from "../board";
 import {
@@ -11,7 +11,8 @@ export function applyRollDice(state: GameState, rng: Rng): string | null {
   const d2 = rng.nextInt(6) + 1;
   const sum = d1 + d2;
   state.turn.dice = [d1, d2];
-  state.log.push({ type: "roll", seat: state.turn.activeSeat, dice: [d1, d2], sum });
+  const entry: LogEntry = { type: "roll", seat: state.turn.activeSeat, dice: [d1, d2], sum };
+  state.log.push(entry);
 
   if (sum === 7) {
     const owed: Record<number, number> = { ...(state.discardObligations ?? {}) };
@@ -27,11 +28,13 @@ export function applyRollDice(state: GameState, rng: Rng): string | null {
   }
 
   state.turn.subPhase = "main";
-  produce(state, sum);
+  const gains = produce(state, sum);
+  if (Object.keys(gains).length > 0) entry.gains = gains;
   return null;
 }
 
-function produce(state: GameState, sum: number): void {
+/** Distributes production for `sum` and returns the resources actually gained, by seat. */
+function produce(state: GameState, sum: number): Record<number, Partial<ResourceMap>> {
   const owed: ResourceMap[] = state.players.map(() => emptyResources());
   for (const hid of topology().hexIds) {
     const tile = state.board.tiles[hid]!;
@@ -46,24 +49,27 @@ function produce(state: GameState, sum: number): void {
     }
   }
 
+  const gains: Record<number, Partial<ResourceMap>> = {};
+  const grant = (seat: number, res: Resource, amt: number): void => {
+    if (amt <= 0) return;
+    state.players[seat]!.resources[res] += amt;
+    state.bank[res] -= amt;
+    (gains[seat] ??= {})[res] = (gains[seat]![res] ?? 0) + amt;
+  };
+
   for (const res of RESOURCE_LIST) {
     const demand = owed.reduce((s, o) => s + o[res], 0);
     if (demand === 0) continue;
     if (state.bank[res] >= demand) {
-      for (let seat = 0; seat < owed.length; seat++) {
-        const amt = owed[seat]![res];
-        if (amt === 0) continue;
-        state.players[seat]!.resources[res] += amt;
-        state.bank[res] -= amt;
-      }
+      for (let seat = 0; seat < owed.length; seat++) grant(seat, res, owed[seat]![res]);
     } else {
+      // Catan rule: if the bank can't cover everyone, only a sole claimant draws (partial).
       const claimants = owed.filter((o) => o[res] > 0).length;
       if (claimants === 1) {
         const seat = owed.findIndex((o) => o[res] > 0);
-        const give = Math.min(owed[seat]![res], state.bank[res]);
-        state.players[seat]!.resources[res] += give;
-        state.bank[res] -= give;
+        grant(seat, res, Math.min(owed[seat]![res], state.bank[res]));
       }
     }
   }
+  return gains;
 }
