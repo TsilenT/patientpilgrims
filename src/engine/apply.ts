@@ -55,7 +55,7 @@ function route(draft: GameState, action: Action, rng: Rng): string | null {
     case "acceptTrade":
       return applyAcceptTrade(draft, action.offerId, action.seat);
     case "cancelTrade":
-      return applyCancelTrade(draft, action.offerId);
+      return applyCancelTrade(draft, action.offerId, action.seat);
     case "endTurn":
       return applyEndTurn(draft);
   }

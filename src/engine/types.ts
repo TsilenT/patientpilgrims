@@ -126,7 +126,7 @@ export type Action =
   | { type: "tradeBank"; give: Resource; get: Resource }
   | { type: "proposeTrade"; give: ResourceMap; want: ResourceMap; to?: number }
   | { type: "acceptTrade"; offerId: number; seat: number }
-  | { type: "cancelTrade"; offerId: number };
+  | { type: "cancelTrade"; offerId: number; seat?: number };
 
 export type ApplyResult =
   | { ok: true; state: GameState }

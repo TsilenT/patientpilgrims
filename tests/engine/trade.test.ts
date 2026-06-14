@@ -294,18 +294,44 @@ describe("cancel trade + endTurn clearing", () => {
     expect(g.tradeOffers).toHaveLength(1);
   });
 
-  it("endTurn clears all trade offers and advances the turn normally", () => {
+  it("endTurn keeps other players' open offers while advancing the turn normally", () => {
     const g = mainGame();
-    // Seed two trade offers (any from/ids)
+    // Seat 0 is ending their turn; seats 1 and 2 have asynchronous offers still open.
     g.tradeOffers = [
       { id: 0, from: 0, give: rm(1), want: rm(0, 1) },
-      { id: 1, from: 0, give: rm(0, 0, 1), want: rm(0, 0, 0, 1) },
+      { id: 1, from: 1, give: rm(0, 0, 1), want: rm(0, 0, 0, 1) },
+      { id: 2, from: 2, give: rm(0, 1), want: rm(1) },
     ];
-    // Active seat 0, subPhase "main" — endTurn should succeed
+
     const r = apply(g, { type: "endTurn" }, rngOf());
     expectOk(r);
-    expect(r.state.tradeOffers).toHaveLength(0);
+    expect(r.state.tradeOffers.map((o) => o.id)).toEqual([0, 2]);
     expect(r.state.turn.activeSeat).toBe(1);
     expect(r.state.turn.subPhase).toBe("awaitingRoll");
+  });
+
+  it("endTurn clears offers owned by the player whose next turn is starting", () => {
+    const g = mainGame();
+    g.turn.activeSeat = 2;
+    g.turnOrder = [0, 1, 2];
+    g.tradeOffers = [
+      { id: 0, from: 0, give: rm(1), want: rm(0, 1) },
+      { id: 1, from: 1, give: rm(0, 0, 1), want: rm(0, 0, 0, 1) },
+      { id: 2, from: 2, give: rm(0, 1), want: rm(1) },
+    ];
+
+    const r = apply(g, { type: "endTurn" }, rngOf());
+    expectOk(r);
+    expect(r.state.turn.activeSeat).toBe(0);
+    expect(r.state.tradeOffers.map((o) => o.id)).toEqual([1, 2]);
+  });
+
+  it("offer owner can cancel their own offer outside the active turn", () => {
+    const g = mainGame();
+    g.tradeOffers = [{ id: 0, from: 1, give: rm(1), want: rm(0, 1) }];
+
+    const r = apply(g, { type: "cancelTrade", offerId: 0, seat: 1 }, rngOf());
+    expectOk(r);
+    expect(r.state.tradeOffers).toHaveLength(0);
   });
 });

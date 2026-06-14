@@ -8,7 +8,7 @@ export function applyEndTurn(state: GameState): string | null {
   const prevIndex = order.indexOf(prev);
   const next = order[(prevIndex + 1) % order.length] ?? order[0]!;
   for (const c of state.players[prev]!.devCards) c.boughtThisTurn = false;
-  state.tradeOffers = [];
+  state.tradeOffers = state.tradeOffers.filter((offer) => offer.from !== next);
   state.turn = { activeSeat: next, subPhase: "awaitingRoll" };
   state.log.push({ type: "endTurn", seat: prev });
   return null;

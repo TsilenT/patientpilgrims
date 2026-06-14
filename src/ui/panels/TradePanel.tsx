@@ -126,7 +126,7 @@ function OpenOffers({ state, mySeat, seat, run }: {
               </span>
               <span className="offer-actions">
                 {o.from === seat && (
-                  <button onClick={() => run({ type: "cancelTrade", offerId: o.id })}>Cancel</button>
+                  <button onClick={() => run({ type: "cancelTrade", offerId: o.id, seat })}>Cancel</button>
                 )}
                 {acceptors.map((p) => (
                   <button key={p.seat} className="btn-primary" data-testid={`accept-${o.id}-${p.seat}`}
