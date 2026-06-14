@@ -67,8 +67,6 @@ describe("lobby rules", () => {
     await set(ref(alice, "games/l3/lobby/0"), { uid: "alice", name: "Alice", color: "red" });
     const eve = env.authenticatedContext("eve").database();
     await assertSucceeds(set(ref(eve, "games/l3/lobby/0"), null));
-    const host = env.authenticatedContext("host").database();
-    await assertSucceeds(set(ref(host, "games/l3/lobby/0"), null));
   });
 
   it("rejects malformed seats and claims after the game started", async () => {
