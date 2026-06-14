@@ -10,7 +10,7 @@
           ".read": "auth != null",
           "$slot": {
             ".write": "auth != null && root.child('games/'+$gameId+'/meta/status').val() === 'lobby' && ((newData.exists() && newData.child('uid').val() === auth.uid && (!data.exists() || data.child('uid').val() === auth.uid)) || (!newData.exists() && data.exists()))",
-            ".validate": "newData.hasChildren(['uid','name','color']) && newData.child('name').isString() && newData.child('name').val().length >= 1 && newData.child('name').val().length <= 24"
+            ".validate": "!newData.exists() || (newData.hasChildren(['uid','name','color']) && newData.child('name').isString() && newData.child('name').val().length >= 1 && newData.child('name').val().length <= 24)"
           }
         },
         "_claims": {
