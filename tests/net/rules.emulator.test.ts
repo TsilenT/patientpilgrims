@@ -26,14 +26,15 @@ async function seed() {
 }
 
 describe("meta rules", () => {
-  it("creates only with host = self, and only host updates it", async () => {
+  it("creates only with host = self, and any authenticated player updates game settings without changing host", async () => {
     const h = env.authenticatedContext("h").database();
     await assertSucceeds(set(ref(h, "games/m1/meta"), meta({ host: "h", status: "lobby" })));
     await assertFails(set(ref(h, "games/m2/meta"), meta({ host: "someone-else", status: "lobby" })));
     await assertSucceeds(set(ref(h, "games/m1/meta/mode"), "random"));
     await assertFails(set(ref(h, "games/m1/meta/host"), "takeover"));
     const eve = env.authenticatedContext("eve").database();
-    await assertFails(set(ref(eve, "games/m1/meta/mode"), "beginner"));
+    await assertSucceeds(set(ref(eve, "games/m1/meta/mode"), "beginner"));
+    await assertFails(set(ref(eve, "games/m1/meta/host"), "takeover"));
   });
 });
 
@@ -60,12 +61,12 @@ describe("lobby rules", () => {
     await assertSucceeds(set(ref(alice, "games/l2/lobby/0"), { uid: "alice", name: "Queen Alice", color: "blue" }));
   });
 
-  it("only the owner or the host can clear a seat", async () => {
+  it("any authenticated lobby player can clear a seat", async () => {
     await lobbyGame("l3");
     const alice = env.authenticatedContext("alice").database();
     await set(ref(alice, "games/l3/lobby/0"), { uid: "alice", name: "Alice", color: "red" });
     const eve = env.authenticatedContext("eve").database();
-    await assertFails(set(ref(eve, "games/l3/lobby/0"), null));
+    await assertSucceeds(set(ref(eve, "games/l3/lobby/0"), null));
     const host = env.authenticatedContext("host").database();
     await assertSucceeds(set(ref(host, "games/l3/lobby/0"), null));
   });
@@ -83,13 +84,14 @@ describe("lobby rules", () => {
 });
 
 describe("start + rescue rules", () => {
-  it("denies reading a claim token", async () => {
+  it("lets authenticated players read claim tokens for recovery links", async () => {
     await seed();
     const db = env.authenticatedContext("eve").database();
-    await assertFails(get(ref(db, "games/g/_claims/0")));
+    const snap = await assertSucceeds(get(ref(db, "games/g/_claims/0")));
+    expect(snap.val()).toBe("tokenZero");
   });
 
-  it("host mints tokens and seats once; non-host cannot", async () => {
+  it("any authenticated player mints tokens and seats once", async () => {
     await env.withSecurityRulesDisabled(async (c) => {
       await set(ref(c.database(), "games/s1/meta"), meta({ status: "lobby" }));
     });
@@ -98,16 +100,16 @@ describe("start + rescue rules", () => {
     await assertFails(set(ref(host, "games/s1/_claims/0"), "t0-again")); // write-once
     await assertSucceeds(set(ref(host, "games/s1/seats/0"), { uid: "alice" }));
     const eve = env.authenticatedContext("eve").database();
-    await assertFails(set(ref(eve, "games/s1/_claims/1"), "t1"));
-    await assertFails(set(ref(eve, "games/s1/seats/1"), { uid: "eve-friend" }));
+    await assertSucceeds(set(ref(eve, "games/s1/_claims/1"), "t1"));
+    await assertSucceeds(set(ref(eve, "games/s1/seats/1"), { uid: "eve-friend" }));
   });
 
-  it("host starts with one atomic multi-path update", async () => {
+  it("any authenticated player starts with one atomic multi-path update", async () => {
     await env.withSecurityRulesDisabled(async (c) => {
       await set(ref(c.database(), "games/s2/meta"), meta({ status: "lobby" }));
     });
-    const host = env.authenticatedContext("host").database();
-    await assertSucceeds(update(ref(host, "games/s2"), {
+    const eve = env.authenticatedContext("eve").database();
+    await assertSucceeds(update(ref(eve, "games/s2"), {
       state: { version: 0, turn: { activeSeat: 0 } },
       "meta/status": "active",
       "seats/0": { uid: "alice" },
@@ -153,14 +155,12 @@ describe("pre-lobby games (old schema, no host/status in meta)", () => {
 });
 
 describe("state rules", () => {
-  it("only the host creates the state", async () => {
+  it("any authenticated player creates the initial state", async () => {
     await env.withSecurityRulesDisabled(async (c) => {
       await set(ref(c.database(), "games/st1/meta"), meta({ status: "lobby" }));
     });
     const eve = env.authenticatedContext("eve").database();
-    await assertFails(set(ref(eve, "games/st1/state"), { version: 0, turn: { activeSeat: 0 } }));
-    const host = env.authenticatedContext("host").database();
-    await assertSucceeds(set(ref(host, "games/st1/state"), { version: 0, turn: { activeSeat: 0 } }));
+    await assertSucceeds(set(ref(eve, "games/st1/state"), { version: 0, turn: { activeSeat: 0 } }));
   });
 
   it("lets the active seat advance version by exactly 1", async () => {

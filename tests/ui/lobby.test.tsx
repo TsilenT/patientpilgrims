@@ -79,15 +79,25 @@ test("host sees kick buttons on others and start gating at 3 players", async () 
   expect(backend.start).toHaveBeenCalled();
 });
 
-test("a non-host waits instead of starting", () => {
+test("a non-host can start and manage the lobby", async () => {
   const { backend } = fakeBackend({
     meta: meta(),
-    roster: { 0: { uid: "host-uid", name: "Steve", color: "red" } },
+    roster: {
+      0: { uid: "host-uid", name: "Steve", color: "red" },
+      1: { uid: "me", name: "Maya", color: "blue" },
+      2: { uid: "p3", name: "Theo", color: "white" },
+    },
     myUid: "me",
   });
   render(<Lobby id="abc123" backend={backend} onEnterGame={() => {}} />);
-  expect(screen.queryByRole("button", { name: /start game/i })).toBeNull();
-  expect(screen.getByText(/waiting for the host/i)).toBeInTheDocument();
+  expect(screen.queryByText(/waiting for the host/i)).toBeNull();
+  expect(screen.getByRole("button", { name: /remove steve/i })).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("radio", { name: /random/i }));
+  expect(backend.setMode).toHaveBeenCalledWith("random");
+  const start = screen.getByRole("button", { name: /start game/i });
+  expect(start).toBeEnabled();
+  await userEvent.click(start);
+  expect(backend.start).toHaveBeenCalled();
 });
 
 test("status flipping to active enters the game", () => {

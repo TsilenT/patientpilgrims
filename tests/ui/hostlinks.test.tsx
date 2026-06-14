@@ -54,8 +54,17 @@ test("the hosting device gets a Links tab with per-seat rescue links", async () 
   expect(screen.getAllByRole("button", { name: /rescue link/i }).length).toBe(3);
 });
 
-test("non-hosting devices see no Links tab", () => {
+test("non-hosting devices can open recovery links", async () => {
   location.hash = "#/g/abc123";
+  localStorage.setItem("adultingcatan:claims:abc123", JSON.stringify([
+    { seat: 0, url: "https://x/#/g/abc123/claim/0/t0" },
+    { seat: 1, url: "https://x/#/g/abc123/claim/1/t1" },
+    { seat: 2, url: "https://x/#/g/abc123/claim/2/t2" },
+  ]));
   render(<GameProvider store={onlineStore(mainGame(), 1)}><GameView /></GameProvider>);
-  expect(screen.queryByRole("tab", { name: /links/i })).toBeNull();
+  await userEvent.click(screen.getByRole("tab", { name: /links/i }));
+  const panel = screen.getByLabelText("Game links");
+  expect(panel).toHaveTextContent("Alice");
+  expect(panel).toHaveTextContent("Bob");
+  expect(panel).toHaveTextContent("Carol");
 });

@@ -44,6 +44,7 @@ export function Lobby({ id, backend, onEnterGame }: {
 
   const { meta, roster, myUid } = view;
   const isHost = meta.host === myUid;
+  const canManageLobby = true;
   const slots = Array.from({ length: MAX_SLOTS }, (_, i) => roster[i] ?? null);
   const mySlot = slots.findIndex((s) => s?.uid === myUid);
   const takenColors = new Set(slots.filter((s) => s !== null && s.uid !== myUid).map((s) => s!.color));
@@ -103,7 +104,7 @@ export function Lobby({ id, backend, onEnterGame }: {
                     Leave
                   </button>
                 )}
-                {isHost && s.uid !== myUid && (
+                {canManageLobby && s.uid !== myUid && (
                   <button disabled={busy} aria-label={`Remove ${s.name}`}
                     onClick={() => run(() => backend.kick(i), "Could not remove the player.")}>
                     ✕
@@ -135,7 +136,7 @@ export function Lobby({ id, backend, onEnterGame }: {
         </div>
       )}
 
-      <fieldset disabled={!isHost}>
+      <fieldset disabled={!canManageLobby}>
         <legend>Board</legend>
         <label>
           <input type="radio" name="mode" checked={meta.mode === "beginner"}
@@ -148,14 +149,10 @@ export function Lobby({ id, backend, onEnterGame }: {
       </fieldset>
 
       {error && <p role="alert">{error}</p>}
-      {isHost ? (
-        <button className="btn-primary" disabled={busy || claimedCount < 3}
-          onClick={() => run(() => backend.start(), "Could not start the game.")}>
-          {claimedCount < 3 ? `Start game (${claimedCount}/3)` : "Start game"}
-        </button>
-      ) : (
-        <p className="lobby-wait">Waiting for the host to start ({claimedCount} joined)…</p>
-      )}
+      <button className="btn-primary" disabled={busy || claimedCount < 3}
+        onClick={() => run(() => backend.start(), "Could not start the game.")}>
+        {claimedCount < 3 ? `Start game (${claimedCount}/3)` : "Start game"}
+      </button>
     </div>
   );
 }

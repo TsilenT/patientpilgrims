@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useGame } from "../state/GameProvider";
 import { useDispatchWithError } from "./useDispatchWithError";
 import { legalTargets, legalRoadBuildingEdges, buildTargets } from "../state/legalTargets";
@@ -18,7 +18,7 @@ import { MonopolyPicker, YearOfPlentyPicker } from "./overlays/DevCardModals";
 import { WinScreen } from "./overlays/WinScreen";
 import { OrderRollReveal } from "./overlays/OrderRollReveal";
 import { HostLinksPanel } from "./overlays/HostLinksPanel";
-import { hostRescueLinks } from "../net/lobby";
+import { hostRescueLinks, loadRescueLinks } from "../net/lobby";
 import { parseRoute } from "../app/router";
 import { Toast } from "./Toast";
 import type { DevCardType } from "../engine/devcards";
@@ -45,10 +45,24 @@ export function GameView() {
   >(null);
   const [tab, setTab] = useState<"hand" | "trades" | "log" | "links">("hand");
 
-  // Online + this device hosted the game → it holds the per-seat rescue links.
   const r = parseRoute(location.hash);
   const gameId = online && r.kind === "game" ? r.id : null;
-  const rescueLinks = gameId !== null ? hostRescueLinks(gameId) : null;
+  const [rescueLinks, setRescueLinks] = useState(() => gameId !== null ? hostRescueLinks(gameId) : null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (gameId === null) {
+      setRescueLinks(null);
+      return () => { cancelled = true; };
+    }
+    setRescueLinks(hostRescueLinks(gameId));
+    void loadRescueLinks(gameId).then((links) => {
+      if (!cancelled) setRescueLinks(links);
+    }).catch(() => {
+      if (!cancelled) setRescueLinks(hostRescueLinks(gameId));
+    });
+    return () => { cancelled = true; };
+  }, [gameId]);
 
   // Turn gating. Hotseat keeps the pass-the-device flow; online locks to your own seat.
   const needReveal = !online && actor !== revealedSeat;
@@ -147,13 +161,15 @@ export function GameView() {
               <button role="tab" aria-selected={tab === "hand"} onClick={() => setTab("hand")}>Your hand</button>
               {sub === "main" && <button role="tab" aria-selected={tab === "trades"} onClick={() => setTab("trades")}>Trades</button>}
               <button role="tab" aria-selected={tab === "log"} onClick={() => setTab("log")}>Log</button>
-              {rescueLinks !== null && <button role="tab" aria-selected={tab === "links"} onClick={() => setTab("links")}>Links</button>}
+              {gameId !== null && <button role="tab" aria-selected={tab === "links"} onClick={() => setTab("links")}>Links</button>}
             </div>
             <div className="tab-content" role="tabpanel" aria-label={tab}>
               {tab === "log" && <LogRail />}
               {tab === "trades" && (sub === "main" ? <TradePanel /> : <p>Trades open after the active player rolls.</p>)}
               {tab === "hand" && <HandPanel />}
-              {tab === "links" && gameId !== null && rescueLinks !== null && <HostLinksPanel id={gameId} links={rescueLinks} />}
+              {tab === "links" && gameId !== null && (rescueLinks !== null
+                ? <HostLinksPanel id={gameId} links={rescueLinks} />
+                : <p>Recovery links are loading…</p>)}
             </div>
           </div>
         </>
@@ -169,13 +185,15 @@ export function GameView() {
               <button role="tab" aria-selected={tab === "hand"} onClick={() => setTab("hand")}>Hand</button>
               <button role="tab" aria-selected={tab === "trades"} onClick={() => setTab("trades")}>Trades</button>
               <button role="tab" aria-selected={tab === "log"} onClick={() => setTab("log")}>Log</button>
-              {rescueLinks !== null && <button role="tab" aria-selected={tab === "links"} onClick={() => setTab("links")}>Links</button>}
+              {gameId !== null && <button role="tab" aria-selected={tab === "links"} onClick={() => setTab("links")}>Links</button>}
             </div>
             <div className="tab-content" role="tabpanel" aria-label={tab}>
               {tab === "hand" && <HandPanel onPlayDev={onPlayDev} />}
               {tab === "trades" && (sub === "main" ? <TradePanel /> : <p>Trades open after you roll.</p>)}
               {tab === "log" && <LogRail />}
-              {tab === "links" && gameId !== null && rescueLinks !== null && <HostLinksPanel id={gameId} links={rescueLinks} />}
+              {tab === "links" && gameId !== null && (rescueLinks !== null
+                ? <HostLinksPanel id={gameId} links={rescueLinks} />
+                : <p>Recovery links are loading…</p>)}
             </div>
           </div>
         </>

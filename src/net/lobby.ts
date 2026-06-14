@@ -35,7 +35,7 @@ export interface LobbyBackend {
   leave(slot: number): Promise<void>;
   kick(slot: number): Promise<void>;
   setMode(mode: GameMeta["mode"]): Promise<void>;
-  /** Host only: freezes the roster, creates the game state, flips status to active. */
+  /** Freezes the roster, creates the game state, flips status to active. */
   start(): Promise<void>;
 }
 
@@ -56,7 +56,17 @@ export async function getMeta(id: string): Promise<GameMeta | null> {
 
 const claimsKey = (id: string) => `adultingcatan:claims:${id}`;
 
-/** Rescue links saved on the host device when it started the game; null elsewhere. */
+function linksFromClaims(id: string, claims: Record<string, string>): SeatLink[] {
+  const base = `${location.origin}${location.pathname}`;
+  return Object.keys(claims).map(Number).sort((a, b) => a - b)
+    .map((seat) => ({ seat, url: `${base}#/g/${id}/claim/${seat}/${claims[seat]!}` }));
+}
+
+function saveRescueLinks(id: string, links: SeatLink[]): void {
+  try { localStorage.setItem(claimsKey(id), JSON.stringify(links)); } catch { /* non-fatal */ }
+}
+
+/** Rescue links cached on this device, if they have already been loaded or minted. */
 export function hostRescueLinks(id: string): SeatLink[] | null {
   try {
     const raw = localStorage.getItem(claimsKey(id));
@@ -64,6 +74,19 @@ export function hostRescueLinks(id: string): SeatLink[] | null {
   } catch {
     return null;
   }
+}
+
+/** Loads recovery links from the shared game record so any player can recover any seat. */
+export async function loadRescueLinks(id: string): Promise<SeatLink[] | null> {
+  const cached = hostRescueLinks(id);
+  if (cached !== null) return cached;
+  await ensureSignedIn();
+  const snap = await get(ref(database(), `games/${id}/_claims`));
+  const claims = snap.val() as Record<string, string> | null;
+  if (claims === null) return null;
+  const links = linksFromClaims(id, claims);
+  saveRescueLinks(id, links);
+  return links;
 }
 
 export function makeLobbyBackend(id: string): LobbyBackend {
@@ -127,9 +150,8 @@ export function makeLobbyBackend(id: string): LobbyBackend {
       });
       await update(gameRef, updates);
 
-      const base = `${location.origin}${location.pathname}`;
-      const links: SeatLink[] = tokens.map((t, seat) => ({ seat, url: `${base}#/g/${id}/claim/${seat}/${t}` }));
-      try { localStorage.setItem(claimsKey(id), JSON.stringify(links)); } catch { /* non-fatal */ }
+      const links = linksFromClaims(id, Object.fromEntries(tokens.map((t, seat) => [seat, t])));
+      saveRescueLinks(id, links);
     },
   };
 }

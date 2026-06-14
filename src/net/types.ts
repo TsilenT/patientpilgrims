@@ -17,7 +17,7 @@ export interface RtdbBackend {
 
 export interface GameMeta {
   createdAt: number;
-  /** uid of the device that created the game; only it can start and mint rescue links. */
+  /** uid of the device that created the game; retained for display, not privilege-gating. */
   host: string;
   status: "lobby" | "active";
   mode: "beginner" | "random";
