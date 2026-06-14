@@ -50,9 +50,40 @@ test("bank trade swaps at the 4:1 default ratio", async () => {
   const s = store(g);
   render(<GameProvider store={s}><GameView /></GameProvider>);
   await userEvent.click(screen.getByRole("tab", { name: "Trades" }));
-  await userEvent.click(screen.getByRole("button", { name: /trade with bank/i }));
+  await userEvent.click(screen.getByRole("tab", { name: "Bank" }));
+  await userEvent.click(screen.getByTestId("bank-give-wood"));
+  await userEvent.click(screen.getByTestId("bank-get-brick"));
+  await userEvent.click(screen.getByTestId("bank-trade"));
   expect(s.getState().players[0]!.resources.wood).toBe(0);
   expect(s.getState().players[0]!.resources.brick).toBe(1);
+});
+
+test("the give stepper is capped at what you own", async () => {
+  const g = mainGame();
+  g.players[0]!.resources = rm(1); // a single wood
+  const s = store(g);
+  render(<GameProvider store={s}><GameView /></GameProvider>);
+  await userEvent.click(screen.getByRole("tab", { name: "Trades" }));
+  const add = screen.getByTestId("give-add-wood");
+  expect(add).toBeEnabled();
+  await userEvent.click(add);
+  expect(add).toBeDisabled(); // offered your only wood → can't offer phantom cards
+});
+
+test("bank trade shows port ratios and disables unaffordable resources", async () => {
+  const g = mainGame();
+  const port = g.board.ports.find((p) => p.kind !== "any")!;
+  const res = port.kind as "wood" | "brick" | "sheep" | "wheat" | "ore";
+  g.board.buildings[port.vertices[0]!] = { owner: 0, type: "settlement" }; // 2:1 on `res`
+  g.players[0]!.resources = { ...rm(), [res]: 2 };
+  const s = store(g);
+  render(<GameProvider store={s}><GameView /></GameProvider>);
+  await userEvent.click(screen.getByRole("tab", { name: "Trades" }));
+  await userEvent.click(screen.getByRole("tab", { name: "Bank" }));
+  expect(screen.getByTestId(`bank-give-${res}`)).toBeEnabled();
+  expect(screen.getByTestId(`bank-give-${res}`)).toHaveTextContent("×2");
+  const other = res === "wood" ? "brick" : "wood";
+  expect(screen.getByTestId(`bank-give-${other}`)).toBeDisabled(); // none of it, and 4:1 anyway
 });
 
 test("propose then accept-on-behalf swaps resources between the two players", async () => {

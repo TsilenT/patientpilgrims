@@ -28,7 +28,8 @@ test("the bottom-sheet tabs switch between hand, trades, and log", async () => {
   expect(screen.getByRole("heading", { name: "A" })).toBeInTheDocument();
 
   await userEvent.click(screen.getByRole("tab", { name: "Trades" }));
-  expect(screen.getByRole("button", { name: /trade with bank/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /^propose$/i })).toBeInTheDocument();
+  expect(screen.getByRole("tab", { name: "Bank" })).toBeInTheDocument();
 
   await userEvent.click(screen.getByRole("tab", { name: "Log" }));
   expect(screen.getByLabelText("Game log")).toBeInTheDocument();
