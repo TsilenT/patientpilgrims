@@ -257,7 +257,7 @@ main { min-height: 100vh; }
 
 /* ---- Hand ---- */
 .hand-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.hand-head h2 { margin: 0; font-size: 16px; flex: 1; min-width: 0; }
+.hand-head h2 { margin: 0; font-size: 16px; }
 .hand-panel h2 { margin: 0 0 8px; font-size: 16px; }
 .dev-card-section { margin-top: 8px; }
 .dev-card-section h3 { margin: 4px 0; font-size: 13px; color: var(--muted); }
