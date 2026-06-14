@@ -132,20 +132,20 @@ test("log rail names the robber steal victim", () => {
 test("hand panel includes a build cost reference with resource tiles", () => {
   render(<GameProvider store={store(mainGame())}><HandPanel /></GameProvider>);
   const costs = screen.getByRole("region", { name: /cost reference/i });
-  for (const label of ["Road", "Settlement", "City upgrade", "Dev card"]) {
+  for (const label of ["Road (15 left)", "Settlement (5 left)", "City Upgrade (4 left)", "Dev Card (25 left)"]) {
     expect(costs).toHaveTextContent(label);
   }
-  const road = screen.getByText("Road").closest("li")!;
+  const road = screen.getByText("Road (15 left)").closest("li")!;
   expect(road.querySelectorAll('.res-tile[data-res="wood"]')).toHaveLength(1);
   expect(road.querySelectorAll('.res-tile[data-res="brick"]')).toHaveLength(1);
-  const city = screen.getByText("City upgrade").closest("li")!;
+  const city = screen.getByText("City Upgrade (4 left)").closest("li")!;
   expect(city.querySelectorAll('.res-tile[data-res="wheat"]')).toHaveLength(2);
   expect(city.querySelectorAll('.res-tile[data-res="ore"]')).toHaveLength(3);
 });
 
 test("cost reference rows expose tooltip details", () => {
   render(<GameProvider store={store(mainGame())}><HandPanel /></GameProvider>);
-  expect(screen.getByText("City upgrade").closest("li")).toHaveAttribute(
+  expect(screen.getByText("City Upgrade (4 left)").closest("li")).toHaveAttribute(
     "title",
     "Upgrade one settlement to a city. Costs 2 wheat, 3 ore.",
   );

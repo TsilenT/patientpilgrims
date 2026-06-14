@@ -31,6 +31,9 @@ test("playing monopoly takes all of a chosen resource from opponents", async () 
   await userEvent.click(within(modal).getByRole("button", { name: "brick" }));
   expect(s.getState().players[0]!.resources.brick).toBe(5);
   expect(s.getState().players[1]!.resources.brick).toBe(0);
+
+  await userEvent.click(screen.getByRole("tab", { name: "Log" }));
+  expect(screen.getByRole("list", { name: "Game log" })).toHaveTextContent("A played Monopoly targeting brick");
 });
 
 test("playing a knight enters the robber move phase and counts the knight", async () => {

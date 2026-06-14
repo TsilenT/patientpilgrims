@@ -109,7 +109,7 @@ export function HandPanel({ onPlayDev }: { onPlayDev?: (type: DevCardType) => vo
           </ul>
         </div>
       )}
-      <CostReference />
+      <CostReference player={me} devDeckLeft={state.devDeck.length} />
     </div>
   );
 }

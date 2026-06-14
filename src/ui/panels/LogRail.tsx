@@ -20,7 +20,7 @@ function describe(state: GameState, e: LogEntry): string {
       return `${name} stole a card from ${victim}`;
     }
     case "buyDevCard": return `${name} bought a development card`;
-    case "playMonopoly": return `${name} played Monopoly`;
+    case "playMonopoly": return `${name} played Monopoly targeting ${e.resource ?? "a resource"}`;
     case "playYearOfPlenty": return `${name} played Year of Plenty`;
     case "playRoadBuilding": return `${name} played Road Building`;
     case "playKnight": return `${name} played a Knight`;
