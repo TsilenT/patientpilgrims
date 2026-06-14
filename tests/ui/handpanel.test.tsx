@@ -35,7 +35,10 @@ test("shows own true VP with hidden victory-point card breakdown", () => {
 
   const summary = screen.getByTestId("hand-vp-summary");
   expect(summary).toHaveAccessibleName("Victory points");
-  expect(summary).toHaveTextContent("6 VP (5 public + 1 from victory-point cards)");
+  expect(summary).toHaveClass("vp-pill");
+  expect(summary).toHaveTextContent("6"); // total VP (5 public + 1 hidden), shown in the pill
+  // The long breakdown moved to a hover title instead of inline text.
+  expect(summary).toHaveAttribute("title", "5 public + 1 from victory-point cards");
 });
 
 test("splits development cards into hand and played sections with blocked cards grayed", () => {

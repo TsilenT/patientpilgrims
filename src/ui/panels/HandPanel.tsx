@@ -32,16 +32,18 @@ export function HandPanel({ onPlayDev }: { onPlayDev?: (type: DevCardType) => vo
 
   return (
     <div className="hand-panel">
-      <h2>{me.name}</h2>
-      <div className="vp-summary" data-testid="hand-vp-summary" aria-label="Victory points">
-        {totalVp} VP
-        {cardVp > 0 ? ` (${publicVp} public + ${cardVp} from victory-point cards)` : null}
+      <div className="hand-head">
+        <h2>{me.name}</h2>
+        <span className="vp-pill" data-testid="hand-vp-summary" aria-label="Victory points"
+          title={cardVp > 0 ? `${publicVp} public + ${cardVp} from victory-point cards` : undefined}>
+          {totalVp}<span className="vp-label">VP</span>
+        </span>
       </div>
       <ul className="resources" aria-label="Resources">
         {RESOURCE_LIST.map((r) => {
           const ResIcon = RESOURCE_ICON[r];
           return (
-            <li key={r} data-testid={`res-${r}`} className="res-chip" title={r}>
+            <li key={r} data-testid={`res-${r}`} className="res-chip" data-res={r} title={r}>
               <ResIcon className="res-icon" /> {me.resources[r]}
             </li>
           );

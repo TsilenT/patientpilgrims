@@ -152,11 +152,11 @@ main { min-height: 100vh; }
 .opp-top { display: flex; align-items: center; gap: 7px; }
 .opponent .swatch { width: 13px; height: 13px; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.35); flex: none; }
 .opp-name { font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.opponent .vp-pill {
+.vp-pill {
   background: var(--gold); color: #1a1300; border-radius: 8px; padding: 1px 7px;
   font-weight: 800; font-size: 14px; flex: none; display: inline-flex; align-items: baseline; gap: 3px;
 }
-.opponent .vp-label { font-size: 9px; font-weight: 800; }
+.vp-label { font-size: 9px; font-weight: 800; }
 .opp-stats { display: flex; gap: 9px; flex-wrap: wrap; }
 .opp-stat {
   display: inline-flex; align-items: center; gap: 3px;
@@ -256,15 +256,29 @@ main { min-height: 100vh; }
 }
 
 /* ---- Hand ---- */
+.hand-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.hand-head h2 { margin: 0; font-size: 16px; flex: 1; min-width: 0; }
 .hand-panel h2 { margin: 0 0 8px; font-size: 16px; }
 .dev-card-section { margin-top: 8px; }
 .dev-card-section h3 { margin: 4px 0; font-size: 13px; color: var(--muted); }
 .resources, .dev-cards { list-style: none; padding: 0; margin: 6px 0; display: flex; gap: 7px; flex-wrap: wrap; }
+/* Resource chips mirror the board tiles: the resource's hex color behind a
+   dark-haloed icon, so the icons read the same way they do on the board. */
 .res-chip {
   display: inline-flex; align-items: center; gap: 5px;
-  background: var(--panel-2); border: 1px solid var(--panel-edge);
-  border-radius: 8px; padding: 4px 10px; font-weight: 700; font-size: 13px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 8px; padding: 4px 10px; font-weight: 800; font-size: 14px;
+  color: #1b2027;
 }
+.res-chip .res-icon {
+  font-size: 18px;
+  filter: drop-shadow(0 0 0.7px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 0.7px rgba(0, 0, 0, 0.6));
+}
+.res-chip[data-res="wood"] { background: #5bbf6e; }
+.res-chip[data-res="brick"] { background: #df7b50; }
+.res-chip[data-res="sheep"] { background: #bfe487; }
+.res-chip[data-res="wheat"] { background: #f7d873; }
+.res-chip[data-res="ore"] { background: #b3c0cb; }
 .dev-cards .dev-card { display: flex; }
 .dev-card-tile {
   display: flex;
