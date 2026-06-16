@@ -49,9 +49,9 @@ function route(draft: GameState, action: Action, rng: Rng): string | null {
     case "playKnight":
       return applyPlayKnight(draft);
     case "tradeBank":
-      return applyTradeBank(draft, action.give, action.get);
+      return applyTradeBank(draft, action.give, action.get, action.seat);
     case "proposeTrade":
-      return applyProposeTrade(draft, action.give, action.want, action.to);
+      return applyProposeTrade(draft, action.give, action.want, action.to, action.seat);
     case "acceptTrade":
       return applyAcceptTrade(draft, action.offerId, action.seat);
     case "cancelTrade":

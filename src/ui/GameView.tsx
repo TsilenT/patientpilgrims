@@ -159,13 +159,13 @@ export function GameView() {
           <div className="bottom-sheet">
             <div className="tabs" role="tablist">
               <button role="tab" aria-selected={tab === "hand"} onClick={() => setTab("hand")}>Your hand</button>
-              {sub === "main" && <button role="tab" aria-selected={tab === "trades"} onClick={() => setTab("trades")}>Trades</button>}
+              <button role="tab" aria-selected={tab === "trades"} onClick={() => setTab("trades")}>Trades</button>
               <button role="tab" aria-selected={tab === "log"} onClick={() => setTab("log")}>Log</button>
               {gameId !== null && <button role="tab" aria-selected={tab === "links"} onClick={() => setTab("links")}>Links</button>}
             </div>
             <div className="tab-content" role="tabpanel" aria-label={tab}>
               {tab === "log" && <LogRail />}
-              {tab === "trades" && (sub === "main" ? <TradePanel /> : <p>Trades open after the active player rolls.</p>)}
+              {tab === "trades" && <TradePanel />}
               {tab === "hand" && <HandPanel />}
               {tab === "links" && gameId !== null && (rescueLinks !== null
                 ? <HostLinksPanel id={gameId} links={rescueLinks} />
@@ -189,7 +189,7 @@ export function GameView() {
             </div>
             <div className="tab-content" role="tabpanel" aria-label={tab}>
               {tab === "hand" && <HandPanel onPlayDev={onPlayDev} />}
-              {tab === "trades" && (sub === "main" ? <TradePanel /> : <p>Trades open after you roll.</p>)}
+              {tab === "trades" && <TradePanel />}
               {tab === "log" && <LogRail />}
               {tab === "links" && gameId !== null && (rescueLinks !== null
                 ? <HostLinksPanel id={gameId} links={rescueLinks} />

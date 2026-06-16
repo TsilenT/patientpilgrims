@@ -123,8 +123,8 @@ export type Action =
   | { type: "playYearOfPlenty"; resources: [Resource, Resource] }
   | { type: "playRoadBuilding"; edges: string[] }
   | { type: "playKnight" }
-  | { type: "tradeBank"; give: Resource; get: Resource }
-  | { type: "proposeTrade"; give: ResourceMap; want: ResourceMap; to?: number }
+  | { type: "tradeBank"; give: Resource; get: Resource; seat?: number }
+  | { type: "proposeTrade"; give: ResourceMap; want: ResourceMap; to?: number; seat?: number }
   | { type: "acceptTrade"; offerId: number; seat: number }
   | { type: "cancelTrade"; offerId: number; seat?: number };
 

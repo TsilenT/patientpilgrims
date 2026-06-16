@@ -116,13 +116,15 @@ describe("bank/port trading", () => {
     expect(r.ok).toBe(false);
   });
 
-  it("rejects when not in main subPhase (awaiting roll)", () => {
+  it("allows bank trading outside the active player's post-roll subphase", () => {
     const g = mainGame();
     g.turn.subPhase = "awaitingRoll";
     g.players[0]!.resources.wood = 4;
 
     const r = apply(g, { type: "tradeBank", give: "wood", get: "brick" }, rngOf());
-    expect(r.ok).toBe(false);
+    expectOk(r);
+    expect(r.state.players[0]!.resources.wood).toBe(0);
+    expect(r.state.players[0]!.resources.brick).toBe(1);
   });
 });
 
@@ -185,11 +187,18 @@ describe("propose trade offer", () => {
     expect(r.ok).toBe(false);
   });
 
-  it("rejects when not in main subPhase", () => {
+  it("rejects proposing before the active player has rolled", () => {
     const g = mainGame();
     g.turn.subPhase = "awaitingRoll";
     g.players[0]!.resources = rm(2, 0, 0, 0, 0);
-    const r = apply(g, { type: "proposeTrade", give: rm(2), want: rm(0, 1) }, rngOf());
+    const r = apply(g, { type: "proposeTrade", give: rm(2), want: rm(0, 1), seat: 0 }, rngOf());
+    expect(r.ok).toBe(false);
+  });
+
+  it("rejects proposing a standing trade for a non-active seat", () => {
+    const g = mainGame();
+    g.players[1]!.resources = rm(2, 0, 0, 0, 0);
+    const r = apply(g, { type: "proposeTrade", give: rm(2), want: rm(0, 1), seat: 1 }, rngOf());
     expect(r.ok).toBe(false);
   });
 });

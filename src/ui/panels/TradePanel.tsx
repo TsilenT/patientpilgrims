@@ -33,7 +33,7 @@ function ProposeTrade({ me, run }: { me: Player; run: RunFn }) {
   };
   const ready = totalCards(give) > 0 && totalCards(want) > 0;
   const propose = () => {
-    run({ type: "proposeTrade", give, want });
+    run({ type: "proposeTrade", give, want, seat: me.seat });
     setGive(empty());
     setWant(empty());
   };
@@ -73,7 +73,7 @@ function BankTrade({ state, seat, run }: { state: GameState; seat: number; run: 
   const ready = giveRes !== null && getRes !== null && giveRes !== getRes;
   const trade = () => {
     if (!ready) return;
-    run({ type: "tradeBank", give: giveRes, get: getRes });
+    run({ type: "tradeBank", give: giveRes, get: getRes, seat });
     setGiveRes(null);
     setGetRes(null);
   };
@@ -152,19 +152,22 @@ export function TradePanel() {
 
   return (
     <div className="trade-panel">
-      {isMyTurn && (
+      {state.phase === "main" && isMyTurn && (
         <>
           <div className="trade-modes" role="tablist" aria-label="Trade type">
             <button role="tab" aria-selected={mode === "players"} onClick={() => setMode("players")}>Players</button>
             <button role="tab" aria-selected={mode === "bank"} onClick={() => setMode("bank")}>Bank</button>
           </div>
           {mode === "players"
-            ? <ProposeTrade me={state.players[seat]!} run={run} />
+            ? state.turn.subPhase === "main"
+              ? <ProposeTrade me={state.players[seat]!} run={run} />
+              : <p className="trade-empty">You can propose trades after you roll.</p>
             : <BankTrade state={state} seat={seat} run={run} />}
         </>
       )}
       <OpenOffers state={state} mySeat={mySeat} seat={seat} run={run} />
-      {!isMyTurn && state.tradeOffers.length === 0 && <p className="trade-empty">No open offers right now.</p>}
+      {state.phase === "main" && !isMyTurn && state.tradeOffers.length === 0 && <p className="trade-empty">No open offers right now.</p>}
+      {state.phase !== "main" && state.tradeOffers.length === 0 && <p className="trade-empty">Trades open after setup.</p>}
       <Toast message={error} onDismiss={dismissError} />
     </div>
   );

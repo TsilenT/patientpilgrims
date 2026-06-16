@@ -15,14 +15,15 @@ export function portRatio(state: GameState, seat: number, resource: Resource): n
 
 function requireMain(state: GameState): string | null {
   if (state.phase !== "main") return "Not in the main phase";
-  if (state.turn.subPhase !== "main") return "You must roll the dice first";
   return null;
 }
 
-export function applyProposeTrade(state: GameState, give: ResourceMap, want: ResourceMap, to: number | undefined): string | null {
+export function applyProposeTrade(state: GameState, give: ResourceMap, want: ResourceMap, to: number | undefined, seat = state.turn.activeSeat): string | null {
   const err = requireMain(state);
   if (err) return err;
-  const seat = state.turn.activeSeat;
+  if (state.turn.subPhase !== "main") return "You must roll the dice first";
+  if (!state.players[seat]) return "Unknown player";
+  if (seat !== state.turn.activeSeat) return "You can only propose trades on your turn";
   const nonNeg = (m: ResourceMap) => RESOURCE_LIST.every((r) => m[r] >= 0);
   if (!nonNeg(give) || !nonNeg(want)) return "Trade amounts cannot be negative";
   if (totalCards(give) === 0 || totalCards(want) === 0) return "A trade must offer and request something";
@@ -63,11 +64,12 @@ export function applyCancelTrade(state: GameState, offerId: number, seat = state
   return null;
 }
 
-export function applyTradeBank(state: GameState, give: Resource, get: Resource): string | null {
+export function applyTradeBank(state: GameState, give: Resource, get: Resource, seat = state.turn.activeSeat): string | null {
   const err = requireMain(state);
   if (err) return err;
   if (give === get) return "Trade two different resources";
-  const seat = state.turn.activeSeat;
+  if (!state.players[seat]) return "Unknown player";
+  if (seat !== state.turn.activeSeat) return "You can only trade with the bank on your turn";
   const player = state.players[seat]!;
   const ratio = portRatio(state, seat, give);
   if (player.resources[give] < ratio) return `You need ${ratio} ${give} to trade`;
