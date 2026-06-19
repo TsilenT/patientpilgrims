@@ -122,7 +122,7 @@ test("proposer can cancel their own open offer", async () => {
   g.tradeSeq = 1;
   const s = store(g);
   render(<GameProvider store={s}><GameView /></GameProvider>);
-  await userEvent.click(screen.getByRole("tab", { name: "Trades" }));
+  await userEvent.click(screen.getByRole("tab", { name: /^Trades/ }));
   await userEvent.click(screen.getByRole("button", { name: /^cancel$/i }));
   expect(s.getState().tradeOffers).toHaveLength(0);
 });
@@ -153,4 +153,18 @@ test("online off-turn player can view trades but cannot propose", async () => {
   expect(screen.queryByRole("button", { name: /^propose$/i })).toBeNull();
   expect(screen.getByText(/No open offers right now/i)).toBeInTheDocument();
   expect(s.getState().tradeOffers).toHaveLength(0);
+});
+
+test("trade tab title shows the number of open trades", () => {
+  const g = mainGame();
+  g.tradeOffers = [
+    { id: 0, from: 0, give: rm(1), want: rm(0, 0, 0, 1) },
+    { id: 1, from: 1, give: rm(0, 1), want: rm(0, 0, 1) },
+  ];
+  g.tradeSeq = 2;
+
+  render(<GameProvider store={store(g)}><GameView /></GameProvider>);
+
+  expect(screen.getByRole("tab", { name: "Trades (2)" })).toBeInTheDocument();
+  expect(screen.queryByRole("tab", { name: /^Trades$/ })).toBeNull();
 });

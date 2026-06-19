@@ -25,6 +25,10 @@ import type { DevCardType } from "../engine/devcards";
 
 const NO_TARGETS = { vertices: new Set<string>(), edges: new Set<string>(), hexes: new Set<string>() };
 
+function tradesTabLabel(openTradeCount: number) {
+  return openTradeCount > 0 ? `Trades (${openTradeCount})` : "Trades";
+}
+
 export function GameView() {
   const { state, mySeat } = useGame();
   const { run, error, dismissError } = useDispatchWithError();
@@ -159,7 +163,7 @@ export function GameView() {
           <div className="bottom-sheet">
             <div className="tabs" role="tablist">
               <button role="tab" aria-selected={tab === "hand"} onClick={() => setTab("hand")}>Your hand</button>
-              <button role="tab" aria-selected={tab === "trades"} onClick={() => setTab("trades")}>Trades</button>
+              <button role="tab" aria-selected={tab === "trades"} onClick={() => setTab("trades")}>{tradesTabLabel(state.tradeOffers.length)}</button>
               <button role="tab" aria-selected={tab === "log"} onClick={() => setTab("log")}>Log</button>
               {gameId !== null && <button role="tab" aria-selected={tab === "links"} onClick={() => setTab("links")}>Links</button>}
             </div>
@@ -183,7 +187,7 @@ export function GameView() {
           <div className="bottom-sheet">
             <div className="tabs" role="tablist">
               <button role="tab" aria-selected={tab === "hand"} onClick={() => setTab("hand")}>Hand</button>
-              <button role="tab" aria-selected={tab === "trades"} onClick={() => setTab("trades")}>Trades</button>
+              <button role="tab" aria-selected={tab === "trades"} onClick={() => setTab("trades")}>{tradesTabLabel(state.tradeOffers.length)}</button>
               <button role="tab" aria-selected={tab === "log"} onClick={() => setTab("log")}>Log</button>
               {gameId !== null && <button role="tab" aria-selected={tab === "links"} onClick={() => setTab("links")}>Links</button>}
             </div>
