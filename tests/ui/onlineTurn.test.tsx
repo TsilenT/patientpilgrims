@@ -67,7 +67,7 @@ test("online: waiting players can view trades but only accept as themselves", as
   g.tradeOffers = [{ id: 0, from: 0, give: { wood: 1, brick: 0, sheep: 0, wheat: 0, ore: 0 }, want: { wood: 0, brick: 0, sheep: 0, wheat: 1, ore: 0 } }];
   render(<GameProvider store={onlineStore(g, 1)}><GameView /></GameProvider>);
 
-  await userEvent.click(screen.getByRole("tab", { name: "Trades" }));
+  await userEvent.click(screen.getByRole("tab", { name: /^Trades/ }));
 
   expect(screen.getByTestId("accept-0-1")).toBeInTheDocument();
   expect(screen.queryByTestId("accept-0-2")).toBeNull();
