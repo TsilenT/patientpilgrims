@@ -257,8 +257,24 @@ main { min-height: 100vh; }
 }
 
 /* ---- Hand ---- */
-.hand-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.hand-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
 .hand-head h2 { margin: 0; font-size: 16px; line-height: 1; }
+.hand-awards { display: inline-flex; align-items: center; gap: 5px; }
+.award-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: linear-gradient(180deg, #f4ca62 0%, #dca82f 100%);
+  color: #1a1300;
+  border: 1px solid rgba(26, 19, 0, 0.18);
+  border-radius: 8px;
+  padding: 1px 6px;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.25;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+}
+.award-icon { font-size: 14px; }
 .dev-card-section { margin-top: 8px; }
 .dev-card-section h3 { margin: 4px 0; font-size: 13px; color: var(--muted); }
 .resources, .dev-cards { list-style: none; padding: 0; margin: 6px 0; display: flex; gap: 7px; flex-wrap: wrap; }

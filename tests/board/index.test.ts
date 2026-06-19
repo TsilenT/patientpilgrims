@@ -17,6 +17,15 @@ describe("createBoard", () => {
     const b = createBoard({ mode: "random", rng: mulberry32(5) });
     assertWellFormed(a);
     expect(a.tiles).toEqual(b.tiles);
+    expect(a.ports).toEqual(b.ports);
+  });
+
+  it("randomizes port kinds for random boards", () => {
+    const beginner = createBoard({ mode: "beginner" });
+    const random = createBoard({ mode: "random", rng: mulberry32(5) });
+    expect(random.ports.map((p) => p.edge)).toEqual(beginner.ports.map((p) => p.edge));
+    expect(random.ports.map((p) => p.kind).sort()).toEqual(beginner.ports.map((p) => p.kind).sort());
+    expect(random.ports.map((p) => p.kind)).not.toEqual(beginner.ports.map((p) => p.kind));
   });
 
   it("creates the fixed beginner board", () => {

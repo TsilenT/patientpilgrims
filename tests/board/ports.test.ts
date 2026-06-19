@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { placePorts, type Port } from "../../src/board/ports";
 import { buildTopology } from "../../src/board/topology";
 import { PORT_BAG } from "../../src/board/constants";
+import { mulberry32 } from "../../src/engine/rng";
 
 const topo = buildTopology();
 
@@ -33,5 +34,14 @@ describe("placePorts", () => {
 
   it("is deterministic", () => {
     expect(placePorts()).toEqual(placePorts());
+  });
+
+  it("shuffles port kinds when an rng is provided", () => {
+    const seededA = placePorts(mulberry32(7));
+    const seededB = placePorts(mulberry32(7));
+    expect(seededA).toEqual(seededB);
+    expect(seededA.map((p) => p.kind).sort()).toEqual([...PORT_BAG].sort());
+    expect(seededA.map((p) => p.edge)).toEqual(ports.map((p) => p.edge));
+    expect(seededA.map((p) => p.kind)).not.toEqual(ports.map((p) => p.kind));
   });
 });

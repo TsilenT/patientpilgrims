@@ -2,7 +2,7 @@ import { useGame } from "../../state/GameProvider";
 import { currentActor } from "../../state/viewModel";
 import { totalVictoryPoints } from "../../engine";
 import { RESOURCE_LIST } from "../../engine/resources";
-import { RESOURCE_ICON, DEV_CARD_ICON } from "../icons";
+import { RESOURCE_ICON, DEV_CARD_ICON, KnightIcon, RoadIcon } from "../icons";
 import { DEV_CARD_INFO } from "../devCardInfo";
 import { useGainPulse } from "../useGainPulse";
 import type { PlayerDevCard } from "../../engine/types";
@@ -18,6 +18,8 @@ export function HandPanel({ onPlayDev }: { onPlayDev?: (type: DevCardType) => vo
   const publicVp = me.victoryPoints;
   const totalVp = totalVictoryPoints(state, seat);
   const cardVp = totalVp - publicVp;
+  const hasLongestRoad = state.awards.longestRoad === seat;
+  const hasLargestArmy = state.awards.largestArmy === seat;
   const canPlay = (c: PlayerDevCard) =>
     onPlayDev !== undefined &&
     c.type !== "victoryPoint" &&
@@ -40,6 +42,24 @@ export function HandPanel({ onPlayDev }: { onPlayDev?: (type: DevCardType) => vo
           title={cardVp > 0 ? `${publicVp} public + ${cardVp} from victory-point cards` : undefined}>
           {totalVp}<span className="vp-label">VP</span>
         </span>
+        {(hasLongestRoad || hasLargestArmy) && (
+          <span className="hand-awards" aria-label="Your awards">
+            {hasLongestRoad && (
+              <span className="award-pill" data-testid="hand-award-longest-road"
+                aria-label={`Longest Road, ${me.longestRoadLength} roads`}
+                title={`Longest Road: ${me.longestRoadLength} roads`}>
+                <RoadIcon className="award-icon" /> {me.longestRoadLength}
+              </span>
+            )}
+            {hasLargestArmy && (
+              <span className="award-pill" data-testid="hand-award-largest-army"
+                aria-label={`Largest Army, ${me.knightsPlayed} knights`}
+                title={`Largest Army: ${me.knightsPlayed} knights`}>
+                <KnightIcon className="award-icon" /> {me.knightsPlayed}
+              </span>
+            )}
+          </span>
+        )}
       </div>
       <ul className="resources" aria-label="Resources">
         {RESOURCE_LIST.map((r) => {

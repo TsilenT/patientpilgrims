@@ -41,6 +41,25 @@ test("shows own true VP with hidden victory-point card breakdown", () => {
   expect(summary).toHaveAttribute("title", "5 public + 1 from victory-point cards");
 });
 
+test("shows compact achievement pills next to own VP when holding awards", () => {
+  const g = createInitialGame(
+    [{ name: "A", color: "red" }, { name: "B", color: "blue" }, { name: "C", color: "white" }],
+    createBoard({ mode: "beginner" }),
+  );
+  g.phase = "main"; g.turn = { activeSeat: 0, subPhase: "main" }; delete g.setup;
+  g.awards = { longestRoad: 0, largestArmy: 0 };
+  g.players[0]!.longestRoadLength = 7;
+  g.players[0]!.knightsPlayed = 4;
+  const s = new GameStore(g, new LocalStoragePersistence(), mulberry32(1));
+  render(<GameProvider store={s}><HandPanel /></GameProvider>);
+
+  const awards = screen.getByLabelText("Your awards");
+  expect(awards).toHaveTextContent("7");
+  expect(awards).toHaveTextContent("4");
+  expect(screen.getByTestId("hand-award-longest-road")).toHaveAccessibleName("Longest Road, 7 roads");
+  expect(screen.getByTestId("hand-award-largest-army")).toHaveAccessibleName("Largest Army, 4 knights");
+});
+
 test("splits development cards into hand and played sections with blocked cards grayed", () => {
   const g = createInitialGame(
     [{ name: "A", color: "red" }, { name: "B", color: "blue" }, { name: "C", color: "white" }],

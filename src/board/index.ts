@@ -26,6 +26,6 @@ export function createBoard(opts: CreateBoardOptions): Board {
     topology: buildTopology(),
     tiles: assignment.tiles,
     robber: assignment.robber,
-    ports: placePorts(),
+    ports: opts.mode === "random" ? placePorts(opts.rng) : placePorts(),
   };
 }
