@@ -55,20 +55,21 @@ describe("BoardSvg ports", () => {
       const piers = indicator!.querySelectorAll("line.port-pier");
       const halos = indicator!.querySelectorAll("line.port-pier-halo");
       expect(piers).toHaveLength(2);
-      expect(halos).toHaveLength(2);
+      expect(halos).toHaveLength(0);
 
-      for (const pier of piers) {
+      const lengths = Array.from(piers, (pier) => {
         const x1 = Number(pier.getAttribute("x1"));
         const y1 = Number(pier.getAttribute("y1"));
         const x2 = Number(pier.getAttribute("x2"));
         const y2 = Number(pier.getAttribute("y2"));
-        expect(Math.hypot(x2 - x1, y2 - y1)).toBeGreaterThan(55);
-        expect(Number(pier.getAttribute("stroke-width"))).toBeGreaterThanOrEqual(3.8);
-      }
+        expect(Number(pier.getAttribute("stroke-width"))).toBeGreaterThanOrEqual(4.2);
+        return Math.hypot(x2 - x1, y2 - y1);
+      });
 
-      for (const halo of halos) {
-        expect(Number(halo.getAttribute("stroke-width"))).toBeGreaterThanOrEqual(7);
+      for (const length of lengths) {
+        expect(length).toBeGreaterThan(50);
       }
+      expect(Math.abs(lengths[0]! - lengths[1]!)).toBeGreaterThan(5);
     }
   });
 });
