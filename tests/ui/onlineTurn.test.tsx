@@ -80,5 +80,25 @@ test("online: you can resolve your own discard even when it is not your turn", (
   g.players[1]!.resources = { wood: 2, brick: 0, sheep: 0, wheat: 0, ore: 0 };
   render(<GameProvider store={onlineStore(g, 1)}><GameView /></GameProvider>);
   expect(screen.getByRole("dialog", { name: /discard cards/i })).toBeInTheDocument();
+  expect(screen.getByText(/turn actions stay locked until discard is confirmed/i)).toBeInTheDocument();
   expect(screen.queryByText(/waiting for/i)).toBeNull();
+});
+
+test("online: discard panel can be minimized so the board remains viewable", async () => {
+  const g = mainGame();
+  g.turn = { activeSeat: 0, subPhase: "movingRobber", robberReturn: "main" };
+  g.discardObligations = { 1: 2 };
+  g.players[1]!.resources = { wood: 2, brick: 0, sheep: 0, wheat: 0, ore: 0 };
+  render(<GameProvider store={onlineStore(g, 1)}><GameView /></GameProvider>);
+
+  expect(screen.getByRole("img", { name: /catan board/i })).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: /minimize/i }));
+
+  expect(screen.getByRole("dialog", { name: /discard cards/i })).toHaveClass("discard-modal--collapsed");
+  expect(screen.getByText("0/2 selected")).toBeInTheDocument();
+  expect(screen.getByText(/turn actions stay locked until discard is confirmed/i)).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /add wood/i })).toBeNull();
+
+  await userEvent.click(screen.getByRole("button", { name: /choose cards/i }));
+  expect(screen.getByRole("button", { name: /add wood/i })).toBeInTheDocument();
 });

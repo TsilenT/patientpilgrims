@@ -478,7 +478,77 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
   z-index: 20;
   text-align: center;
 }
-.discard-row { display: flex; gap: 8px; align-items: center; justify-content: space-between; margin: 5px 0; }
+.discard-modal {
+  top: auto;
+  bottom: 14px;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  margin: 0;
+  width: min(94vw, 460px);
+  max-height: min(72vh, 520px);
+  padding: 14px;
+  text-align: left;
+  border-color: rgba(242, 193, 78, 0.62);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.58), 0 0 0 3px rgba(242, 193, 78, 0.12);
+}
+.discard-modal--collapsed {
+  width: min(94vw, 350px);
+  max-height: none;
+  padding: 12px;
+}
+.discard-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.discard-head strong {
+  display: block;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 13px;
+}
+.discard-head p { margin: 3px 0 0; color: var(--ink); line-height: 1.35; }
+.discard-minimize { flex: none; padding: 5px 9px; font-size: 12px; }
+.discard-lock-note {
+  margin: 10px 0;
+  padding: 7px 9px;
+  background: rgba(242, 193, 78, 0.1);
+  border: 1px solid rgba(242, 193, 78, 0.28);
+  border-radius: 9px;
+  color: #ffe9a8;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.discard-progress,
+.discard-collapsed-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+.discard-progress { margin-bottom: 8px; }
+.discard-progress span:last-child { color: var(--gold); }
+.discard-list { display: flex; flex-direction: column; gap: 6px; }
+.discard-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  margin: 0;
+  padding: 6px 8px;
+  background: var(--panel-2);
+  border: 1px solid var(--panel-edge);
+  border-radius: 9px;
+}
+.discard-resource { display: inline-flex; align-items: center; gap: 7px; font-weight: 800; text-transform: capitalize; }
+.discard-count { color: var(--muted); font-weight: 800; font-variant-numeric: tabular-nums; }
+.discard-submit { width: 100%; margin-top: 10px; justify-content: center; }
 .robber-victims button, .dev-modal button, .road-building button { margin: 4px; }
 /* ---- Host game-links panel (bottom-sheet tab) ---- */
 .host-links .host-link-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
