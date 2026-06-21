@@ -35,4 +35,40 @@ describe("BoardSvg ports", () => {
       expect(indicator?.textContent).toContain(port.kind === "any" ? "3:1" : "2:1");
     }
   });
+
+  test("draws obvious dock piers from each port to both settlement spots", () => {
+    const state = createInitialGame(players3, createBoard({ mode: "beginner" }));
+    const { container } = render(
+      <BoardSvg
+        state={state}
+        legal={legalTargets(state)}
+        onVertex={() => {}}
+        onEdge={() => {}}
+        onHex={() => {}}
+      />,
+    );
+
+    for (const port of state.board.ports) {
+      const indicator = container.querySelector(`[data-port-edge="${port.edge}"]`);
+      expect(indicator).not.toBeNull();
+
+      const piers = indicator!.querySelectorAll("line.port-pier");
+      const halos = indicator!.querySelectorAll("line.port-pier-halo");
+      expect(piers).toHaveLength(2);
+      expect(halos).toHaveLength(2);
+
+      for (const pier of piers) {
+        const x1 = Number(pier.getAttribute("x1"));
+        const y1 = Number(pier.getAttribute("y1"));
+        const x2 = Number(pier.getAttribute("x2"));
+        const y2 = Number(pier.getAttribute("y2"));
+        expect(Math.hypot(x2 - x1, y2 - y1)).toBeGreaterThan(55);
+        expect(Number(pier.getAttribute("stroke-width"))).toBeGreaterThanOrEqual(3.8);
+      }
+
+      for (const halo of halos) {
+        expect(Number(halo.getAttribute("stroke-width"))).toBeGreaterThanOrEqual(7);
+      }
+    }
+  });
 });

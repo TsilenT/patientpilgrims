@@ -2,7 +2,7 @@ import { topology } from "../../engine/board";
 import { hexPixel, vertexPixel, edgePixel, parseKey } from "../../board";
 
 export const SCALE = 60; // px per hex unit
-const PAD = SCALE * 0.9;
+const PAD = SCALE * 1.15;
 
 export interface Pt { x: number; y: number }
 export interface BoardLayout {

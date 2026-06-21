@@ -26,6 +26,12 @@ const PORT_LABEL: Record<PortKind, string> = {
   ore: "Ore port, 2 to 1",
 };
 
+// Keep port markers a consistent distance outside the board so the two pier lines
+// visibly point back to their settlement spots instead of disappearing into the sea.
+const PORT_SIGN_OFFSET = 52;
+const PIER_HALO = "#f3dfb1";
+const PIER_WOOD = "#7a5130";
+
 // Three resource-colored dots stand in for "any resource" on the 3:1 port.
 function AnyMark({ cx, cy }: { cx: number; cy: number }) {
   return (
@@ -41,25 +47,35 @@ export function Ports({ ports, layout }: { ports: Port[]; layout: BoardLayout })
   return (
     <g data-testid="ports" pointerEvents="none">
       {ports.map((port) => {
-        const edge = layout.edge[port.edge]!;
         const [aId, bId] = port.vertices;
         const a = layout.vertex[aId!]!;
         const b = layout.vertex[bId!]!;
-        const length = Math.hypot(edge.x, edge.y) || 1;
-        const ux = edge.x / length;
-        const uy = edge.y / length;
-        const cx = edge.x + ux * 36;
-        const cy = edge.y + uy * 36;
+        const dockBaseX = (a.x + b.x) / 2;
+        const dockBaseY = (a.y + b.y) / 2;
+        const edgeDx = b.x - a.x;
+        const edgeDy = b.y - a.y;
+        const normalLength = Math.hypot(edgeDx, edgeDy) || 1;
+        let ux = -edgeDy / normalLength;
+        let uy = edgeDx / normalLength;
+        if (ux * dockBaseX + uy * dockBaseY < 0) {
+          ux = -ux;
+          uy = -uy;
+        }
+        const cx = dockBaseX + ux * PORT_SIGN_OFFSET;
+        const cy = dockBaseY + uy * PORT_SIGN_OFFSET;
         const Icon = port.kind === "any" ? null : RESOURCE_ICON[port.kind as Resource];
 
         return (
           <g key={port.edge} data-port-edge={port.edge} data-port-kind={port.kind} aria-label={PORT_LABEL[port.kind]}>
+            {/* high-contrast pier underlays keep the docks readable on the dark water */}
+            <line className="port-pier-halo" x1={a.x} y1={a.y} x2={cx} y2={cy} stroke={PIER_HALO} strokeWidth={7} strokeLinecap="round" opacity={0.72} />
+            <line className="port-pier-halo" x1={b.x} y1={b.y} x2={cx} y2={cy} stroke={PIER_HALO} strokeWidth={7} strokeLinecap="round" opacity={0.72} />
             {/* wooden piers from the two coastal corners to the dock */}
-            <line x1={a.x} y1={a.y} x2={cx} y2={cy} stroke="#6b4a2b" strokeWidth={3} strokeLinecap="round" opacity={0.85} />
-            <line x1={b.x} y1={b.y} x2={cx} y2={cy} stroke="#6b4a2b" strokeWidth={3} strokeLinecap="round" opacity={0.85} />
+            <line className="port-pier" x1={a.x} y1={a.y} x2={cx} y2={cy} stroke={PIER_WOOD} strokeWidth={3.8} strokeLinecap="round" opacity={0.96} />
+            <line className="port-pier" x1={b.x} y1={b.y} x2={cx} y2={cy} stroke={PIER_WOOD} strokeWidth={3.8} strokeLinecap="round" opacity={0.96} />
             {/* the dock sign */}
-            <rect x={cx - 17} y={cy - 17} width={34} height={34} rx={9} fill={SIGN_FILL[port.kind]}
-              stroke="#2a2017" strokeWidth={1.6} />
+            <rect x={cx - 19} y={cy - 19} width={38} height={38} rx={10} fill={SIGN_FILL[port.kind]}
+              stroke="#2a2017" strokeWidth={2} />
             {Icon
               ? <Icon className="hex-icon" x={cx - 9} y={cy - 16} width={18} height={18} />
               : <AnyMark cx={cx} cy={cy} />}
