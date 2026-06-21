@@ -19,7 +19,7 @@ test("an owing seat must discard exactly the owed count", async () => {
   g.discardObligations = { 0: 4 };
   const s = new GameStore(g, new LocalStoragePersistence(), mulberry32(0));
   render(<GameProvider store={s}><GameView /></GameProvider>);
-  const confirm = screen.getByRole("button", { name: /^discard$/i });
+  const confirm = screen.getByRole("button", { name: /confirm discard/i });
   expect(confirm).toBeDisabled();
   const addWood = screen.getByTestId("discard-add-wood");
   await userEvent.click(addWood);
