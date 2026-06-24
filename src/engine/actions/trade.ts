@@ -67,6 +67,7 @@ export function applyCancelTrade(state: GameState, offerId: number, seat = state
 export function applyTradeBank(state: GameState, give: Resource, get: Resource, seat = state.turn.activeSeat): string | null {
   const err = requireMain(state);
   if (err) return err;
+  if (state.turn.subPhase !== "main") return "You must roll the dice first";
   if (give === get) return "Trade two different resources";
   if (!state.players[seat]) return "Unknown player";
   if (seat !== state.turn.activeSeat) return "You can only trade with the bank on your turn";

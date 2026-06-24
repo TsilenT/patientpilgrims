@@ -116,15 +116,14 @@ describe("bank/port trading", () => {
     expect(r.ok).toBe(false);
   });
 
-  it("allows bank trading outside the active player's post-roll subphase", () => {
+  it("rejects bank trading before the active player has rolled", () => {
     const g = mainGame();
     g.turn.subPhase = "awaitingRoll";
     g.players[0]!.resources.wood = 4;
 
     const r = apply(g, { type: "tradeBank", give: "wood", get: "brick" }, rngOf());
-    expectOk(r);
-    expect(r.state.players[0]!.resources.wood).toBe(0);
-    expect(r.state.players[0]!.resources.brick).toBe(1);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toBe("You must roll the dice first");
   });
 });
 

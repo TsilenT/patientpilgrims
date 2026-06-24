@@ -140,6 +140,20 @@ test("trade tab stays open before rolling", async () => {
   expect(screen.queryByText(/Trades open after you roll/i)).toBeNull();
 });
 
+test("bank trade controls are hidden before rolling", async () => {
+  const g = mainGame();
+  g.turn.subPhase = "awaitingRoll";
+  g.players[0]!.resources = rm(4);
+  const s = store(g);
+  render(<GameProvider store={s}><GameView /></GameProvider>);
+
+  await userEvent.click(screen.getByRole("tab", { name: "Trades" }));
+  await userEvent.click(screen.getByRole("tab", { name: "Bank" }));
+
+  expect(screen.getByText(/You can trade with the bank after you roll/i)).toBeInTheDocument();
+  expect(screen.queryByTestId("bank-trade")).toBeNull();
+});
+
 test("online off-turn player can view trades but cannot propose", async () => {
   const g = mainGame();
   g.turn.subPhase = "awaitingRoll";

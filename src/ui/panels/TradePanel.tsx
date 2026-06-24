@@ -162,7 +162,9 @@ export function TradePanel() {
             ? state.turn.subPhase === "main"
               ? <ProposeTrade me={state.players[seat]!} run={run} />
               : <p className="trade-empty">You can propose trades after you roll.</p>
-            : <BankTrade state={state} seat={seat} run={run} />}
+            : state.turn.subPhase === "main"
+              ? <BankTrade state={state} seat={seat} run={run} />
+              : <p className="trade-empty">You can trade with the bank after you roll.</p>}
         </>
       )}
       <OpenOffers state={state} mySeat={mySeat} seat={seat} run={run} />
