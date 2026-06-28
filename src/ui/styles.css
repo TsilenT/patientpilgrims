@@ -678,7 +678,30 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
   to { opacity: 1; transform: none; }
 }
 .win-screen h2 { color: var(--gold); margin: 8px 0 2px; font-size: 1.55rem; }
-.win-sub { color: var(--muted); margin: 0 0 16px; }
+.win-sub { color: var(--muted); margin: 0 0 12px; }
+.win-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0 0 12px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--panel-edge);
+  border-radius: 999px;
+}
+.win-tabs button {
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  padding: 7px 12px;
+  font-weight: 800;
+}
+.win-tabs button[aria-selected="true"] {
+  background: var(--gold);
+  color: #1c1305;
+  box-shadow: 0 2px 10px rgba(242, 193, 78, 0.25);
+}
 .standings {
   list-style: none;
   margin: 0 0 16px;
@@ -718,6 +741,43 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
   justify-content: flex-end;
   flex-wrap: wrap;
 }
+.win-dice-stats {
+  margin: 0 0 16px;
+  padding: 10px 12px 12px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--panel-edge);
+  border-radius: 12px;
+  text-align: left;
+}
+.win-dice-stats__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.win-dice-stats__header h3 {
+  margin: 0;
+  color: var(--gold);
+  font-size: 0.95rem;
+}
+.win-dice-stats__header span { color: var(--muted); font-size: 0.78rem; }
+.win-dice-stats__grid {
+  display: grid;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+  gap: 5px;
+}
+.win-dice-stat {
+  min-width: 0;
+  padding: 5px 3px;
+  background: var(--panel-2);
+  border: 1px solid var(--panel-edge);
+  border-radius: 8px;
+  text-align: center;
+}
+.win-dice-stat strong { display: block; color: var(--ink); font-size: 0.78rem; }
+.win-dice-stat span { display: block; color: var(--gold); font-weight: 800; font-size: 0.92rem; }
+.win-dice-stat small { color: var(--muted); font-size: 0.62rem; }
 .win-actions { display: flex; gap: 10px; justify-content: center; }
 .results-pill {
   position: fixed;
