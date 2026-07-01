@@ -128,6 +128,10 @@ main { min-height: 100vh; }
   stroke: #ffffff;
   stroke-width: 5px;
 }
+.board--robber-selected [data-hex-slot]:not([data-selected="true"]) {
+  fill-opacity: 0.08;
+  stroke-opacity: 0.32;
+}
 
 /* ---- Opponent bar ---- */
 /* The opponent cards AND the dice share one auto-fill grid, so every card is the
@@ -256,7 +260,13 @@ main { min-height: 100vh; }
   padding: 10px 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
-.robber-confirm p { margin: 0; color: #ffe9a8; font-weight: 700; }
+.robber-confirm p {
+  flex: 1 1 100%;
+  margin: 0;
+  color: #ffe9a8;
+  font-weight: 700;
+  text-align: center;
+}
 
 .bottom-sheet {
   background: var(--panel);

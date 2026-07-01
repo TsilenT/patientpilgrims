@@ -32,7 +32,7 @@ export function BoardSvg({ state, legal, robberPlacement = false, selectedRobber
   const layout = LAYOUT;
   const { minX, minY, width, height } = layout.viewBox;
   return (
-    <svg className={`board${robberPlacement ? " board--robber-placement" : ""}`}
+    <svg className={`board${robberPlacement ? " board--robber-placement" : ""}${selectedRobberHex !== null ? " board--robber-selected" : ""}`}
       viewBox={`${minX} ${minY} ${width} ${height}`} role="img" aria-label="Catan board">
       <defs>
         {Object.entries(HEX_GRADIENT).map(([kind, [top, bottom]]) => (

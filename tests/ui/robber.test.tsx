@@ -38,7 +38,10 @@ test("clicking a robber hex with one victim waits for confirmation before steali
   const { container } = render(<GameProvider store={s}><GameView /></GameProvider>);
   await userEvent.click(container.querySelector(`[data-hex-slot="${targetHex}"]`)!);
   expect(s.getState().board.robber).not.toBe(targetHex);
+  expect(container.querySelector(".board--robber-selected")).toBeTruthy();
   expect(container.querySelector(`[data-hex-slot="${targetHex}"]`)?.getAttribute("data-selected")).toBe("true");
+  const otherHex = topology().hexIds.find((h) => h !== g.board.robber && h !== targetHex)!;
+  expect(container.querySelector(`[data-hex-slot="${otherHex}"]`)?.getAttribute("data-selected")).toBeNull();
   const confirm = screen.getByRole("dialog", { name: /confirm robber placement/i });
   expect(confirm).toHaveClass("action-bar");
   const bottomSheet = container.querySelector(".bottom-sheet")!;
