@@ -171,7 +171,7 @@ describe("state rules", () => {
     await assertFails(set(ref(db, "games/g/state"), { version: 99, turn: { activeSeat: 0 } }));
   });
 
-  it("rejects a write from a non-active seat", async () => {
+  it("lets a non-active seat advance the client-authoritative state by exactly 1", async () => {
     await env.withSecurityRulesDisabled(async (c) => {
       const db = c.database();
       await set(ref(db, "games/na/meta"), meta());
@@ -180,23 +180,26 @@ describe("state rules", () => {
       await set(ref(db, "games/na/state"), { version: 0, turn: { activeSeat: 0 } });
     });
     const bob = env.authenticatedContext("bob").database();
-    await assertFails(set(ref(bob, "games/na/state"), { version: 1, turn: { activeSeat: 0 } }));
+    await assertSucceeds(set(ref(bob, "games/na/state"), { version: 1, turn: { activeSeat: 0 } }));
+    await assertFails(set(ref(bob, "games/na/state"), { version: 99, turn: { activeSeat: 0 } }));
   });
 
-  it("lets a non-active seat write while a trade offer is open (async accept)", async () => {
+  it("lets a non-active seat create the first player trade offer", async () => {
     await env.withSecurityRulesDisabled(async (c) => {
       const db = c.database();
       await set(ref(db, "games/trade/meta"), meta());
       await set(ref(db, "games/trade/seats/0"), { uid: "alice" });
       await set(ref(db, "games/trade/seats/1"), { uid: "bob" });
       await set(ref(db, "games/trade/state"), {
-        version: 0, turn: { activeSeat: 0 },
-        tradeOffers: [{ id: 0, from: 0, give: { wood: 1 }, want: { wheat: 1 } }],
+        version: 0, turn: { activeSeat: 0 }, tradeSeq: 0, tradeOffers: [],
       });
     });
     const bob = env.authenticatedContext("bob").database();
     await assertSucceeds(set(ref(bob, "games/trade/state"), {
-      version: 1, turn: { activeSeat: 0 }, tradeOffers: [],
+      version: 1,
+      turn: { activeSeat: 0 },
+      tradeSeq: 1,
+      tradeOffers: [{ id: 0, from: 1, give: { wood: 1 }, want: { wheat: 1 } }],
     }));
   });
 });

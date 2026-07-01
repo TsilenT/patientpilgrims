@@ -29,7 +29,7 @@
         },
         "state": {
           ".read": "auth != null",
-          ".write": "auth != null && newData.exists() && ((!data.exists() && root.child('games/'+$gameId+'/meta/status').val() === 'lobby') || (data.exists() && newData.child('version').val() === data.child('version').val() + 1 && (root.child('games/'+$gameId+'/seats/'+data.child('turn/activeSeat').val()+'/uid').val() === auth.uid || data.child('discardObligations').exists() || data.child('tradeOffers').exists())))"
+          ".write": "auth != null && newData.exists() && ((!data.exists() && root.child('games/'+$gameId+'/meta/status').val() === 'lobby') || (data.exists() && newData.child('version').val() === data.child('version').val() + 1))"
         }
       }
     }
