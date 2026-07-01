@@ -204,7 +204,13 @@ export function GameView() {
           onDiscard={(cards) => run({ type: "discard", seat: viewer, cards })} />
       ) : (
         <>
-          {buildMode === null && <ActionBar />}
+          {pendingRobberHex !== null && sub === "movingRobber" ? (
+            <div className="action-bar robber-confirm" role="dialog" aria-modal="true" aria-label="Confirm robber placement">
+              <p>Move the robber to this hex?</p>
+              <button className="btn-primary" onClick={() => { void confirmRobberPlacement(); }}>Confirm</button>
+              <button onClick={() => setPendingRobberHex(null)}>Cancel</button>
+            </div>
+          ) : buildMode === null && <ActionBar />}
           <BuildControls buildMode={buildMode} onSelect={setBuildMode} onCancel={() => setBuildMode(null)} />
           <div className="bottom-sheet">
             <div className="tabs" role="tablist">
@@ -241,13 +247,6 @@ export function GameView() {
           <button disabled={roadEdges.length < 1}
             onClick={() => { run({ type: "playRoadBuilding", edges: roadEdges }); setRoadEdges(null); }}>Confirm</button>
           <button onClick={() => setRoadEdges(null)}>Cancel</button>
-        </div>
-      )}
-      {pendingRobberHex !== null && sub === "movingRobber" && (
-        <div className="robber-confirm" role="dialog" aria-modal="true" aria-label="Confirm robber placement">
-          <p>Move the robber to this hex?</p>
-          <button className="btn-primary" onClick={() => { void confirmRobberPlacement(); }}>Confirm</button>
-          <button onClick={() => setPendingRobberHex(null)}>Cancel</button>
         </div>
       )}
       {devModal === "monopoly" && (

@@ -40,6 +40,9 @@ test("clicking a robber hex with one victim waits for confirmation before steali
   expect(s.getState().board.robber).not.toBe(targetHex);
   expect(container.querySelector(`[data-hex-slot="${targetHex}"]`)?.getAttribute("data-selected")).toBe("true");
   const confirm = screen.getByRole("dialog", { name: /confirm robber placement/i });
+  expect(confirm).toHaveClass("action-bar");
+  const bottomSheet = container.querySelector(".bottom-sheet")!;
+  expect(confirm.compareDocumentPosition(bottomSheet) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   await userEvent.click(within(confirm).getByRole("button", { name: /confirm/i }));
   expect(s.getState().board.robber).toBe(targetHex);
   expect(s.getState().turn.subPhase).toBe("main");
