@@ -3,7 +3,7 @@ import { useGame } from "../../state/GameProvider";
 import { useDispatchWithError } from "../useDispatchWithError";
 import { Toast } from "../Toast";
 import { RESOURCE_LIST, totalCards } from "../../engine/resources";
-import { portRatio } from "../../engine/actions/trade";
+import { portRatio, playerTradeBlockReason } from "../../engine/actions/trade";
 import { ResTile } from "../icons";
 import type { Action, GameState, Player, Resource, ResourceMap } from "../../engine/types";
 import type { DispatchResult } from "../../state/store";
@@ -117,6 +117,7 @@ function OpenOffers({ state, mySeat, seat, run }: {
       <h3>Open offers</h3>
       <ul>
         {state.tradeOffers.map((o) => {
+          const proposerBlocked = playerTradeBlockReason(state, o.from) !== null;
           const acceptors = (mySeat === null ? state.players : state.players.filter((p) => p.seat === mySeat))
             .filter((p) => p.seat !== o.from && (o.to === undefined || o.to === p.seat));
           return (
@@ -128,12 +129,17 @@ function OpenOffers({ state, mySeat, seat, run }: {
                 {o.from === seat && (
                   <button onClick={() => run({ type: "cancelTrade", offerId: o.id, seat })}>Cancel</button>
                 )}
-                {acceptors.map((p) => (
-                  <button key={p.seat} className="btn-primary" data-testid={`accept-${o.id}-${p.seat}`}
-                    onClick={() => run({ type: "acceptTrade", offerId: o.id, seat: p.seat })}>
-                    {mySeat === null ? `${p.name} accepts` : "Accept"}
-                  </button>
-                ))}
+                {acceptors.map((p) => {
+                  const blocked = proposerBlocked || playerTradeBlockReason(state, p.seat) !== null;
+                  return (
+                    <button key={p.seat} className="btn-primary" data-testid={`accept-${o.id}-${p.seat}`}
+                      disabled={blocked}
+                      title={blocked ? "This trade cannot be accepted until rolling/discards are resolved." : undefined}
+                      onClick={() => run({ type: "acceptTrade", offerId: o.id, seat: p.seat })}>
+                      {mySeat === null ? `${p.name} accepts` : "Accept"}
+                    </button>
+                  );
+                })}
               </span>
             </li>
           );
@@ -148,27 +154,32 @@ export function TradePanel() {
   const { run, error, dismissError } = useDispatchWithError();
   const seat = mySeat ?? state.turn.activeSeat;
   const isMyTurn = mySeat === null || mySeat === state.turn.activeSeat;
+  const playerTradeBlock = playerTradeBlockReason(state, seat);
   const [mode, setMode] = useState<"players" | "bank">("players");
 
   return (
     <div className="trade-panel">
-      {state.phase === "main" && isMyTurn && (
+      {state.phase === "main" && (
         <>
           <div className="trade-modes" role="tablist" aria-label="Trade type">
             <button role="tab" aria-selected={mode === "players"} onClick={() => setMode("players")}>Players</button>
             <button role="tab" aria-selected={mode === "bank"} onClick={() => setMode("bank")}>Bank</button>
           </div>
           {mode === "players"
-            ? state.turn.subPhase === "main"
+            ? playerTradeBlock === null
               ? <ProposeTrade me={state.players[seat]!} run={run} />
-              : <p className="trade-empty">You can propose trades after you roll.</p>
-            : state.turn.subPhase === "main"
+              : <p className="trade-empty">{playerTradeBlock === "You must discard before trading"
+                ? "Discard before proposing or accepting trades."
+                : "Player trades unlock after the roll."}</p>
+            : isMyTurn && state.turn.subPhase === "main"
               ? <BankTrade state={state} seat={seat} run={run} />
-              : <p className="trade-empty">You can trade with the bank after you roll.</p>}
+              : <p className="trade-empty">{isMyTurn
+                ? "You can trade with the bank after you roll."
+                : "Bank trades are only available on your own turn after you roll."}</p>}
         </>
       )}
       <OpenOffers state={state} mySeat={mySeat} seat={seat} run={run} />
-      {state.phase === "main" && !isMyTurn && state.tradeOffers.length === 0 && <p className="trade-empty">No open offers right now.</p>}
+      {state.phase === "main" && state.tradeOffers.length === 0 && playerTradeBlock !== null && <p className="trade-empty">No open offers right now.</p>}
       {state.phase !== "main" && state.tradeOffers.length === 0 && <p className="trade-empty">Trades open after setup.</p>}
       <Toast message={error} onDismiss={dismissError} />
     </div>

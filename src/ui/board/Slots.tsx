@@ -6,8 +6,9 @@ import { topology } from "../../engine/board";
 const VERTEX_HIT = 20; // invisible tap radius (SVG units) over the small visible ghost
 const EDGE_HIT = 20;   // invisible tap band width over the thin visible ghost
 
-export function Slots({ state, layout, legal, onVertex, onEdge, onHex }: {
+export function Slots({ state, layout, legal, selectedHex, onVertex, onEdge, onHex }: {
   state: GameState; layout: BoardLayout; legal: LegalTargets;
+  selectedHex?: string | null;
   onVertex: (v: string) => void; onEdge: (e: string) => void; onHex: (h: string) => void;
 }) {
   const topo = topology();
@@ -18,7 +19,8 @@ export function Slots({ state, layout, legal, onVertex, onEdge, onHex }: {
       {[...legal.hexes].map((hid) => {
         const corners = topo.hexVertices.get(hid)!.map((v) => layout.vertex[v]!);
         const points = corners.map((p) => `${p.x},${p.y}`).join(" ");
-        return <polygon key={hid} data-hex-slot={hid} points={points} fill="#fff" fillOpacity={0.15}
+        return <polygon key={hid} data-hex-slot={hid} data-selected={selectedHex === hid ? "true" : undefined}
+          points={points} fill="#fff" fillOpacity={0.15}
           style={{ cursor: "pointer" }} onClick={() => onHex(hid)} />;
       })}
 

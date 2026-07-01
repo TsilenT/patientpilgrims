@@ -194,11 +194,23 @@ describe("propose trade offer", () => {
     expect(r.ok).toBe(false);
   });
 
-  it("rejects proposing a standing trade for a non-active seat", () => {
+  it("allows proposing a standing trade for a non-active seat before the active player has rolled", () => {
     const g = mainGame();
+    g.turn.subPhase = "awaitingRoll";
     g.players[1]!.resources = rm(2, 0, 0, 0, 0);
     const r = apply(g, { type: "proposeTrade", give: rm(2), want: rm(0, 1), seat: 1 }, rngOf());
+    expectOk(r);
+    expect(r.state.tradeOffers[0]!.from).toBe(1);
+  });
+
+  it("rejects proposing while that player still owes discards", () => {
+    const g = mainGame();
+    g.turn.subPhase = "movingRobber";
+    g.players[1]!.resources = rm(2, 0, 0, 0, 0);
+    g.discardObligations = { 1: 1 };
+    const r = apply(g, { type: "proposeTrade", give: rm(2), want: rm(0, 1), seat: 1 }, rngOf());
     expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toBe("You must discard before trading");
   });
 });
 
@@ -271,6 +283,55 @@ describe("accept trade offer", () => {
     // Proposer (seat 0) tries to accept their own offer
     const r2 = apply(r1.state, { type: "acceptTrade", offerId: 0, seat: 0 }, rngOf());
     expect(r2.ok).toBe(false);
+  });
+
+  it("rejects accepting an active player's offer while they are still awaiting their roll", () => {
+    const g = mainGame();
+    g.turn.subPhase = "awaitingRoll";
+    g.players[0]!.resources = rm(1);
+    g.players[1]!.resources = rm(0, 1);
+    g.tradeOffers = [{ id: 0, from: 0, give: rm(1), want: rm(0, 1) }];
+
+    const r = apply(g, { type: "acceptTrade", offerId: 0, seat: 1 }, rngOf());
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toBe("The proposer cannot trade right now");
+  });
+
+  it("allows accepting an inactive player's offer while the active player is still awaiting their roll", () => {
+    const g = mainGame();
+    g.turn.subPhase = "awaitingRoll";
+    g.players[1]!.resources = rm(1);
+    g.players[2]!.resources = rm(0, 1);
+    g.tradeOffers = [{ id: 0, from: 1, give: rm(1), want: rm(0, 1) }];
+
+    const r = apply(g, { type: "acceptTrade", offerId: 0, seat: 2 }, rngOf());
+    expectOk(r);
+    expect(r.state.players[1]!.resources.brick).toBe(1);
+    expect(r.state.players[2]!.resources.wood).toBe(1);
+  });
+
+  it("rejects accepting while the acceptor still owes discards", () => {
+    const g = mainGame();
+    g.players[0]!.resources = rm(1);
+    g.players[1]!.resources = rm(0, 1);
+    g.tradeOffers = [{ id: 0, from: 0, give: rm(1), want: rm(0, 1) }];
+    g.discardObligations = { 1: 1 };
+
+    const r = apply(g, { type: "acceptTrade", offerId: 0, seat: 1 }, rngOf());
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toBe("You must discard before trading");
+  });
+
+  it("rejects accepting while the proposer still owes discards", () => {
+    const g = mainGame();
+    g.players[0]!.resources = rm(1);
+    g.players[1]!.resources = rm(0, 1);
+    g.tradeOffers = [{ id: 0, from: 0, give: rm(1), want: rm(0, 1) }];
+    g.discardObligations = { 0: 1 };
+
+    const r = apply(g, { type: "acceptTrade", offerId: 0, seat: 1 }, rngOf());
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toBe("The proposer cannot trade right now");
   });
 });
 

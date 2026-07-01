@@ -154,7 +154,7 @@ test("bank trade controls are hidden before rolling", async () => {
   expect(screen.queryByTestId("bank-trade")).toBeNull();
 });
 
-test("online off-turn player can view trades but cannot propose", async () => {
+test("online off-turn player can propose a player trade before the active player has rolled", async () => {
   const g = mainGame();
   g.turn.subPhase = "awaitingRoll";
   g.players[0]!.resources = rm();
@@ -163,10 +163,56 @@ test("online off-turn player can view trades but cannot propose", async () => {
   render(<GameProvider store={s}><GameView /></GameProvider>);
 
   await userEvent.click(screen.getByRole("tab", { name: "Trades" }));
+  await userEvent.click(screen.getByTestId("give-add-wood"));
+  await userEvent.click(screen.getByTestId("want-add-wheat"));
+  await userEvent.click(screen.getByRole("button", { name: /^propose$/i }));
+
+  expect(s.getState().tradeOffers).toHaveLength(1);
+  expect(s.getState().tradeOffers[0]!.from).toBe(1);
+});
+
+test("online active player cannot propose before rolling", async () => {
+  const g = mainGame();
+  g.turn.subPhase = "awaitingRoll";
+  g.players[0]!.resources = rm(1);
+  const s = onlineStore(g, 0);
+  render(<GameProvider store={s}><GameView /></GameProvider>);
+
+  await userEvent.click(screen.getByRole("tab", { name: "Trades" }));
 
   expect(screen.queryByRole("button", { name: /^propose$/i })).toBeNull();
-  expect(screen.getByText(/No open offers right now/i)).toBeInTheDocument();
+  expect(screen.getByText(/Player trades unlock after the roll/i)).toBeInTheDocument();
   expect(s.getState().tradeOffers).toHaveLength(0);
+});
+
+test("accept buttons are disabled before rolling when the offer involves the active player", async () => {
+  const g = mainGame();
+  g.turn.subPhase = "awaitingRoll";
+  g.players[0]!.resources = rm(1);
+  g.players[1]!.resources = rm(0, 1);
+  g.tradeOffers = [{ id: 0, from: 0, give: rm(1), want: rm(0, 1) }];
+  g.tradeSeq = 1;
+  const s = onlineStore(g, 1);
+  render(<GameProvider store={s}><GameView /></GameProvider>);
+
+  await userEvent.click(screen.getByRole("tab", { name: /^Trades/ }));
+
+  expect(screen.getByTestId("accept-0-1")).toBeDisabled();
+});
+
+test("accept buttons stay enabled before rolling when neither trader is active", async () => {
+  const g = mainGame();
+  g.turn.subPhase = "awaitingRoll";
+  g.players[1]!.resources = rm(1);
+  g.players[2]!.resources = rm(0, 1);
+  g.tradeOffers = [{ id: 0, from: 1, give: rm(1), want: rm(0, 1) }];
+  g.tradeSeq = 1;
+  const s = onlineStore(g, 2);
+  render(<GameProvider store={s}><GameView /></GameProvider>);
+
+  await userEvent.click(screen.getByRole("tab", { name: /^Trades/ }));
+
+  expect(screen.getByTestId("accept-0-2")).toBeEnabled();
 });
 
 test("trade tab title shows the number of open trades", () => {

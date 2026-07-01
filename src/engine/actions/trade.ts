@@ -18,12 +18,18 @@ function requireMain(state: GameState): string | null {
   return null;
 }
 
-export function applyProposeTrade(state: GameState, give: ResourceMap, want: ResourceMap, to: number | undefined, seat = state.turn.activeSeat): string | null {
+export function playerTradeBlockReason(state: GameState, seat: number): string | null {
   const err = requireMain(state);
   if (err) return err;
-  if (state.turn.subPhase !== "main") return "You must roll the dice first";
   if (!state.players[seat]) return "Unknown player";
-  if (seat !== state.turn.activeSeat) return "You can only propose trades on your turn";
+  if (state.turn.subPhase === "awaitingRoll" && seat === state.turn.activeSeat) return "You must roll the dice first";
+  if ((state.discardObligations?.[seat] ?? 0) > 0) return "You must discard before trading";
+  return null;
+}
+
+export function applyProposeTrade(state: GameState, give: ResourceMap, want: ResourceMap, to: number | undefined, seat = state.turn.activeSeat): string | null {
+  const err = playerTradeBlockReason(state, seat);
+  if (err) return err;
   const nonNeg = (m: ResourceMap) => RESOURCE_LIST.every((r) => m[r] >= 0);
   if (!nonNeg(give) || !nonNeg(want)) return "Trade amounts cannot be negative";
   if (totalCards(give) === 0 || totalCards(want) === 0) return "A trade must offer and request something";
@@ -41,6 +47,10 @@ export function applyAcceptTrade(state: GameState, offerId: number, seat: number
   const idx = state.tradeOffers.findIndex((o) => o.id === offerId);
   if (idx === -1) return "That trade offer no longer exists";
   const offer = state.tradeOffers[idx]!;
+  const err = playerTradeBlockReason(state, seat);
+  if (err) return err;
+  const proposerErr = playerTradeBlockReason(state, offer.from);
+  if (proposerErr) return "The proposer cannot trade right now";
   if (seat === offer.from) return "You cannot accept your own offer";
   if (offer.to !== undefined && offer.to !== seat) return "That offer is not addressed to you";
   const acceptor = state.players[seat];

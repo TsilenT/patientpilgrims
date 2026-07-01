@@ -24,7 +24,7 @@ test("moving robber phase shows an obvious robber placement prompt", () => {
   expect(container.querySelector(".board--robber-placement")).toBeTruthy();
 });
 
-test("clicking a robber hex with one victim steals and returns to main", async () => {
+test("clicking a robber hex with one victim waits for confirmation before stealing", async () => {
   const g = createInitialGame(
     [{ name: "A", color: "red" }, { name: "B", color: "blue" }, { name: "C", color: "white" }],
     createBoard({ mode: "beginner" }),
@@ -37,12 +37,37 @@ test("clicking a robber hex with one victim steals and returns to main", async (
   const s = new GameStore(g, new LocalStoragePersistence(), mulberry32(0));
   const { container } = render(<GameProvider store={s}><GameView /></GameProvider>);
   await userEvent.click(container.querySelector(`[data-hex-slot="${targetHex}"]`)!);
+  expect(s.getState().board.robber).not.toBe(targetHex);
+  expect(container.querySelector(`[data-hex-slot="${targetHex}"]`)?.getAttribute("data-selected")).toBe("true");
+  const confirm = screen.getByRole("dialog", { name: /confirm robber placement/i });
+  await userEvent.click(within(confirm).getByRole("button", { name: /confirm/i }));
   expect(s.getState().board.robber).toBe(targetHex);
   expect(s.getState().turn.subPhase).toBe("main");
   expect(s.getState().players[0]!.resources.wood).toBe(1);
 });
 
-test("clicking a robber hex with two victims opens a picker; choosing one steals from them", async () => {
+test("cancelling robber confirmation leaves the robber unmoved", async () => {
+  const g = createInitialGame(
+    [{ name: "A", color: "red" }, { name: "B", color: "blue" }, { name: "C", color: "white" }],
+    createBoard({ mode: "beginner" }),
+  );
+  g.phase = "main"; g.turn = { activeSeat: 0, subPhase: "movingRobber" }; delete g.setup;
+  const originalHex = g.board.robber;
+  const targetHex = topology().hexIds.find((h) => h !== originalHex)!;
+  const s = new GameStore(g, new LocalStoragePersistence(), mulberry32(0));
+  const { container } = render(<GameProvider store={s}><GameView /></GameProvider>);
+
+  await userEvent.click(container.querySelector(`[data-hex-slot="${targetHex}"]`)!);
+  const confirm = screen.getByRole("dialog", { name: /confirm robber placement/i });
+  await userEvent.click(within(confirm).getByRole("button", { name: /cancel/i }));
+
+  expect(s.getState().board.robber).toBe(originalHex);
+  expect(s.getState().turn.subPhase).toBe("movingRobber");
+  expect(screen.queryByRole("dialog", { name: /confirm robber placement/i })).toBeNull();
+  expect(container.querySelector(`[data-hex-slot="${targetHex}"]`)?.getAttribute("data-selected")).toBeNull();
+});
+
+test("clicking a robber hex with two victims opens a picker after confirming; choosing one steals from them", async () => {
   const g = createInitialGame(
     [{ name: "A", color: "red" }, { name: "B", color: "blue" }, { name: "C", color: "white" }],
     createBoard({ mode: "beginner" }),
@@ -57,8 +82,11 @@ test("clicking a robber hex with two victims opens a picker; choosing one steals
   const s = new GameStore(g, new LocalStoragePersistence(), mulberry32(0));
   const { container } = render(<GameProvider store={s}><GameView /></GameProvider>);
   await userEvent.click(container.querySelector(`[data-hex-slot="${targetHex}"]`)!);
-  // robber not moved yet — a victim picker is shown with both opponents
+  // robber not moved yet — confirmation is required before choosing a victim
   expect(s.getState().board.robber).not.toBe(targetHex);
+  const confirm = screen.getByRole("dialog", { name: /confirm robber placement/i });
+  expect(screen.queryByRole("dialog", { name: /choose who to rob/i })).toBeNull();
+  await userEvent.click(within(confirm).getByRole("button", { name: /confirm/i }));
   const picker = screen.getByRole("dialog", { name: /choose who to rob/i });
   await userEvent.click(within(picker).getByRole("button", { name: "C" })); // seat 2
   expect(s.getState().board.robber).toBe(targetHex);

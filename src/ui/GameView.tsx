@@ -39,6 +39,7 @@ export function GameView() {
   const owed = state.discardObligations?.[viewer] ?? 0;
   const [revealedSeat, setRevealedSeat] = useState(actor);
   const [robberPick, setRobberPick] = useState<{ hex: string; victims: number[] } | null>(null);
+  const [pendingRobberHex, setPendingRobberHex] = useState<string | null>(null);
   const [devModal, setDevModal] = useState<"monopoly" | "yearOfPlenty" | null>(null);
   const [roadEdges, setRoadEdges] = useState<string[] | null>(null);
   const [buildMode, setBuildMode] = useState<BuildMode>(null);
@@ -67,6 +68,13 @@ export function GameView() {
     });
     return () => { cancelled = true; };
   }, [gameId]);
+
+  useEffect(() => {
+    if (sub !== "movingRobber") {
+      setPendingRobberHex(null);
+      setRobberPick(null);
+    }
+  }, [sub]);
 
   // Turn gating. Hotseat keeps the pass-the-device flow; online locks to your own seat.
   const needReveal = !online && actor !== revealedSeat;
@@ -118,10 +126,24 @@ export function GameView() {
   };
   const onHex = (h: string) => {
     if (!interactive || sub !== "movingRobber") return;
-    const victims = eligibleVictims(state, h);
-    if (victims.length === 0) run({ type: "moveRobber", hex: h });
-    else if (victims.length === 1) run({ type: "moveRobber", hex: h, victim: victims[0]! });
-    else setRobberPick({ hex: h, victims });
+    setPendingRobberHex(h);
+    setRobberPick(null);
+  };
+
+  const confirmRobberPlacement = async () => {
+    if (pendingRobberHex === null) return;
+    const hex = pendingRobberHex;
+    const victims = eligibleVictims(state, hex);
+    if (victims.length === 0) {
+      const result = await run({ type: "moveRobber", hex });
+      if (result.ok) setPendingRobberHex(null);
+    } else if (victims.length === 1) {
+      const result = await run({ type: "moveRobber", hex, victim: victims[0]! });
+      if (result.ok) setPendingRobberHex(null);
+    } else {
+      setRobberPick({ hex, victims });
+      setPendingRobberHex(null);
+    }
   };
 
   const onPlayDev = (type: DevCardType) => {
@@ -151,7 +173,7 @@ export function GameView() {
           <span>Choose a highlighted hex to block production and steal from an adjacent player.</span>
         </div>
       )}
-      <BoardSvg state={state} legal={legal} robberPlacement={placingRobber}
+      <BoardSvg state={state} legal={legal} robberPlacement={placingRobber} selectedRobberHex={pendingRobberHex}
         onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
       {needReveal ? (
         <PassDeviceScreen name={state.players[actor]!.name} onReveal={() => setRevealedSeat(actor)} />
@@ -219,6 +241,13 @@ export function GameView() {
           <button disabled={roadEdges.length < 1}
             onClick={() => { run({ type: "playRoadBuilding", edges: roadEdges }); setRoadEdges(null); }}>Confirm</button>
           <button onClick={() => setRoadEdges(null)}>Cancel</button>
+        </div>
+      )}
+      {pendingRobberHex !== null && sub === "movingRobber" && (
+        <div className="robber-confirm" role="dialog" aria-modal="true" aria-label="Confirm robber placement">
+          <p>Move the robber to this hex?</p>
+          <button className="btn-primary" onClick={() => { void confirmRobberPlacement(); }}>Confirm</button>
+          <button onClick={() => setPendingRobberHex(null)}>Cancel</button>
         </div>
       )}
       {devModal === "monopoly" && (

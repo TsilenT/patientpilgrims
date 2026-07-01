@@ -9,6 +9,7 @@ export interface BoardSvgProps {
   state: GameState;
   legal: LegalTargets;
   robberPlacement?: boolean;
+  selectedRobberHex?: string | null;
   onVertex: (v: string) => void;
   onEdge: (e: string) => void;
   onHex: (h: string) => void;
@@ -27,7 +28,7 @@ const HEX_GRADIENT: Record<string, [string, string]> = {
   desert: ["#efe4c0", "#e3d5a8"],
 };
 
-export function BoardSvg({ state, legal, robberPlacement = false, onVertex, onEdge, onHex }: BoardSvgProps) {
+export function BoardSvg({ state, legal, robberPlacement = false, selectedRobberHex = null, onVertex, onEdge, onHex }: BoardSvgProps) {
   const layout = LAYOUT;
   const { minX, minY, width, height } = layout.viewBox;
   return (
@@ -45,7 +46,8 @@ export function BoardSvg({ state, legal, robberPlacement = false, onVertex, onEd
         <HexTile key={hid} hid={hid} tile={tile} layout={layout} hasRobber={state.board.robber === hid} />
       ))}
       <Ports ports={state.board.ports} layout={layout} />
-      <Slots state={state} layout={layout} legal={legal} onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
+      <Slots state={state} layout={layout} legal={legal} selectedHex={selectedRobberHex}
+        onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
     </svg>
   );
 }
