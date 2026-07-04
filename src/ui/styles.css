@@ -58,7 +58,9 @@ main {
   height: var(--app-height, 100dvh);
   overflow-y: auto;
 }
-button, [role="tab"] { touch-action: manipulation; } /* no double-tap-zoom latency */
+/* Kill double-tap-to-zoom everywhere — rapid game taps must never zoom the page.
+   Panning/scrolling still works; the board overrides with touch-action: none. */
+* { touch-action: manipulation; }
 :focus:not(:focus-visible) { outline: none; } /* keyboard focus rings only */
 /* Subtle scrollbars for internal panes. */
 .tab-content, .log-rail {
