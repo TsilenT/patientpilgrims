@@ -4,6 +4,7 @@ import { boardLayout } from "./layout";
 import { HexTile } from "./HexTile";
 import { Ports } from "./Ports";
 import { Slots } from "./Slots";
+import { useBoardViewport } from "./useBoardViewport";
 
 export interface BoardSvgProps {
   state: GameState;
@@ -32,23 +33,35 @@ const HEX_GRADIENT: Record<string, [string, string]> = {
 export function BoardSvg({ state, legal, robberPlacement = false, selectedRobberHex = null, pendingRoads = null, onVertex, onEdge, onHex }: BoardSvgProps) {
   const layout = LAYOUT;
   const { minX, minY, width, height } = layout.viewBox;
+  const vp = useBoardViewport(layout.viewBox);
   return (
-    <svg className={`board${robberPlacement ? " board--robber-placement" : ""}${selectedRobberHex !== null ? " board--robber-selected" : ""}`}
-      viewBox={`${minX} ${minY} ${width} ${height}`} role="img" aria-label="Catan board">
-      <defs>
-        {Object.entries(HEX_GRADIENT).map(([kind, [top, bottom]]) => (
-          <linearGradient key={kind} id={`hex-${kind}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={top} />
-            <stop offset="100%" stopColor={bottom} />
-          </linearGradient>
-        ))}
-      </defs>
-      {Object.entries(state.board.tiles).map(([hid, tile]) => (
-        <HexTile key={hid} hid={hid} tile={tile} layout={layout} hasRobber={state.board.robber === hid} />
-      ))}
-      <Ports ports={state.board.ports} layout={layout} />
-      <Slots state={state} layout={layout} legal={legal} selectedHex={selectedRobberHex}
-        pendingRoads={pendingRoads} onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
-    </svg>
+    <div className="board-stage">
+      <svg ref={vp.svgRef} {...vp.svgHandlers}
+        className={`board${robberPlacement ? " board--robber-placement" : ""}${selectedRobberHex !== null ? " board--robber-selected" : ""}`}
+        viewBox={`${minX} ${minY} ${width} ${height}`} role="img" aria-label="Catan board">
+        <defs>
+          {Object.entries(HEX_GRADIENT).map(([kind, [top, bottom]]) => (
+            <linearGradient key={kind} id={`hex-${kind}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={top} />
+              <stop offset="100%" stopColor={bottom} />
+            </linearGradient>
+          ))}
+        </defs>
+        <g data-viewport
+          transform={`translate(${vp.transform.tx} ${vp.transform.ty}) scale(${vp.transform.scale})`}>
+          {Object.entries(state.board.tiles).map(([hid, tile]) => (
+            <HexTile key={hid} hid={hid} tile={tile} layout={layout} hasRobber={state.board.robber === hid} />
+          ))}
+          <Ports ports={state.board.ports} layout={layout} />
+          <Slots state={state} layout={layout} legal={legal} selectedHex={selectedRobberHex}
+            pendingRoads={pendingRoads} onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
+        </g>
+      </svg>
+      <div className="board-controls" role="group" aria-label="Board view">
+        <button aria-label="Zoom in" onClick={vp.zoomIn}>+</button>
+        <button aria-label="Zoom out" onClick={vp.zoomOut} disabled={!vp.isTransformed}>−</button>
+        {vp.isTransformed && <button aria-label="Reset view" onClick={vp.reset}>⌖</button>}
+      </div>
+    </div>
   );
 }

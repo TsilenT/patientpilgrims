@@ -28,6 +28,37 @@ body {
   background-attachment: fixed;
 }
 
+/* ---- Game shell: lock the page; the app manages its own scrolling ---- */
+html, body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none; /* no pull-to-refresh / rubber-banding */
+}
+body {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none; /* no long-press copy/search sheet on iOS */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+/* Text entry (player names, share links) must stay selectable/copyable. */
+input, textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+/* Non-game routes (start screen, lobby, claim) still scroll as pages. */
+main {
+  height: 100dvh;
+  overflow-y: auto;
+}
+button, [role="tab"] { touch-action: manipulation; } /* no double-tap-zoom latency */
+:focus:not(:focus-visible) { outline: none; } /* keyboard focus rings only */
+/* Subtle scrollbars for internal panes. */
+.tab-content, .log-rail {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ghost-edge) transparent;
+}
+
 /* ---- Buttons: ghost by default, blue for primary actions ---- */
 button {
   font: inherit;
@@ -99,18 +130,47 @@ main { min-height: 100vh; }
 .game-view {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  height: 100vh;  /* fallback */
+  height: 100dvh; /* stable under mobile browser chrome */
+  overflow: hidden;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 8px;
-  min-height: 100vh;
+  padding: calc(6px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right))
+           calc(6px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left));
 }
 
+.board-stage {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0; /* let it shrink; the SVG scales via viewBox */
+}
 .board {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  max-height: 62vh;
-  display: block;
+  height: 100%;
   filter: drop-shadow(0 8px 22px rgba(0, 0, 0, 0.5));
+  touch-action: none; /* all touches belong to the pan/pinch hook */
+  cursor: grab;
+}
+.board:active { cursor: grabbing; }
+.board-controls {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.board-controls button {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  font-size: 19px;
+  line-height: 1;
+  border-radius: 9px;
+  background: rgba(22, 32, 43, 0.88);
 }
 .board--robber-placement {
   filter:
@@ -140,39 +200,39 @@ main { min-height: 100vh; }
 .top-hud {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(146px, 1fr));
-  gap: 8px;
+  gap: 6px;
   align-items: start;
 }
 .opponent {
   background: var(--panel);
   border: 1px solid var(--panel-edge);
   border-left: 4px solid var(--seat-color, var(--panel-edge));
-  border-radius: 10px;
-  padding: 6px 9px 7px 10px;
+  border-radius: 9px;
+  padding: 4px 7px 5px 8px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 3px;
 }
 .opponent[data-active="true"] {
   border-color: var(--gold);
   border-left-color: var(--seat-color, var(--gold));
   box-shadow: 0 0 0 2px rgba(242, 193, 78, 0.28);
 }
-.opp-top { display: flex; align-items: center; gap: 7px; }
-.opponent .swatch { width: 13px; height: 13px; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.35); flex: none; }
-.opp-name { font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.opp-top { display: flex; align-items: center; gap: 6px; }
+.opponent .swatch { width: 11px; height: 11px; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.35); flex: none; }
+.opp-name { font-weight: 700; font-size: 13px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .vp-pill {
-  background: var(--gold); color: #1a1300; border-radius: 8px; padding: 1px 7px;
-  font-weight: 800; font-size: 14px; flex: none; display: inline-flex; align-items: baseline; gap: 3px;
+  background: var(--gold); color: #1a1300; border-radius: 7px; padding: 0 6px;
+  font-weight: 800; font-size: 12px; flex: none; display: inline-flex; align-items: baseline; gap: 3px;
 }
-.vp-label { font-size: 9px; font-weight: 800; }
-.opp-stats { display: flex; gap: 9px; flex-wrap: wrap; }
+.vp-label { font-size: 8px; font-weight: 800; }
+.opp-stats { display: flex; gap: 8px; flex-wrap: wrap; }
 .opp-stat {
   position: relative;
   display: inline-flex; align-items: center; gap: 3px;
-  font-size: 12px; font-weight: 700; color: var(--muted);
+  font-size: 11px; font-weight: 700; color: var(--muted);
 }
-.opp-stat .icon { font-size: 14px; }
+.opp-stat .icon { font-size: 12px; }
 .opp-stat.is-award { color: #1a1300; background: var(--gold); border-radius: 6px; padding: 0 5px; }
 
 /* ---- Action bar + dice HUD + bottom sheet + tabs ---- */
@@ -182,25 +242,25 @@ main { min-height: 100vh; }
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 9px;
+  gap: 8px;
   background: var(--panel);
   border: 1px solid var(--panel-edge);
-  border-radius: 10px;
-  padding: 7px 12px;
+  border-radius: 9px;
+  padding: 4px 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   justify-self: start;
   align-self: stretch;
 }
-.dice-readout { color: var(--muted); font-weight: 800; white-space: nowrap; font-size: 13px; line-height: 1; }
-.dice-readout[data-rolled="true"] { color: var(--gold); font-size: 16px; }
-.dice-faces { display: flex; gap: 6px; }
+.dice-readout { color: var(--muted); font-weight: 800; white-space: nowrap; font-size: 12px; line-height: 1; }
+.dice-readout[data-rolled="true"] { color: var(--gold); font-size: 15px; }
+.dice-faces { display: flex; gap: 5px; }
 .die {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
-  width: 30px;
-  height: 30px;
-  padding: 4px;
+  width: 25px;
+  height: 25px;
+  padding: 3px;
   background: linear-gradient(150deg, #fbf7ee 0%, #ddd6c4 100%);
   border-radius: 7px;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18), 0 2px 5px rgba(0, 0, 0, 0.45);
@@ -208,8 +268,8 @@ main { min-height: 100vh; }
 .die .pip { display: flex; align-items: center; justify-content: center; }
 .die .pip--on::after {
   content: "";
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   background: #1c2027;
   box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.6);
@@ -238,7 +298,7 @@ main { min-height: 100vh; }
   background: linear-gradient(135deg, #4b1f1f 0%, #7b3a21 55%, #8a6420 100%);
   border: 2px solid var(--gold);
   border-radius: 12px;
-  padding: 9px 12px;
+  padding: 7px 10px;
   color: #fff8dc;
   box-shadow: 0 0 0 4px rgba(242, 193, 78, 0.16), 0 8px 24px rgba(0, 0, 0, 0.35);
   text-align: center;
@@ -294,8 +354,72 @@ main { min-height: 100vh; }
   border-radius: 14px 14px 0 0;
   padding: 10px;
   box-shadow: 0 -6px 22px rgba(0, 0, 0, 0.35);
+  flex: 0 0 clamp(190px, 34dvh, 320px);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
-.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--panel-edge); margin-bottom: 10px; }
+.bottom-sheet--collapsed { flex: 0 0 auto; }
+.sheet-bar { display: flex; align-items: stretch; gap: 4px; border-bottom: 1px solid var(--panel-edge); margin-bottom: 8px; flex: none; }
+.bottom-sheet--collapsed .sheet-bar { margin-bottom: 6px; }
+.tabs { display: flex; gap: 4px; flex: 1; min-width: 0; }
+.sheet-toggle {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  padding: 2px 10px;
+  font-size: 15px;
+  line-height: 1;
+}
+.tab-content {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+}
+/* Collapsed sheet: a one-line hand summary instead of the tab panel. */
+.sheet-peek {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 1px 0 3px;
+}
+/* Mini versions of the hand's resource chips: same colors, tighter fit. */
+.peek-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #1b2027;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 7px;
+  padding: 1px 6px;
+}
+.peek-stat .res-icon {
+  font-size: 14px;
+  filter: drop-shadow(0 0 0.7px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 0.7px rgba(0, 0, 0, 0.6));
+}
+.peek-stat[data-res="wood"] { background: #5bbf6e; }
+.peek-stat[data-res="brick"] { background: #df7b50; }
+.peek-stat[data-res="sheep"] { background: #bfe487; }
+.peek-stat[data-res="wheat"] { background: #f7d873; }
+.peek-stat[data-res="ore"] { background: #b3c0cb; }
+/* The dev-card count mirrors the dev-card tiles' purple. */
+.peek-stat--dev {
+  background: #241a2e;
+  border-color: #5a3f70;
+  color: var(--ink);
+}
+.peek-vp {
+  background: var(--gold);
+  color: #1a1300;
+  border-radius: 7px;
+  padding: 0 6px;
+  font-weight: 800;
+  font-size: 12px;
+}
 .tabs [role="tab"] {
   border: none; border-radius: 8px 8px 0 0; background: transparent;
   color: var(--muted); font-weight: 700;
@@ -500,7 +624,7 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
 .trade-empty { color: var(--muted); text-align: center; margin: 8px 0; }
 
 /* ---- Log ---- */
-.log-rail { list-style: none; padding: 0; margin: 0; max-height: 30vh; overflow-y: auto; font-size: 13px; }
+.log-rail { list-style: none; padding: 0; margin: 0; font-size: 13px; }
 .log-rail li {
   padding: 3px 0 3px 8px; border-left: 2px solid var(--panel-edge);
   margin: 3px 0; color: var(--muted); line-height: 1.35;
@@ -946,17 +1070,20 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
   .game-view {
     display: grid;
     grid-template-columns: 1fr 320px;
+    grid-template-rows: auto minmax(0, 1fr) auto;
     grid-template-areas:
       "opponents opponents"
       "board      sheet"
       "actions    sheet";
-    align-items: start;
+    align-items: stretch;
   }
   .top-hud { grid-area: opponents; }
-  .board { grid-area: board; max-height: 78vh; }
-  .action-bar { grid-area: actions; }
+  .board-stage { grid-area: board; }
+  .action-bar { grid-area: actions; align-self: start; }
   .waiting-banner { grid-area: actions; }
-  .bottom-sheet { grid-area: sheet; border-radius: 14px; align-self: stretch; }
+  .bottom-sheet { grid-area: sheet; border-radius: 14px; flex-basis: auto; min-height: 0; }
+  /* The side rail is always expanded; collapsing would just leave an empty column. */
+  .sheet-toggle { display: none; }
 }
 
 .build-controls { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
