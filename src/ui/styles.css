@@ -1072,6 +1072,8 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
   .action-bar { grid-area: actions; align-self: start; }
   .waiting-banner { grid-area: actions; }
   .bottom-sheet { grid-area: sheet; border-radius: 14px; flex-basis: auto; min-height: 0; }
+  /* The side rail is always expanded; collapsing would just leave an empty column. */
+  .sheet-toggle { display: none; }
 }
 
 .build-controls { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
