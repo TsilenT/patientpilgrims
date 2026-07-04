@@ -131,16 +131,25 @@ main { min-height: 100vh; }
   display: flex;
   flex-direction: column;
   gap: 8px;
+  height: 100vh;  /* fallback */
+  height: 100dvh; /* stable under mobile browser chrome */
+  overflow: hidden;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 8px;
-  min-height: 100vh;
+  padding: calc(6px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right))
+           calc(6px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left));
 }
 
+.board-stage {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0; /* let it shrink; the SVG scales via viewBox */
+}
 .board {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  max-height: 62vh;
-  display: block;
+  height: 100%;
   filter: drop-shadow(0 8px 22px rgba(0, 0, 0, 0.5));
 }
 .board--robber-placement {
@@ -325,8 +334,17 @@ main { min-height: 100vh; }
   border-radius: 14px 14px 0 0;
   padding: 10px;
   box-shadow: 0 -6px 22px rgba(0, 0, 0, 0.35);
+  flex: 0 0 clamp(190px, 34dvh, 320px);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
-.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--panel-edge); margin-bottom: 10px; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--panel-edge); margin-bottom: 10px; flex: none; }
+.tab-content {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+}
 .tabs [role="tab"] {
   border: none; border-radius: 8px 8px 0 0; background: transparent;
   color: var(--muted); font-weight: 700;
@@ -531,7 +549,7 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
 .trade-empty { color: var(--muted); text-align: center; margin: 8px 0; }
 
 /* ---- Log ---- */
-.log-rail { list-style: none; padding: 0; margin: 0; max-height: 30vh; overflow-y: auto; font-size: 13px; }
+.log-rail { list-style: none; padding: 0; margin: 0; font-size: 13px; }
 .log-rail li {
   padding: 3px 0 3px 8px; border-left: 2px solid var(--panel-edge);
   margin: 3px 0; color: var(--muted); line-height: 1.35;
@@ -977,17 +995,18 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
   .game-view {
     display: grid;
     grid-template-columns: 1fr 320px;
+    grid-template-rows: auto minmax(0, 1fr) auto;
     grid-template-areas:
       "opponents opponents"
       "board      sheet"
       "actions    sheet";
-    align-items: start;
+    align-items: stretch;
   }
   .top-hud { grid-area: opponents; }
-  .board { grid-area: board; max-height: 78vh; }
-  .action-bar { grid-area: actions; }
+  .board-stage { grid-area: board; }
+  .action-bar { grid-area: actions; align-self: start; }
   .waiting-banner { grid-area: actions; }
-  .bottom-sheet { grid-area: sheet; border-radius: 14px; align-self: stretch; }
+  .bottom-sheet { grid-area: sheet; border-radius: 14px; flex-basis: auto; min-height: 0; }
 }
 
 .build-controls { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }

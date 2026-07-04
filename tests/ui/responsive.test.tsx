@@ -19,6 +19,14 @@ function mainGame(): GameState {
   return g;
 }
 
+test("the board renders inside a stage container that hosts overlays", () => {
+  const s = new GameStore(mainGame(), new LocalStoragePersistence(), mulberry32(0));
+  const { container } = render(<GameProvider store={s}><GameView /></GameProvider>);
+  const stage = container.querySelector(".board-stage");
+  expect(stage).not.toBeNull();
+  expect(stage!.querySelector("svg.board")).not.toBeNull();
+});
+
 test("the bottom-sheet tabs switch between hand, trades, and log", async () => {
   const s = new GameStore(mainGame(), new LocalStoragePersistence(), mulberry32(0));
   render(<GameProvider store={s}><GameView /></GameProvider>);

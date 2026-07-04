@@ -33,22 +33,24 @@ export function BoardSvg({ state, legal, robberPlacement = false, selectedRobber
   const layout = LAYOUT;
   const { minX, minY, width, height } = layout.viewBox;
   return (
-    <svg className={`board${robberPlacement ? " board--robber-placement" : ""}${selectedRobberHex !== null ? " board--robber-selected" : ""}`}
-      viewBox={`${minX} ${minY} ${width} ${height}`} role="img" aria-label="Catan board">
-      <defs>
-        {Object.entries(HEX_GRADIENT).map(([kind, [top, bottom]]) => (
-          <linearGradient key={kind} id={`hex-${kind}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={top} />
-            <stop offset="100%" stopColor={bottom} />
-          </linearGradient>
+    <div className="board-stage">
+      <svg className={`board${robberPlacement ? " board--robber-placement" : ""}${selectedRobberHex !== null ? " board--robber-selected" : ""}`}
+        viewBox={`${minX} ${minY} ${width} ${height}`} role="img" aria-label="Catan board">
+        <defs>
+          {Object.entries(HEX_GRADIENT).map(([kind, [top, bottom]]) => (
+            <linearGradient key={kind} id={`hex-${kind}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={top} />
+              <stop offset="100%" stopColor={bottom} />
+            </linearGradient>
+          ))}
+        </defs>
+        {Object.entries(state.board.tiles).map(([hid, tile]) => (
+          <HexTile key={hid} hid={hid} tile={tile} layout={layout} hasRobber={state.board.robber === hid} />
         ))}
-      </defs>
-      {Object.entries(state.board.tiles).map(([hid, tile]) => (
-        <HexTile key={hid} hid={hid} tile={tile} layout={layout} hasRobber={state.board.robber === hid} />
-      ))}
-      <Ports ports={state.board.ports} layout={layout} />
-      <Slots state={state} layout={layout} legal={legal} selectedHex={selectedRobberHex}
-        pendingRoads={pendingRoads} onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
-    </svg>
+        <Ports ports={state.board.ports} layout={layout} />
+        <Slots state={state} layout={layout} legal={legal} selectedHex={selectedRobberHex}
+          pendingRoads={pendingRoads} onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
+      </svg>
+    </div>
   );
 }
