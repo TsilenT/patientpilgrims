@@ -79,4 +79,9 @@ test("shows dice roll stats in a separate tab and excludes turn-order rolls", as
   expect(screen.getByLabelText("8: 1 rolls, 33%")).toBeInTheDocument();
   expect(screen.getByLabelText("12: 0 rolls, 0%")).toBeInTheDocument();
   expect(screen.getByLabelText("2: 0 rolls, 0%")).toBeInTheDocument();
+
+  // Histogram fill scales to the most-rolled number (7 → full bar, 8 → half).
+  expect(screen.getByLabelText("7: 2 rolls, 67%")).toHaveStyle({ "--fill": "100%" });
+  expect(screen.getByLabelText("8: 1 rolls, 33%")).toHaveStyle({ "--fill": "50%" });
+  expect(screen.getByLabelText("2: 0 rolls, 0%")).toHaveStyle({ "--fill": "0%" });
 });

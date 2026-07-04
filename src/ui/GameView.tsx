@@ -99,7 +99,7 @@ export function GameView() {
   const legal = !interactive
     ? NO_TARGETS
     : roadEdges !== null
-      ? { vertices: new Set<string>(), edges: legalRoadBuildingEdges(state, roadEdges), hexes: new Set<string>() }
+      ? { vertices: new Set<string>(), edges: roadEdges.length >= 2 ? new Set<string>() : legalRoadBuildingEdges(state, roadEdges), hexes: new Set<string>() }
       : sub === "movingRobber" || pendingKnight
         ? legalTargets({ ...state, turn: { ...state.turn, subPhase: "movingRobber" } }) // robber hex overlay
         : effectiveMode !== null
@@ -122,9 +122,9 @@ export function GameView() {
   const onEdge = async (e: string) => {
     if (!interactive) return;
     if (roadEdges !== null) {
-      const next = [...roadEdges, e];
-      if (next.length >= 2) { await run({ type: "playRoadBuilding", edges: next }); setRoadEdges(null); }
-      else setRoadEdges(next);
+      // Tap a highlighted edge to place; tap a pending road again to remove it.
+      if (roadEdges.includes(e)) setRoadEdges(roadEdges.filter((x) => x !== e));
+      else if (roadEdges.length < 2) setRoadEdges([...roadEdges, e]);
       return;
     }
     if (effectiveMode !== "road") return;
@@ -168,6 +168,12 @@ export function GameView() {
     if (type === "roadBuilding") return setRoadEdges([]);
   };
 
+  const confirmRoadBuilding = async () => {
+    if (roadEdges === null || roadEdges.length < 1) return;
+    const result = await run({ type: "playRoadBuilding", edges: roadEdges });
+    if (result.ok) setRoadEdges(null);
+  };
+
   const confirmSetupPlacement = async () => {
     if (pendingSetup === null) return;
     const result = pendingSetup.kind === "settlement"
@@ -194,7 +200,14 @@ export function GameView() {
           <span>Choose a highlighted spot on the board.</span>
         </div>
       )}
+      {roadEdges !== null && (
+        <div className="dev-placement-banner" role="status" aria-label="Road building placement">
+          <strong>Road Building: place 2 free roads</strong>
+          <span>Tap highlighted edges to place. Tap a placed road to remove it.</span>
+        </div>
+      )}
       <BoardSvg state={state} legal={legal} robberPlacement={placingRobber} selectedRobberHex={pendingRobberHex}
+        pendingRoads={roadEdges !== null ? { edges: roadEdges, color: state.players[state.turn.activeSeat]!.color } : null}
         onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
       {needReveal ? (
         <PassDeviceScreen name={state.players[actor]!.name} onReveal={() => setRevealedSeat(actor)} />
@@ -226,18 +239,27 @@ export function GameView() {
       ) : (
         <>
           {pendingRobberHex !== null && (sub === "movingRobber" || pendingKnight) ? (
-            <div className="action-bar robber-confirm" role="dialog" aria-modal="true" aria-label="Confirm robber placement">
+            <div className="action-bar action-confirm" role="dialog" aria-modal="true" aria-label="Confirm robber placement">
               <p>Move the robber to this hex?</p>
               <button className="btn-primary" onClick={() => { void confirmRobberPlacement(); }}>Confirm</button>
               <button onClick={() => setPendingRobberHex(null)}>Cancel</button>
             </div>
           ) : pendingKnight ? (
-            <div className="action-bar robber-confirm" role="dialog" aria-modal="true" aria-label="Cancel knight">
+            <div className="action-bar action-confirm" role="dialog" aria-modal="true" aria-label="Cancel knight">
               <p>Choose a hex for the knight, or cancel to keep the card.</p>
               <button onClick={() => { setPendingKnight(false); setPendingRobberHex(null); }}>Cancel</button>
             </div>
+          ) : roadEdges !== null ? (
+            <div className="action-bar action-confirm" role="dialog" aria-modal="true" aria-label="Road building">
+              <p>Roads placed: {roadEdges.length}/2</p>
+              <button className="btn-primary" disabled={roadEdges.length < 1}
+                onClick={() => { void confirmRoadBuilding(); }}>Confirm</button>
+              <button onClick={() => setRoadEdges(null)}>Cancel</button>
+            </div>
           ) : buildMode === null && <ActionBar />}
-          <BuildControls buildMode={buildMode} onSelect={setBuildMode} onCancel={() => setBuildMode(null)} />
+          {roadEdges === null && (
+            <BuildControls buildMode={buildMode} onSelect={setBuildMode} onCancel={() => setBuildMode(null)} />
+          )}
           <div className="bottom-sheet">
             <div className="tabs" role="tablist">
               <button role="tab" aria-selected={tab === "hand"} onClick={() => setTab("hand")}>Hand</button>
@@ -265,14 +287,6 @@ export function GameView() {
             Confirm
           </button>
           <button onClick={() => setPendingSetup(null)}>Cancel</button>
-        </div>
-      )}
-      {roadEdges !== null && (
-        <div className="road-building" role="dialog" aria-modal="true" aria-label="Road building">
-          <p>Place up to 2 roads ({roadEdges.length}/2)</p>
-          <button disabled={roadEdges.length < 1}
-            onClick={() => { run({ type: "playRoadBuilding", edges: roadEdges }); setRoadEdges(null); }}>Confirm</button>
-          <button onClick={() => setRoadEdges(null)}>Cancel</button>
         </div>
       )}
       {devModal === "monopoly" && (

@@ -6,13 +6,15 @@ import { topology } from "../../engine/board";
 const VERTEX_HIT = 20; // invisible tap radius (SVG units) over the small visible ghost
 const EDGE_HIT = 20;   // invisible tap band width over the thin visible ghost
 
-export function Slots({ state, layout, legal, selectedHex, onVertex, onEdge, onHex }: {
+export function Slots({ state, layout, legal, selectedHex, pendingRoads, onVertex, onEdge, onHex }: {
   state: GameState; layout: BoardLayout; legal: LegalTargets;
   selectedHex?: string | null;
+  pendingRoads?: { edges: string[]; color: string } | null;
   onVertex: (v: string) => void; onEdge: (e: string) => void; onHex: (h: string) => void;
 }) {
   const topo = topology();
   const color = (seat: number) => state.players[seat]!.color;
+  const pendingSet = new Set(pendingRoads?.edges ?? []);
   return (
     <g>
       {/* legal-hex click overlays (robber) */}
@@ -30,6 +32,21 @@ export function Slots({ state, layout, legal, selectedHex, onVertex, onEdge, onH
         const pa = layout.vertex[a]!, pb = layout.vertex[b]!;
         if (road) return <line key={eid} data-road={eid} x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y}
           stroke={color(road.owner)} strokeWidth={7} strokeLinecap="round" />;
+        if (pendingSet.has(eid)) {
+          // A road picked but not yet confirmed (Road Building) — tap again to remove.
+          return (
+            <g key={eid}>
+              <line data-pending-road={eid} x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y}
+                stroke="transparent" strokeWidth={EDGE_HIT} strokeLinecap="round"
+                style={{ cursor: "pointer" }} onClick={() => onEdge(eid)} />
+              <line x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y} stroke="#ffffff" strokeOpacity={0.9}
+                strokeWidth={9} strokeLinecap="round" pointerEvents="none" />
+              <line className="pending-road" x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y}
+                stroke={pendingRoads!.color} strokeWidth={7} strokeLinecap="round"
+                strokeDasharray="10 7" pointerEvents="none" />
+            </g>
+          );
+        }
         if (!legal.edges.has(eid)) return null; // inert when not an active target
         return (
           <g key={eid}>

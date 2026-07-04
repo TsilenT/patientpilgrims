@@ -44,6 +44,8 @@ export function WinScreen() {
 
   const summary = gameSummary(state);
   const diceStats = rollStats(state);
+  // Bars fill relative to the most-rolled number so the grid reads as a histogram.
+  const maxCount = Math.max(1, ...diceStats.counts.values());
   const king = state.players[summary.winner]!;
   const kingRow = summary.standings.find((r) => r.seat === summary.winner)!;
 
@@ -135,7 +137,8 @@ export function WinScreen() {
                 const count = diceStats.counts.get(sum) ?? 0;
                 const pct = diceStats.total > 0 ? Math.round((count / diceStats.total) * 100) : 0;
                 return (
-                  <div key={sum} className="win-dice-stat" aria-label={`${sum}: ${count} rolls, ${pct}%`}>
+                  <div key={sum} className="win-dice-stat" aria-label={`${sum}: ${count} rolls, ${pct}%`}
+                    style={{ "--fill": `${(count / maxCount) * 100}%` } as CSSProperties}>
                     <strong>{sum}</strong>
                     <span>{count}</span>
                     <small>{pct}%</small>

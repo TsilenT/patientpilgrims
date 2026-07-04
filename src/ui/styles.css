@@ -228,7 +228,8 @@ main { min-height: 100vh; }
 }
 
 .robber-placement-banner,
-.setup-placement-banner {
+.setup-placement-banner,
+.dev-placement-banner {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -245,16 +246,23 @@ main { min-height: 100vh; }
 .setup-placement-banner {
   background: linear-gradient(135deg, #173049 0%, #1f4f72 55%, #306f87 100%);
 }
+/* Dev-card actions share the purple family of the dev-card tiles. */
+.dev-placement-banner {
+  background: linear-gradient(135deg, #241a2e 0%, #45305c 55%, #6b4a8a 100%);
+}
 .robber-placement-banner strong,
-.setup-placement-banner strong {
+.setup-placement-banner strong,
+.dev-placement-banner strong {
   color: #fff;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 .robber-placement-banner span,
-.setup-placement-banner span { color: #ffe9a8; }
+.setup-placement-banner span,
+.dev-placement-banner span { color: #ffe9a8; }
 
-.robber-confirm {
+/* In-progress action bar (robber move, knight, road building): prompt + confirm/cancel. */
+.action-confirm {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -266,13 +274,19 @@ main { min-height: 100vh; }
   padding: 10px 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
-.robber-confirm p {
+.action-confirm p {
   flex: 1 1 100%;
   margin: 0;
   color: #ffe9a8;
   font-weight: 700;
   text-align: center;
 }
+/* Inside a confirm bar, only the explicit primary button is blue; Cancel stays ghost. */
+.action-confirm button:not(.btn-primary) {
+  background: var(--ghost);
+  border: 1px solid var(--ghost-edge);
+}
+.action-confirm button:not(.btn-primary):hover:not(:disabled) { background: #243648; }
 
 .bottom-sheet {
   background: var(--panel);
@@ -497,7 +511,7 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
 .log-rail li[data-log-type="acceptTrade"] { color: var(--gold); border-left-color: var(--gold); }
 
 /* ---- Dialog overlays ---- */
-.pass-device, .discard-modal, .robber-victims, .dev-modal, .road-building, .setup-confirm {
+.pass-device, .discard-modal, .robber-victims, .dev-modal, .setup-confirm {
   position: fixed;
   inset: 0;
   margin: auto;
@@ -584,7 +598,57 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
 .discard-resource { display: inline-flex; align-items: center; gap: 7px; font-weight: 800; text-transform: capitalize; }
 .discard-count { color: var(--muted); font-weight: 800; font-variant-numeric: tabular-nums; }
 .discard-submit { width: 100%; margin-top: 10px; justify-content: center; }
-.robber-victims button, .dev-modal button, .road-building button { margin: 4px; }
+.robber-victims button { margin: 4px; }
+
+/* ---- Dev-card modals (Monopoly / Year of Plenty) ---- */
+.dev-modal h2 { margin: 0 0 4px; }
+.dev-modal-desc { color: var(--muted); margin: 0 0 10px; line-height: 1.35; }
+.dev-modal-step { margin: 0 0 4px; font-weight: 700; }
+.resource-choices button.picked {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold) inset;
+}
+.dev-picks {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin: 4px 0 2px;
+  min-height: 36px;
+}
+.dev-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--panel-2);
+  border: 1px solid var(--gold);
+  border-radius: 9px;
+  padding: 5px 10px;
+  font-weight: 700;
+}
+.dev-pick--empty {
+  display: inline-flex;
+  align-items: center;
+  color: var(--muted);
+  border: 1px dashed var(--ghost-edge);
+  border-radius: 9px;
+  padding: 5px 16px;
+}
+.dev-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 16px;
+}
+.dev-modal-actions button { flex: 1 1 0; max-width: 180px; }
+
+/* Pending (unconfirmed) roads during Road Building march their dashes. */
+.pending-road { animation: road-dash 0.8s linear infinite; }
+@keyframes road-dash {
+  to { stroke-dashoffset: -17; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pending-road { animation: none; }
+}
 /* ---- Host game-links panel (bottom-sheet tab) ---- */
 .host-links .host-link-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
 .host-links .host-link-row .who { flex: 1; text-align: left; font-weight: 600; }
@@ -803,6 +867,8 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
   gap: 5px;
 }
 .win-dice-stat {
+  position: relative;
+  overflow: hidden;
   min-width: 0;
   padding: 5px 3px;
   background: var(--panel-2);
@@ -810,6 +876,18 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
   border-radius: 8px;
   text-align: center;
 }
+/* Histogram fill: rises from the bottom, scaled to the most-rolled number (--fill). */
+.win-dice-stat::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--fill, 0%);
+  background: linear-gradient(180deg, rgba(242, 193, 78, 0.14) 0%, rgba(242, 193, 78, 0.42) 100%);
+  pointer-events: none;
+}
+.win-dice-stat > * { position: relative; }
 .win-dice-stat strong { display: block; color: var(--ink); font-size: 0.78rem; }
 .win-dice-stat span { display: block; color: var(--gold); font-weight: 800; font-size: 0.92rem; }
 .win-dice-stat small { color: var(--muted); font-size: 0.62rem; }
