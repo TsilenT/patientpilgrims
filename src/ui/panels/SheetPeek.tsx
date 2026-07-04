@@ -19,7 +19,7 @@ export function SheetPeek({ seat }: { seat: number }) {
           </span>
         );
       })}
-      <span className="peek-stat" title="Development cards">
+      <span className="peek-stat peek-stat--dev" title="Development cards">
         <DevCardBackIcon className="res-icon" /> {devCards}
       </span>
       <span className="peek-vp" title="Victory points">{totalVictoryPoints(state, seat)} VP</span>

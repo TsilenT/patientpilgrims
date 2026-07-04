@@ -381,27 +381,37 @@ main { min-height: 100vh; }
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 6px;
   flex-wrap: wrap;
   padding: 1px 0 3px;
 }
+/* Mini versions of the hand's resource chips: same colors, tighter fit. */
 .peek-stat {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
-  color: var(--ink);
+  color: #1b2027;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 7px;
+  padding: 1px 6px;
 }
 .peek-stat .res-icon {
-  font-size: 15px;
-  filter: drop-shadow(0 0 0.7px rgba(0, 0, 0, 0.85));
+  font-size: 14px;
+  filter: drop-shadow(0 0 0.7px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 0.7px rgba(0, 0, 0, 0.6));
 }
-.peek-stat[data-res="wood"] .res-icon { color: #5bbf6e; }
-.peek-stat[data-res="brick"] .res-icon { color: #df7b50; }
-.peek-stat[data-res="sheep"] .res-icon { color: #bfe487; }
-.peek-stat[data-res="wheat"] .res-icon { color: #f7d873; }
-.peek-stat[data-res="ore"] .res-icon { color: #b3c0cb; }
+.peek-stat[data-res="wood"] { background: #5bbf6e; }
+.peek-stat[data-res="brick"] { background: #df7b50; }
+.peek-stat[data-res="sheep"] { background: #bfe487; }
+.peek-stat[data-res="wheat"] { background: #f7d873; }
+.peek-stat[data-res="ore"] { background: #b3c0cb; }
+/* The dev-card count mirrors the dev-card tiles' purple. */
+.peek-stat--dev {
+  background: #241a2e;
+  border-color: #5a3f70;
+  color: var(--ink);
+}
 .peek-vp {
   background: var(--gold);
   color: #1a1300;
