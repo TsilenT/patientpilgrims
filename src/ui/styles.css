@@ -28,6 +28,37 @@ body {
   background-attachment: fixed;
 }
 
+/* ---- Game shell: lock the page; the app manages its own scrolling ---- */
+html, body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none; /* no pull-to-refresh / rubber-banding */
+}
+body {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none; /* no long-press copy/search sheet on iOS */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+/* Text entry (player names, share links) must stay selectable/copyable. */
+input, textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+/* Non-game routes (start screen, lobby, claim) still scroll as pages. */
+main {
+  height: 100dvh;
+  overflow-y: auto;
+}
+button, [role="tab"] { touch-action: manipulation; } /* no double-tap-zoom latency */
+:focus:not(:focus-visible) { outline: none; } /* keyboard focus rings only */
+/* Subtle scrollbars for internal panes. */
+.tab-content, .log-rail {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ghost-edge) transparent;
+}
+
 /* ---- Buttons: ghost by default, blue for primary actions ---- */
 button {
   font: inherit;
