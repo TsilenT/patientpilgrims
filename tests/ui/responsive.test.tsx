@@ -27,6 +27,25 @@ test("the board renders inside a stage container that hosts overlays", () => {
   expect(stage!.querySelector("svg.board")).not.toBeNull();
 });
 
+test("the bottom sheet collapses to a hand summary and reopens from a tab", async () => {
+  const s = new GameStore(mainGame(), new LocalStoragePersistence(), mulberry32(0));
+  render(<GameProvider store={s}><GameView /></GameProvider>);
+
+  // Open by default here (jsdom has no matchMedia): the hand panel is visible.
+  expect(screen.getByRole("heading", { name: "A" })).toBeInTheDocument();
+
+  await userEvent.click(screen.getByRole("button", { name: /collapse panel/i }));
+  expect(screen.queryByRole("heading", { name: "A" })).toBeNull();
+  expect(screen.getByLabelText("Hand summary")).toBeInTheDocument();
+
+  // Tapping a tab reopens; tapping the active tab again collapses.
+  await userEvent.click(screen.getByRole("tab", { name: "Hand" }));
+  expect(screen.getByRole("heading", { name: "A" })).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("tab", { name: "Hand" }));
+  expect(screen.queryByRole("heading", { name: "A" })).toBeNull();
+  expect(screen.getByLabelText("Hand summary")).toBeInTheDocument();
+});
+
 test("the bottom-sheet tabs switch between hand, trades, and log", async () => {
   const s = new GameStore(mainGame(), new LocalStoragePersistence(), mulberry32(0));
   render(<GameProvider store={s}><GameView /></GameProvider>);

@@ -5,6 +5,7 @@ import { legalTargets, legalRoadBuildingEdges, buildTargets } from "../state/leg
 import { currentActor, eligibleVictims } from "../state/viewModel";
 import { BoardSvg } from "./board/BoardSvg";
 import { HandPanel } from "./panels/HandPanel";
+import { SheetPeek } from "./panels/SheetPeek";
 import { ActionBar } from "./panels/ActionBar";
 import { BuildControls, type BuildMode } from "./panels/BuildControls";
 import { DiceSummary } from "./panels/DiceSummary";
@@ -50,6 +51,16 @@ export function GameView() {
     | null
   >(null);
   const [tab, setTab] = useState<"hand" | "trades" | "log" | "links">("hand");
+  // Phones start with the sheet collapsed so the board dominates; wide screens
+  // (side-rail layout) and environments without matchMedia (jsdom) start open.
+  const [sheetOpen, setSheetOpen] = useState(() =>
+    typeof window.matchMedia === "function" ? window.matchMedia("(min-width: 900px)").matches : true,
+  );
+  const selectTab = (t: typeof tab) => {
+    if (sheetOpen && tab === t) { setSheetOpen(false); return; } // tap the active tab to collapse
+    setTab(t);
+    setSheetOpen(true);
+  };
 
   const r = parseRoute(location.hash);
   const gameId = online && r.kind === "game" ? r.id : null;
@@ -76,6 +87,11 @@ export function GameView() {
       setRobberPick(null);
     }
   }, [sub, pendingKnight]);
+
+  // Robber placement (a rolled 7) needs the board: collapse the sheet.
+  useEffect(() => {
+    if (sub === "movingRobber") setSheetOpen(false);
+  }, [sub]);
 
   // Turn gating. Hotseat keeps the pass-the-device flow; online locks to your own seat.
   const needReveal = !online && actor !== revealedSeat;
@@ -162,10 +178,11 @@ export function GameView() {
   };
 
   const onPlayDev = (type: DevCardType) => {
-    if (type === "knight") { setPendingKnight(true); setPendingRobberHex(null); setRobberPick(null); return; }
+    // Board-targeting cards hand focus to the board: collapse the sheet.
+    if (type === "knight") { setPendingKnight(true); setPendingRobberHex(null); setRobberPick(null); setSheetOpen(false); return; }
     if (type === "monopoly") return setDevModal("monopoly");
     if (type === "yearOfPlenty") return setDevModal("yearOfPlenty");
-    if (type === "roadBuilding") return setRoadEdges([]);
+    if (type === "roadBuilding") { setRoadEdges([]); setSheetOpen(false); }
   };
 
   const confirmRoadBuilding = async () => {
@@ -216,21 +233,30 @@ export function GameView() {
           <div className="waiting-banner" role="status">
             {`Waiting for ${state.players[state.turn.activeSeat]!.name}…`}
           </div>
-          <div className="bottom-sheet">
-            <div className="tabs" role="tablist">
-              <button role="tab" aria-selected={tab === "hand"} onClick={() => setTab("hand")}>Your hand</button>
-              <button role="tab" aria-selected={tab === "trades"} onClick={() => setTab("trades")}>{tradesTabLabel(state.tradeOffers.length)}</button>
-              <button role="tab" aria-selected={tab === "log"} onClick={() => setTab("log")}>Log</button>
-              {gameId !== null && <button role="tab" aria-selected={tab === "links"} onClick={() => setTab("links")}>Links</button>}
+          <div className={`bottom-sheet${sheetOpen ? "" : " bottom-sheet--collapsed"}`}>
+            <div className="sheet-bar">
+              <div className="tabs" role="tablist">
+                <button role="tab" aria-selected={tab === "hand"} onClick={() => selectTab("hand")}>Your hand</button>
+                <button role="tab" aria-selected={tab === "trades"} onClick={() => selectTab("trades")}>{tradesTabLabel(state.tradeOffers.length)}</button>
+                <button role="tab" aria-selected={tab === "log"} onClick={() => selectTab("log")}>Log</button>
+                {gameId !== null && <button role="tab" aria-selected={tab === "links"} onClick={() => selectTab("links")}>Links</button>}
+              </div>
+              <button className="sheet-toggle" aria-expanded={sheetOpen}
+                aria-label={sheetOpen ? "Collapse panel" : "Expand panel"}
+                onClick={() => setSheetOpen(!sheetOpen)}>{sheetOpen ? "⌄" : "⌃"}</button>
             </div>
-            <div className="tab-content" role="tabpanel" aria-label={tab}>
-              {tab === "log" && <LogRail />}
-              {tab === "trades" && <TradePanel />}
-              {tab === "hand" && <HandPanel />}
-              {tab === "links" && gameId !== null && (rescueLinks !== null
-                ? <HostLinksPanel id={gameId} links={rescueLinks} />
-                : <p>Recovery links are loading…</p>)}
-            </div>
+            {sheetOpen ? (
+              <div className="tab-content" role="tabpanel" aria-label={tab}>
+                {tab === "log" && <LogRail />}
+                {tab === "trades" && <TradePanel />}
+                {tab === "hand" && <HandPanel />}
+                {tab === "links" && gameId !== null && (rescueLinks !== null
+                  ? <HostLinksPanel id={gameId} links={rescueLinks} />
+                  : <p>Recovery links are loading…</p>)}
+              </div>
+            ) : (
+              <SheetPeek seat={viewer} />
+            )}
           </div>
         </>
       ) : owed > 0 ? (
@@ -258,23 +284,34 @@ export function GameView() {
             </div>
           ) : buildMode === null && <ActionBar />}
           {roadEdges === null && (
-            <BuildControls buildMode={buildMode} onSelect={setBuildMode} onCancel={() => setBuildMode(null)} />
+            <BuildControls buildMode={buildMode}
+              onSelect={(m) => { setBuildMode(m); setSheetOpen(false); }}
+              onCancel={() => setBuildMode(null)} />
           )}
-          <div className="bottom-sheet">
-            <div className="tabs" role="tablist">
-              <button role="tab" aria-selected={tab === "hand"} onClick={() => setTab("hand")}>Hand</button>
-              <button role="tab" aria-selected={tab === "trades"} onClick={() => setTab("trades")}>{tradesTabLabel(state.tradeOffers.length)}</button>
-              <button role="tab" aria-selected={tab === "log"} onClick={() => setTab("log")}>Log</button>
-              {gameId !== null && <button role="tab" aria-selected={tab === "links"} onClick={() => setTab("links")}>Links</button>}
+          <div className={`bottom-sheet${sheetOpen ? "" : " bottom-sheet--collapsed"}`}>
+            <div className="sheet-bar">
+              <div className="tabs" role="tablist">
+                <button role="tab" aria-selected={tab === "hand"} onClick={() => selectTab("hand")}>Hand</button>
+                <button role="tab" aria-selected={tab === "trades"} onClick={() => selectTab("trades")}>{tradesTabLabel(state.tradeOffers.length)}</button>
+                <button role="tab" aria-selected={tab === "log"} onClick={() => selectTab("log")}>Log</button>
+                {gameId !== null && <button role="tab" aria-selected={tab === "links"} onClick={() => selectTab("links")}>Links</button>}
+              </div>
+              <button className="sheet-toggle" aria-expanded={sheetOpen}
+                aria-label={sheetOpen ? "Collapse panel" : "Expand panel"}
+                onClick={() => setSheetOpen(!sheetOpen)}>{sheetOpen ? "⌄" : "⌃"}</button>
             </div>
-            <div className="tab-content" role="tabpanel" aria-label={tab}>
-              {tab === "hand" && <HandPanel onPlayDev={onPlayDev} />}
-              {tab === "trades" && <TradePanel />}
-              {tab === "log" && <LogRail />}
-              {tab === "links" && gameId !== null && (rescueLinks !== null
-                ? <HostLinksPanel id={gameId} links={rescueLinks} />
-                : <p>Recovery links are loading…</p>)}
-            </div>
+            {sheetOpen ? (
+              <div className="tab-content" role="tabpanel" aria-label={tab}>
+                {tab === "hand" && <HandPanel onPlayDev={onPlayDev} />}
+                {tab === "trades" && <TradePanel />}
+                {tab === "log" && <LogRail />}
+                {tab === "links" && gameId !== null && (rescueLinks !== null
+                  ? <HostLinksPanel id={gameId} links={rescueLinks} />
+                  : <p>Recovery links are loading…</p>)}
+              </div>
+            ) : (
+              <SheetPeek seat={viewer} />
+            )}
           </div>
         </>
       )}
