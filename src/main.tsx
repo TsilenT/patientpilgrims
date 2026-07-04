@@ -25,6 +25,7 @@ setAppHeight();
 window.visualViewport?.addEventListener("resize", setAppHeight);
 window.addEventListener("resize", setAppHeight);
 window.addEventListener("orientationchange", setAppHeight);
+window.addEventListener("pageshow", setAppHeight); // bfcache restores skip load-time setup
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
