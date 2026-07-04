@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent, MouseEvent as ReactMouseEvent } from "react";
 import { IDENTITY, clampTransform, panBy, zoomAt, type ViewBox, type ViewTransform } from "./viewportMath";
 
@@ -15,6 +15,30 @@ export function useBoardViewport(vb: ViewBox) {
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const dragged = useRef(false);
   const suppressClick = useRef(false);
+  const lastFitScale = useRef<number | null>(null);
+
+  // Keep the *rendered* zoom stable when the stage resizes (banners, confirm bars,
+  // sheet expand/collapse): the SVG re-fits to its box, so counter-scale the
+  // transform about the board center. The untouched default view is exempt — it
+  // should keep fitting the whole board.
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg || typeof ResizeObserver === "undefined") return;
+    const center = { x: vb.minX + vb.width / 2, y: vb.minY + vb.height / 2 };
+    const ro = new ResizeObserver(() => {
+      const rect = svg.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+      const fit = Math.min(rect.width / vb.width, rect.height / vb.height);
+      const prev = lastFitScale.current;
+      lastFitScale.current = fit;
+      if (prev === null || prev === fit) return;
+      setTransform((t) =>
+        t.scale === 1 && t.tx === 0 && t.ty === 0 ? t : zoomAt(t, vb, center, prev / fit),
+      );
+    });
+    ro.observe(svg);
+    return () => ro.disconnect();
+  }, [vb]);
 
   /** Client px → viewBox units, honoring xMidYMid-meet letterboxing.
    *  Falls back to 1:1 when the rect is degenerate (jsdom). */

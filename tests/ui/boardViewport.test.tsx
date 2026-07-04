@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { test, expect, vi } from "vitest";
-import { render, fireEvent, screen } from "@testing-library/react";
+import { render, fireEvent, screen, act } from "@testing-library/react";
 import { BoardSvg } from "../../src/ui/board/BoardSvg";
 import { createInitialGame } from "../../src/engine";
 import { createBoard } from "../../src/board";
@@ -79,6 +79,45 @@ test("a clean tap still clicks board slots", () => {
   fireEvent.pointerUp(svg, { pointerId: 1, clientX: 100, clientY: 100 });
   fireEvent.click(slot);
   expect(onEdge).toHaveBeenCalledWith(eid);
+});
+
+test("a zoomed board keeps its rendered scale when the stage resizes; default view refits", () => {
+  let notify: (() => void) | undefined;
+  class FakeResizeObserver {
+    constructor(cb: () => void) { notify = cb; }
+    observe() {}
+    disconnect() {}
+  }
+  vi.stubGlobal("ResizeObserver", FakeResizeObserver);
+  try {
+    const { container } = renderBoard();
+    const svg = container.querySelector("svg.board") as SVGSVGElement;
+    let rect = { width: 400, height: 400 };
+    svg.getBoundingClientRect = () =>
+      ({ ...rect, top: 0, left: 0, right: rect.width, bottom: rect.height, x: 0, y: 0 }) as DOMRect;
+
+    // Untransformed: a stage resize must NOT introduce a transform (keeps fit-to-view).
+    act(() => notify!());
+    rect = { width: 400, height: 300 };
+    act(() => notify!());
+    expect(viewportG(container).getAttribute("transform")).toBe("translate(0 0) scale(1)");
+
+    // Zoomed: shrinking the stage counter-scales so rendered size is constant.
+    fireEvent.click(screen.getByRole("button", { name: /zoom in/i }));
+    const scaleOf = () =>
+      Number(/scale\(([\d.]+)\)/.exec(viewportG(container).getAttribute("transform")!)![1]);
+    const before = scaleOf();
+    rect = { width: 400, height: 150 };
+    act(() => notify!());
+    expect(scaleOf()).toBeGreaterThan(before);
+
+    // Growing back restores the original zoom.
+    rect = { width: 400, height: 300 };
+    act(() => notify!());
+    expect(scaleOf()).toBeCloseTo(before, 5);
+  } finally {
+    vi.unstubAllGlobals();
+  }
 });
 
 test("pinch with two pointers zooms in", () => {
