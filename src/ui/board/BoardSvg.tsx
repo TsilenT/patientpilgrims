@@ -5,6 +5,7 @@ import { HexTile } from "./HexTile";
 import { Ports } from "./Ports";
 import { Slots } from "./Slots";
 import { useBoardViewport } from "./useBoardViewport";
+import { RecenterIcon } from "../icons";
 
 export interface BoardSvgProps {
   state: GameState;
@@ -60,7 +61,7 @@ export function BoardSvg({ state, legal, robberPlacement = false, selectedRobber
       <div className="board-controls" role="group" aria-label="Board view">
         <button aria-label="Zoom in" onClick={vp.zoomIn}>+</button>
         <button aria-label="Zoom out" onClick={vp.zoomOut} disabled={!vp.isTransformed}>−</button>
-        {vp.isTransformed && <button aria-label="Reset view" onClick={vp.reset}>⌖</button>}
+        {vp.isTransformed && <button aria-label="Reset view" onClick={vp.reset}><RecenterIcon /></button>}
       </div>
     </div>
   );

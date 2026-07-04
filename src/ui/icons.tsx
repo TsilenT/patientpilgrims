@@ -166,6 +166,14 @@ export const LinkIcon: IconComponent = (p) => (
     </g>
   </Icon>
 );
+export const RecenterIcon: IconComponent = (p) => (
+  <Icon {...p}>
+    <circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" strokeWidth="1.8" />
+    <circle cx="12" cy="12" r="1.6" fill="currentColor" />
+    <path d="M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+  </Icon>
+);
+
 export const DiceIcon: IconComponent = (p) => (
   <Icon {...p}>
     <rect x="4" y="4" width="16" height="16" rx="3" fill="none" stroke="currentColor" strokeWidth="2" />
