@@ -227,7 +227,8 @@ main { min-height: 100vh; }
   .die--rolling { animation: none; }
 }
 
-.robber-placement-banner {
+.robber-placement-banner,
+.setup-placement-banner {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -241,12 +242,17 @@ main { min-height: 100vh; }
   box-shadow: 0 0 0 4px rgba(242, 193, 78, 0.16), 0 8px 24px rgba(0, 0, 0, 0.35);
   text-align: center;
 }
-.robber-placement-banner strong {
+.setup-placement-banner {
+  background: linear-gradient(135deg, #173049 0%, #1f4f72 55%, #306f87 100%);
+}
+.robber-placement-banner strong,
+.setup-placement-banner strong {
   color: #fff;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
-.robber-placement-banner span { color: #ffe9a8; }
+.robber-placement-banner span,
+.setup-placement-banner span { color: #ffe9a8; }
 
 .robber-confirm {
   display: flex;

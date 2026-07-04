@@ -28,6 +28,8 @@ test("setup settlement placement requires confirmation", async () => {
   const legalV = [...legalTargets(g).vertices][0]!;
   const slot = container.querySelector(`[data-vertex-slot="${legalV}"]`)!;
 
+  expect(screen.getByRole("status", { name: /setup placement/i })).toHaveTextContent(/place a settlement/i);
+
   await userEvent.click(slot);
 
   expect(store.getState().board.buildings[legalV]).toBeUndefined();
@@ -46,6 +48,8 @@ test("setup road placement requires confirmation", async () => {
   const legalV = [...legalTargets(g).vertices][0]!;
   await userEvent.click(container.querySelector(`[data-vertex-slot="${legalV}"]`)!);
   await userEvent.click(screen.getByRole("button", { name: /confirm/i }));
+
+  expect(screen.getByRole("status", { name: /setup placement/i })).toHaveTextContent(/place a road/i);
 
   const roadState = store.getState();
   const legalE = [...legalTargets(roadState).edges][0]!;

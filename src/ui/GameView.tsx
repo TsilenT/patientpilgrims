@@ -82,6 +82,11 @@ export function GameView() {
   const waiting = online && !myTurn && owed === 0; // not your turn, nothing owed → read-only
   const interactive = !needReveal && !waiting && owed === 0;
   const placingRobber = interactive && sub === "movingRobber";
+  const setupInstruction = interactive && sub === "setupSettlement"
+    ? "Place a settlement"
+    : interactive && sub === "setupRoad"
+      ? "Place a road"
+      : null;
 
   // Setup forces the build type; the main phase uses the player's selection.
   const effectiveMode: BuildMode =
@@ -171,6 +176,12 @@ export function GameView() {
         <div className="robber-placement-banner" role="status" aria-label="Robber placement">
           <strong>Roll 7: Move the robber</strong>
           <span>Choose a highlighted hex to block production and steal from an adjacent player.</span>
+        </div>
+      )}
+      {setupInstruction !== null && (
+        <div className="setup-placement-banner" role="status" aria-label="Setup placement">
+          <strong>{setupInstruction}</strong>
+          <span>Choose a highlighted spot on the board.</span>
         </div>
       )}
       <BoardSvg state={state} legal={legal} robberPlacement={placingRobber} selectedRobberHex={pendingRobberHex}
