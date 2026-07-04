@@ -34,6 +34,12 @@ html, body {
   overflow: hidden;
   overscroll-behavior: none; /* no pull-to-refresh / rubber-banding */
 }
+/* iOS WebKit ignores overflow:hidden as a scroll lock but honors position:fixed —
+   without this the document can end up scrolled with no gesture to undo it. */
+body {
+  position: fixed;
+  inset: 0;
+}
 body {
   user-select: none;
   -webkit-user-select: none;
@@ -49,6 +55,7 @@ input, textarea {
 /* Non-game routes (start screen, lobby, claim) still scroll as pages. */
 main {
   height: 100dvh;
+  height: var(--app-height, 100dvh);
   overflow-y: auto;
 }
 button, [role="tab"] { touch-action: manipulation; } /* no double-tap-zoom latency */
@@ -133,6 +140,7 @@ main { min-height: 100vh; }
   gap: 6px;
   height: 100vh;  /* fallback */
   height: 100dvh; /* stable under mobile browser chrome */
+  height: var(--app-height, 100dvh); /* visualViewport truth (iOS toolbars) */
   overflow: hidden;
   max-width: 1100px;
   margin: 0 auto;
