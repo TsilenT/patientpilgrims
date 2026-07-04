@@ -40,6 +40,7 @@ export function GameView() {
   const [revealedSeat, setRevealedSeat] = useState(actor);
   const [robberPick, setRobberPick] = useState<{ hex: string; victims: number[] } | null>(null);
   const [pendingRobberHex, setPendingRobberHex] = useState<string | null>(null);
+  const [pendingKnight, setPendingKnight] = useState(false);
   const [devModal, setDevModal] = useState<"monopoly" | "yearOfPlenty" | null>(null);
   const [roadEdges, setRoadEdges] = useState<string[] | null>(null);
   const [buildMode, setBuildMode] = useState<BuildMode>(null);
@@ -70,18 +71,19 @@ export function GameView() {
   }, [gameId]);
 
   useEffect(() => {
-    if (sub !== "movingRobber") {
+    if (sub !== "movingRobber" && !pendingKnight) {
       setPendingRobberHex(null);
       setRobberPick(null);
     }
-  }, [sub]);
+  }, [sub, pendingKnight]);
 
   // Turn gating. Hotseat keeps the pass-the-device flow; online locks to your own seat.
   const needReveal = !online && actor !== revealedSeat;
   const myTurn = online ? state.turn.activeSeat === mySeat : true;
   const waiting = online && !myTurn && owed === 0; // not your turn, nothing owed → read-only
   const interactive = !needReveal && !waiting && owed === 0;
-  const placingRobber = interactive && sub === "movingRobber";
+  const placingRobber = interactive && (sub === "movingRobber" || pendingKnight);
+  const robberPrompt = pendingKnight ? "Knight: Move the robber" : "Move the robber";
   const setupInstruction = interactive && sub === "setupSettlement"
     ? "Place a settlement"
     : interactive && sub === "setupRoad"
@@ -98,8 +100,8 @@ export function GameView() {
     ? NO_TARGETS
     : roadEdges !== null
       ? { vertices: new Set<string>(), edges: legalRoadBuildingEdges(state, roadEdges), hexes: new Set<string>() }
-      : sub === "movingRobber"
-        ? legalTargets(state) // robber hex overlay
+      : sub === "movingRobber" || pendingKnight
+        ? legalTargets({ ...state, turn: { ...state.turn, subPhase: "movingRobber" } }) // robber hex overlay
         : effectiveMode !== null
           ? buildTargets(state, effectiveMode)
           : NO_TARGETS; // main-phase neutral → board read-only
@@ -130,15 +132,23 @@ export function GameView() {
     if (sub === "main") { const r = await run({ type: "buildRoad", edge: e }); finishBuild(r.ok); }
   };
   const onHex = (h: string) => {
-    if (!interactive || sub !== "movingRobber") return;
+    if (!interactive || (sub !== "movingRobber" && !pendingKnight)) return;
     setPendingRobberHex(h);
     setRobberPick(null);
+  };
+
+  const playPendingKnight = async () => {
+    if (!pendingKnight) return true;
+    const result = await run({ type: "playKnight" });
+    if (result.ok) setPendingKnight(false);
+    return result.ok;
   };
 
   const confirmRobberPlacement = async () => {
     if (pendingRobberHex === null) return;
     const hex = pendingRobberHex;
     const victims = eligibleVictims(state, hex);
+    if (!(await playPendingKnight())) return;
     if (victims.length === 0) {
       const result = await run({ type: "moveRobber", hex });
       if (result.ok) setPendingRobberHex(null);
@@ -152,7 +162,7 @@ export function GameView() {
   };
 
   const onPlayDev = (type: DevCardType) => {
-    if (type === "knight") return run({ type: "playKnight" });
+    if (type === "knight") { setPendingKnight(true); setPendingRobberHex(null); setRobberPick(null); return; }
     if (type === "monopoly") return setDevModal("monopoly");
     if (type === "yearOfPlenty") return setDevModal("yearOfPlenty");
     if (type === "roadBuilding") return setRoadEdges([]);
@@ -174,7 +184,7 @@ export function GameView() {
       </div>
       {placingRobber && (
         <div className="robber-placement-banner" role="status" aria-label="Robber placement">
-          <strong>Roll 7: Move the robber</strong>
+          <strong>{robberPrompt}</strong>
           <span>Choose a highlighted hex to block production and steal from an adjacent player.</span>
         </div>
       )}
@@ -215,11 +225,16 @@ export function GameView() {
           onDiscard={(cards) => run({ type: "discard", seat: viewer, cards })} />
       ) : (
         <>
-          {pendingRobberHex !== null && sub === "movingRobber" ? (
+          {pendingRobberHex !== null && (sub === "movingRobber" || pendingKnight) ? (
             <div className="action-bar robber-confirm" role="dialog" aria-modal="true" aria-label="Confirm robber placement">
               <p>Move the robber to this hex?</p>
               <button className="btn-primary" onClick={() => { void confirmRobberPlacement(); }}>Confirm</button>
               <button onClick={() => setPendingRobberHex(null)}>Cancel</button>
+            </div>
+          ) : pendingKnight ? (
+            <div className="action-bar robber-confirm" role="dialog" aria-modal="true" aria-label="Cancel knight">
+              <p>Choose a hex for the knight, or cancel to keep the card.</p>
+              <button onClick={() => { setPendingKnight(false); setPendingRobberHex(null); }}>Cancel</button>
             </div>
           ) : buildMode === null && <ActionBar />}
           <BuildControls buildMode={buildMode} onSelect={setBuildMode} onCancel={() => setBuildMode(null)} />

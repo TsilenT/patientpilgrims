@@ -20,7 +20,9 @@ test("moving robber phase shows an obvious robber placement prompt", () => {
   const { container } = render(<GameProvider store={s}><GameView /></GameProvider>);
 
   expect(screen.getByRole("status", { name: /robber placement/i }))
-    .toHaveTextContent("Roll 7: Move the robber");
+    .toHaveTextContent("Move the robber");
+  expect(screen.getByRole("status", { name: /robber placement/i }))
+    .not.toHaveTextContent(/roll 7/i);
   expect(container.querySelector(".board--robber-placement")).toBeTruthy();
 });
 
