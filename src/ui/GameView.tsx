@@ -238,78 +238,71 @@ export function GameView() {
       <BoardSvg state={state} legal={legal} robberPlacement={placingRobber} selectedRobberHex={pendingRobberHex}
         pendingRoads={roadEdges !== null ? { edges: roadEdges, color: state.players[state.turn.activeSeat]!.color } : null}
         onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
-      {needReveal ? (
+      {/* Fixed-height dock: its contents change with the phase, its height
+          never does — the board above stays anchored. */}
+      <div className="control-dock">
+        {needReveal || owed > 0 ? null : waiting ? (
+          <>
+            <div className="waiting-banner" role="status">
+              {`Waiting for ${state.players[state.turn.activeSeat]!.name}…`}
+            </div>
+            <SheetPeek seat={viewer} />
+          </>
+        ) : (
+          <>
+            {pendingRobberHex !== null && (sub === "movingRobber" || pendingKnight) ? (
+              <div className="action-bar action-confirm" role="dialog" aria-modal="true" aria-label="Confirm robber placement">
+                <p>Move the robber to this hex?</p>
+                <button className="btn-primary" onClick={() => { void confirmRobberPlacement(); }}>Confirm</button>
+                <button onClick={() => setPendingRobberHex(null)}>Cancel</button>
+              </div>
+            ) : pendingKnight ? (
+              <div className="action-bar action-confirm" role="dialog" aria-modal="true" aria-label="Cancel knight">
+                <p>Choose a hex for the knight, or cancel to keep the card.</p>
+                <button onClick={() => { setPendingKnight(false); setPendingRobberHex(null); }}>Cancel</button>
+              </div>
+            ) : roadEdges !== null ? (
+              <div className="action-bar action-confirm" role="dialog" aria-modal="true" aria-label="Road building">
+                <p>Roads placed: {roadEdges.length}/2</p>
+                <button className="btn-primary" disabled={roadEdges.length < 1}
+                  onClick={() => { void confirmRoadBuilding(); }}>Confirm</button>
+                <button onClick={() => setRoadEdges(null)}>Cancel</button>
+              </div>
+            ) : buildMode === null && <ActionBar />}
+            {roadEdges === null && (
+              <BuildControls buildMode={buildMode}
+                onSelect={(m) => { setBuildMode(m); setSheetOpen(false); }}
+                onCancel={() => setBuildMode(null)} />
+            )}
+            <SheetPeek seat={viewer} />
+          </>
+        )}
+      </div>
+      <div inert={needReveal || owed > 0 ? true : undefined}>
+        <BottomSheet open={sheetOpen && !needReveal && owed === 0}
+          onToggle={() => setSheetOpen(!sheetOpen)}
+          tab={tab} onSelect={selectTab}
+          height={sheetHeight} onHeightChange={changeSheetHeight}
+          tabs={[
+            { id: "hand", label: "Hand" },
+            { id: "trades", label: tradesTabLabel(state.tradeOffers.length) },
+            { id: "log", label: "Log" },
+            ...(gameId !== null ? [{ id: "links" as const, label: "Links" }] : []),
+          ]}>
+          {tab === "hand" && (interactive ? <HandPanel onPlayDev={onPlayDev} /> : <HandPanel />)}
+          {tab === "trades" && <TradePanel />}
+          {tab === "log" && <LogRail />}
+          {tab === "links" && gameId !== null && (rescueLinks !== null
+            ? <HostLinksPanel id={gameId} links={rescueLinks} />
+            : <p>Recovery links are loading…</p>)}
+        </BottomSheet>
+      </div>
+      {needReveal && (
         <PassDeviceScreen name={state.players[actor]!.name} onReveal={() => setRevealedSeat(actor)} />
-      ) : waiting ? (
-        <>
-          <div className="waiting-banner" role="status">
-            {`Waiting for ${state.players[state.turn.activeSeat]!.name}…`}
-          </div>
-          <SheetPeek seat={viewer} />
-          <BottomSheet open={sheetOpen} onToggle={() => setSheetOpen(!sheetOpen)}
-            tab={tab} onSelect={selectTab}
-            height={sheetHeight} onHeightChange={changeSheetHeight}
-            tabs={[
-              { id: "hand", label: "Hand" },
-              { id: "trades", label: tradesTabLabel(state.tradeOffers.length) },
-              { id: "log", label: "Log" },
-              ...(gameId !== null ? [{ id: "links" as const, label: "Links" }] : []),
-            ]}>
-            {tab === "log" && <LogRail />}
-            {tab === "trades" && <TradePanel />}
-            {tab === "hand" && <HandPanel />}
-            {tab === "links" && gameId !== null && (rescueLinks !== null
-              ? <HostLinksPanel id={gameId} links={rescueLinks} />
-              : <p>Recovery links are loading…</p>)}
-          </BottomSheet>
-        </>
-      ) : owed > 0 ? (
+      )}
+      {!needReveal && owed > 0 && (
         <DiscardModal state={state} seat={viewer} owed={owed}
           onDiscard={(cards) => run({ type: "discard", seat: viewer, cards })} />
-      ) : (
-        <>
-          {pendingRobberHex !== null && (sub === "movingRobber" || pendingKnight) ? (
-            <div className="action-bar action-confirm" role="dialog" aria-modal="true" aria-label="Confirm robber placement">
-              <p>Move the robber to this hex?</p>
-              <button className="btn-primary" onClick={() => { void confirmRobberPlacement(); }}>Confirm</button>
-              <button onClick={() => setPendingRobberHex(null)}>Cancel</button>
-            </div>
-          ) : pendingKnight ? (
-            <div className="action-bar action-confirm" role="dialog" aria-modal="true" aria-label="Cancel knight">
-              <p>Choose a hex for the knight, or cancel to keep the card.</p>
-              <button onClick={() => { setPendingKnight(false); setPendingRobberHex(null); }}>Cancel</button>
-            </div>
-          ) : roadEdges !== null ? (
-            <div className="action-bar action-confirm" role="dialog" aria-modal="true" aria-label="Road building">
-              <p>Roads placed: {roadEdges.length}/2</p>
-              <button className="btn-primary" disabled={roadEdges.length < 1}
-                onClick={() => { void confirmRoadBuilding(); }}>Confirm</button>
-              <button onClick={() => setRoadEdges(null)}>Cancel</button>
-            </div>
-          ) : buildMode === null && <ActionBar />}
-          {roadEdges === null && (
-            <BuildControls buildMode={buildMode}
-              onSelect={(m) => { setBuildMode(m); setSheetOpen(false); }}
-              onCancel={() => setBuildMode(null)} />
-          )}
-          <SheetPeek seat={viewer} />
-          <BottomSheet open={sheetOpen} onToggle={() => setSheetOpen(!sheetOpen)}
-            tab={tab} onSelect={selectTab}
-            height={sheetHeight} onHeightChange={changeSheetHeight}
-            tabs={[
-              { id: "hand", label: "Hand" },
-              { id: "trades", label: tradesTabLabel(state.tradeOffers.length) },
-              { id: "log", label: "Log" },
-              ...(gameId !== null ? [{ id: "links" as const, label: "Links" }] : []),
-            ]}>
-            {tab === "hand" && <HandPanel onPlayDev={onPlayDev} />}
-            {tab === "trades" && <TradePanel />}
-            {tab === "log" && <LogRail />}
-            {tab === "links" && gameId !== null && (rescueLinks !== null
-              ? <HostLinksPanel id={gameId} links={rescueLinks} />
-              : <p>Recovery links are loading…</p>)}
-          </BottomSheet>
-        </>
       )}
       {pendingSetup !== null && (
         <div className="setup-confirm" role="dialog" aria-modal="true" aria-label="Confirm placement">

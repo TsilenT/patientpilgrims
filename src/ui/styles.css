@@ -259,6 +259,17 @@ main { min-height: 100vh; }
 .opp-stat.is-award { color: #1a1300; background: var(--gold); border-radius: 6px; padding: 0 5px; }
 
 /* ---- Action bar + dice HUD + bottom sheet + tabs ---- */
+/* Fixed-height dock between board and sheet: contents vary with the phase
+   (roll, turn actions, confirm bars, waiting banner) but the height never
+   does, so the board above stays anchored. Controls hug the bottom. */
+.control-dock {
+  flex: none;
+  height: 128px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 6px;
+}
 .action-bar { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
 .dice-summary {
   display: flex;
@@ -1134,7 +1145,6 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
 
 /* ---- "Waiting for…" online banner ---- */
 .waiting-banner {
-  grid-area: actions;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1162,8 +1172,7 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
   }
   .top-hud { grid-area: opponents; }
   .board-stage { grid-area: board; }
-  .action-bar { grid-area: actions; align-self: start; }
-  .waiting-banner { grid-area: actions; }
+  .control-dock { grid-area: actions; justify-content: flex-start; }
   /* The side rail is always expanded, in-flow, and sized by the grid. */
   .bottom-sheet {
     grid-area: sheet;
