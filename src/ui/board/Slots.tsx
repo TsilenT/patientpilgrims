@@ -17,15 +17,6 @@ export function Slots({ state, layout, legal, selectedHex, pendingRoads, onVerte
   const pendingSet = new Set(pendingRoads?.edges ?? []);
   return (
     <g>
-      {/* legal-hex click overlays (robber) */}
-      {[...legal.hexes].map((hid) => {
-        const corners = topo.hexVertices.get(hid)!.map((v) => layout.vertex[v]!);
-        const points = corners.map((p) => `${p.x},${p.y}`).join(" ");
-        return <polygon key={hid} data-hex-slot={hid} data-selected={selectedHex === hid ? "true" : undefined}
-          points={points} fill="#fff" fillOpacity={0.15}
-          style={{ cursor: "pointer" }} onClick={() => onHex(hid)} />;
-      })}
-
       {topo.edgeIds.map((eid) => {
         const road = state.board.roads[eid];
         const [a, b] = topo.edgeVertices.get(eid)!;
@@ -91,6 +82,30 @@ export function Slots({ state, layout, legal, selectedHex, pendingRoads, onVerte
             <circle data-vertex-slot={vid} cx={p.x} cy={p.y} r={VERTEX_HIT} fill="transparent"
               style={{ cursor: "pointer" }} onClick={() => onVertex(vid)} />
             <circle cx={p.x} cy={p.y} r={8} fill="#ffffff" fillOpacity={0.85} pointerEvents="none" />
+          </g>
+        );
+      })}
+
+      {/* Legal-hex overlays (robber) — drawn last so the highlight and the
+          selection ring read over roads and buildings. The selected ring is
+          black-cased with marching white dashes: no player color looks like it. */}
+      {[...legal.hexes].map((hid) => {
+        const corners = topo.hexVertices.get(hid)!.map((v) => layout.vertex[v]!);
+        const points = corners.map((p) => `${p.x},${p.y}`).join(" ");
+        const selected = selectedHex === hid;
+        return (
+          <g key={hid}>
+            <polygon data-hex-slot={hid} data-selected={selected ? "true" : undefined}
+              points={points} fill="#fff" fillOpacity={0.15}
+              style={{ cursor: "pointer" }} onClick={() => onHex(hid)} />
+            {selected && (
+              <>
+                <polygon points={points} fill="none" stroke="#0b0f14" strokeWidth={7}
+                  strokeLinejoin="round" pointerEvents="none" />
+                <polygon className="hex-select-dash" points={points} fill="none" stroke="#ffffff"
+                  strokeWidth={7} strokeLinejoin="round" strokeDasharray="10 7" pointerEvents="none" />
+              </>
+            )}
           </g>
         );
       })}

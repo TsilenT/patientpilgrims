@@ -207,9 +207,9 @@ main { min-height: 100vh; }
 }
 .board--robber-placement [data-hex-slot][data-selected="true"] {
   fill-opacity: 0.5;
-  stroke: #ffffff;
-  stroke-width: 5px;
+  stroke: none; /* the dashed selection ring is drawn separately, above roads */
 }
+.hex-select-dash { animation: road-dash 0.8s linear infinite; }
 .board--robber-selected [data-hex-slot]:not([data-selected="true"]) {
   fill-opacity: 0.08;
   stroke-opacity: 0.32;
@@ -298,6 +298,14 @@ main { min-height: 100vh; }
 .control-dock .action-confirm,
 .control-dock .waiting-banner {
   pointer-events: auto;
+}
+/* Floating over the board, disabled buttons must stay opaque — the usual
+   opacity fade lets hexes bleed through and looks broken. */
+.control-dock button:disabled {
+  opacity: 1;
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  color: #5f7183;
 }
 .action-bar { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
 .dice-summary {
