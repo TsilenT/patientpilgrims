@@ -217,6 +217,9 @@ export function GameView() {
         <OpponentBar />
         <DiceSummary />
       </div>
+      {/* The zone owns all space between HUD and sheet; banners and controls
+          float over the board's edges, so the board itself never moves. */}
+      <div className="board-zone">
       {placingRobber && (
         <div className="robber-placement-banner" role="status" aria-label="Robber placement">
           <strong>{robberPrompt}</strong>
@@ -238,8 +241,6 @@ export function GameView() {
       <BoardSvg state={state} legal={legal} robberPlacement={placingRobber} selectedRobberHex={pendingRobberHex}
         pendingRoads={roadEdges !== null ? { edges: roadEdges, color: state.players[state.turn.activeSeat]!.color } : null}
         onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
-      {/* Fixed-height dock: its contents change with the phase, its height
-          never does — the board above stays anchored. */}
       <div className="control-dock">
         {needReveal || owed > 0 ? null : waiting ? (
           <>
@@ -277,6 +278,7 @@ export function GameView() {
             <SheetPeek seat={viewer} />
           </>
         )}
+      </div>
       </div>
       <div inert={needReveal || owed > 0 ? true : undefined}>
         <BottomSheet open={sheetOpen && !needReveal && owed === 0}

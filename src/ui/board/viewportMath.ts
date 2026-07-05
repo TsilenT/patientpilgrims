@@ -5,14 +5,21 @@ export interface ViewBox { minX: number; minY: number; width: number; height: nu
 export const IDENTITY: ViewTransform = { scale: 1, tx: 0, ty: 0 };
 export const MIN_SCALE = 1;
 export const MAX_SCALE = 3;
+/** Fraction of the viewport that must stay covered by board content: panning is
+ *  free (even at 1x — e.g. lift the board above an open hand panel) as long as
+ *  this much of it remains on screen. */
+export const KEEP_VISIBLE = 0.15;
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v)) + 0; // +0 normalizes -0
 
-/** Clamp scale to bounds and translation so the viewport never leaves the board. */
+/** Clamp scale to bounds and translation so the board can't be lost off-screen. */
 export function clampTransform(t: ViewTransform, vb: ViewBox): ViewTransform {
   const scale = clamp(t.scale, MIN_SCALE, MAX_SCALE);
-  const tx = clamp(t.tx, (vb.minX + vb.width) * (1 - scale), vb.minX * (1 - scale));
-  const ty = clamp(t.ty, (vb.minY + vb.height) * (1 - scale), vb.minY * (1 - scale));
+  const keepX = KEEP_VISIBLE * vb.width;
+  const keepY = KEEP_VISIBLE * vb.height;
+  // Content spans [s*min + t, s*(min+span) + t]; keep it overlapping the viewport.
+  const tx = clamp(t.tx, vb.minX + keepX - scale * (vb.minX + vb.width), vb.minX + vb.width - keepX - scale * vb.minX);
+  const ty = clamp(t.ty, vb.minY + keepY - scale * (vb.minY + vb.height), vb.minY + vb.height - keepY - scale * vb.minY);
   return { scale, tx, ty };
 }
 

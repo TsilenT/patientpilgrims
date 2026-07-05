@@ -164,9 +164,8 @@ main { min-height: 100vh; }
 }
 
 .board-stage {
-  position: relative;
-  flex: 1 1 0;
-  min-height: 0; /* let it shrink; the SVG scales via viewBox */
+  position: absolute;
+  inset: 0; /* fills the board zone; overlays float above it */
 }
 .board {
   position: absolute;
@@ -259,16 +258,46 @@ main { min-height: 100vh; }
 .opp-stat.is-award { color: #1a1300; background: var(--gold); border-radius: 6px; padding: 0 5px; }
 
 /* ---- Action bar + dice HUD + bottom sheet + tabs ---- */
-/* Fixed-height dock between board and sheet: contents vary with the phase
-   (roll, turn actions, confirm bars, waiting banner) but the height never
-   does, so the board above stays anchored. Controls hug the bottom. */
+/* The board zone owns everything between HUD and sheet. The board fills it;
+   banners overlay its top and the control dock overlays its bottom, so their
+   coming and going never moves the board (pan up if they cover something). */
+.board-zone {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+}
+.board-zone .robber-placement-banner,
+.board-zone .setup-placement-banner,
+.board-zone .dev-placement-banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
 .control-dock {
-  flex: none;
-  height: 128px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   gap: 6px;
+}
+/* The dock floats over the board: only real controls catch taps, the gaps
+   between them pass through to the board. */
+.control-dock,
+.control-dock .action-bar,
+.control-dock .build-controls,
+.control-dock .sheet-peek {
+  pointer-events: none;
+}
+.control-dock button,
+.control-dock .action-confirm,
+.control-dock .waiting-banner {
+  pointer-events: auto;
 }
 .action-bar { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
 .dice-summary {
@@ -1163,16 +1192,14 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
   .game-view {
     display: grid;
     grid-template-columns: 1fr 320px;
-    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr);
     grid-template-areas:
       "opponents opponents"
-      "board      sheet"
-      "actions    sheet";
+      "board      sheet";
     align-items: stretch;
   }
   .top-hud { grid-area: opponents; }
-  .board-stage { grid-area: board; }
-  .control-dock { grid-area: actions; justify-content: flex-start; }
+  .board-zone { grid-area: board; }
   /* The side rail is always expanded, in-flow, and sized by the grid. */
   .bottom-sheet {
     grid-area: sheet;
