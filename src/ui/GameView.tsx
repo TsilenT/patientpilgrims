@@ -5,6 +5,7 @@ import { legalTargets, legalRoadBuildingEdges, buildTargets } from "../state/leg
 import { currentActor, eligibleVictims } from "../state/viewModel";
 import { BoardSvg } from "./board/BoardSvg";
 import { HandPanel } from "./panels/HandPanel";
+import { SheetPeek } from "./panels/SheetPeek";
 import { BottomSheet, clampSheetHeight, type SheetTab } from "./panels/BottomSheet";
 import { ActionBar } from "./panels/ActionBar";
 import { BuildControls, type BuildMode } from "./panels/BuildControls";
@@ -59,7 +60,9 @@ export function GameView() {
   );
   const [sheetHeight, setSheetHeight] = useState(() => {
     const saved = Number(localStorage.getItem(SHEET_HEIGHT_KEY));
-    return Number.isFinite(saved) && saved > 0 ? clampSheetHeight(saved) : clampSheetHeight(300);
+    if (Number.isFinite(saved) && saved > 0) return clampSheetHeight(saved);
+    // Default: ~40% of the screen — enough for a form, board still readable.
+    return clampSheetHeight(Math.round((window.innerHeight || 800) * 0.4));
   });
   const changeSheetHeight = (px: number) => {
     setSheetHeight(px);
@@ -234,6 +237,7 @@ export function GameView() {
       )}
       <BoardSvg state={state} legal={legal} robberPlacement={placingRobber} selectedRobberHex={pendingRobberHex}
         pendingRoads={roadEdges !== null ? { edges: roadEdges, color: state.players[state.turn.activeSeat]!.color } : null}
+        hud={!sheetOpen && !needReveal ? <SheetPeek seat={viewer} /> : null}
         onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
       {needReveal ? (
         <PassDeviceScreen name={state.players[actor]!.name} onReveal={() => setRevealedSeat(actor)} />
@@ -243,7 +247,7 @@ export function GameView() {
             {`Waiting for ${state.players[state.turn.activeSeat]!.name}…`}
           </div>
           <BottomSheet open={sheetOpen} onToggle={() => setSheetOpen(!sheetOpen)}
-            tab={tab} onSelect={selectTab} peekSeat={viewer}
+            tab={tab} onSelect={selectTab}
             height={sheetHeight} onHeightChange={changeSheetHeight}
             tabs={[
               { id: "hand", label: "Hand" },
@@ -289,7 +293,7 @@ export function GameView() {
               onCancel={() => setBuildMode(null)} />
           )}
           <BottomSheet open={sheetOpen} onToggle={() => setSheetOpen(!sheetOpen)}
-            tab={tab} onSelect={selectTab} peekSeat={viewer}
+            tab={tab} onSelect={selectTab}
             height={sheetHeight} onHeightChange={changeSheetHeight}
             tabs={[
               { id: "hand", label: "Hand" },

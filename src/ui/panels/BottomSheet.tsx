@@ -1,6 +1,5 @@
 import { useRef } from "react";
 import type { PointerEvent as ReactPointerEvent, ReactNode } from "react";
-import { SheetPeek } from "./SheetPeek";
 
 export type SheetTab = "hand" | "trades" | "log" | "links";
 
@@ -16,13 +15,12 @@ export function clampSheetHeight(px: number): number {
  * floats above it, overlaying the board. Drag the grip to resize the panel.
  * On wide screens CSS turns this back into an always-open side rail.
  */
-export function BottomSheet({ open, onToggle, tab, tabs, onSelect, peekSeat, height, onHeightChange, children }: {
+export function BottomSheet({ open, onToggle, tab, tabs, onSelect, height, onHeightChange, children }: {
   open: boolean;
   onToggle: () => void;
   tab: SheetTab;
   tabs: { id: SheetTab; label: string }[];
   onSelect: (t: SheetTab) => void;
-  peekSeat: number;
   height: number;
   onHeightChange: (px: number) => void;
   children: ReactNode;
@@ -53,9 +51,9 @@ export function BottomSheet({ open, onToggle, tab, tabs, onSelect, peekSeat, hei
           aria-label={open ? "Collapse panel" : "Expand panel"}
           onClick={onToggle}>{open ? "⌄" : "⌃"}</button>
       </div>
-      {/* Always rendered so the bar's in-flow height is identical open or
-          collapsed — the board must not shift when the panel toggles. */}
-      <SheetPeek seat={peekSeat} />
+      {/* The panel floats above the bar, so the sheet's in-flow height (tabs
+          only) is constant — the board never shifts. The collapsed-state hand
+          summary lives on the board as a HUD pill (see BoardSvg's hud slot). */}
       {open && (
         <div className="sheet-panel" style={{ height: `${height}px` }}>
           <div className="sheet-grip" role="separator" aria-orientation="horizontal" aria-label="Resize panel"

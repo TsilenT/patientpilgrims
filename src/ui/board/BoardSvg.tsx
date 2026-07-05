@@ -13,6 +13,8 @@ export interface BoardSvgProps {
   robberPlacement?: boolean;
   selectedRobberHex?: string | null;
   pendingRoads?: { edges: string[]; color: string } | null;
+  /** Floating HUD content over the board's bottom edge (e.g. the hand peek pill). */
+  hud?: React.ReactNode;
   onVertex: (v: string) => void;
   onEdge: (e: string) => void;
   onHex: (h: string) => void;
@@ -31,7 +33,7 @@ const HEX_GRADIENT: Record<string, [string, string]> = {
   desert: ["#efe4c0", "#e3d5a8"],
 };
 
-export function BoardSvg({ state, legal, robberPlacement = false, selectedRobberHex = null, pendingRoads = null, onVertex, onEdge, onHex }: BoardSvgProps) {
+export function BoardSvg({ state, legal, robberPlacement = false, selectedRobberHex = null, pendingRoads = null, hud = null, onVertex, onEdge, onHex }: BoardSvgProps) {
   const layout = LAYOUT;
   const { minX, minY, width, height } = layout.viewBox;
   const vp = useBoardViewport(layout.viewBox);
@@ -63,6 +65,7 @@ export function BoardSvg({ state, legal, robberPlacement = false, selectedRobber
         <button aria-label="Zoom out" onClick={vp.zoomOut} disabled={!vp.isTransformed}>−</button>
         {vp.isTransformed && <button aria-label="Reset view" onClick={vp.reset}><RecenterIcon /></button>}
       </div>
+      {hud}
     </div>
   );
 }

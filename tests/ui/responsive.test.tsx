@@ -53,15 +53,16 @@ test("the sheet panel resizes by dragging the grip and persists the height", () 
 
   const grip = screen.getByRole("separator", { name: /resize panel/i });
   const panel = grip.parentElement as HTMLElement;
-  expect(panel.style.height).toBe("300px");
+  const initial = parseInt(panel.style.height, 10);
+  expect(initial).toBeGreaterThanOrEqual(160);
 
   // Drag the grip 100px upward → the panel grows 100px.
   fireEvent.pointerDown(grip, { pointerId: 1, clientY: 500 });
   fireEvent.pointerMove(grip, { pointerId: 1, clientY: 400 });
   fireEvent.pointerUp(grip, { pointerId: 1 });
 
-  expect(panel.style.height).toBe("400px");
-  expect(localStorage.getItem("adultingcatan:sheetHeight")).toBe("400");
+  expect(panel.style.height).toBe(`${initial + 100}px`);
+  expect(localStorage.getItem("adultingcatan:sheetHeight")).toBe(String(initial + 100));
 });
 
 test("the bottom-sheet tabs switch between hand, trades, and log", async () => {
