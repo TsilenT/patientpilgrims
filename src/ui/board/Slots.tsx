@@ -88,7 +88,7 @@ export function Slots({ state, layout, legal, selectedHex, pendingRoads, onVerte
 
       {/* Legal-hex overlays (robber) — drawn last so the highlight and the
           selection ring read over roads and buildings. The selected ring is
-          black-cased with marching white dashes: no player color looks like it. */}
+          marching white dashes with gaps: no solid player color looks like it. */}
       {[...legal.hexes].map((hid) => {
         const corners = topo.hexVertices.get(hid)!.map((v) => layout.vertex[v]!);
         const points = corners.map((p) => `${p.x},${p.y}`).join(" ");
@@ -99,12 +99,8 @@ export function Slots({ state, layout, legal, selectedHex, pendingRoads, onVerte
               points={points} fill="#fff" fillOpacity={0.15}
               style={{ cursor: "pointer" }} onClick={() => onHex(hid)} />
             {selected && (
-              <>
-                <polygon points={points} fill="none" stroke="#0b0f14" strokeWidth={7}
-                  strokeLinejoin="round" pointerEvents="none" />
-                <polygon className="hex-select-dash" points={points} fill="none" stroke="#ffffff"
-                  strokeWidth={7} strokeLinejoin="round" strokeDasharray="10 7" pointerEvents="none" />
-              </>
+              <polygon className="hex-select-dash" points={points} fill="none" stroke="#ffffff"
+                strokeWidth={6} strokeLinejoin="round" strokeDasharray="10 9" pointerEvents="none" />
             )}
           </g>
         );

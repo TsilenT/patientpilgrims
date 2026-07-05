@@ -209,7 +209,13 @@ main { min-height: 100vh; }
   fill-opacity: 0.5;
   stroke: none; /* the dashed selection ring is drawn separately, above roads */
 }
-.hex-select-dash { animation: road-dash 0.8s linear infinite; }
+.hex-select-dash { animation: hex-dash 0.9s linear infinite; }
+@keyframes hex-dash {
+  to { stroke-dashoffset: -19; } /* one dash+gap period (10+9) per loop */
+}
+@media (prefers-reduced-motion: reduce) {
+  .hex-select-dash { animation: none; }
+}
 .board--robber-selected [data-hex-slot]:not([data-selected="true"]) {
   fill-opacity: 0.08;
   stroke-opacity: 0.32;
