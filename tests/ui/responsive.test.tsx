@@ -27,6 +27,15 @@ test("the board renders inside a stage container that hosts overlays", () => {
   expect(stage!.querySelector("svg.board")).not.toBeNull();
 });
 
+test("the bottom sheet is a direct grid child of the game view", () => {
+  // The ≥900px layout places the sheet via `.bottom-sheet { grid-area: sheet }`,
+  // which only applies to direct children of the `.game-view` grid. A wrapper
+  // element here silently breaks the desktop side rail (zero-height panel).
+  const s = new GameStore(mainGame(), new LocalStoragePersistence(), mulberry32(0));
+  const { container } = render(<GameProvider store={s}><GameView /></GameProvider>);
+  expect(container.querySelector(".game-view > .bottom-sheet")).not.toBeNull();
+});
+
 test("the bottom sheet collapses to a hand summary and reopens from a tab", async () => {
   const s = new GameStore(mainGame(), new LocalStoragePersistence(), mulberry32(0));
   render(<GameProvider store={s}><GameView /></GameProvider>);

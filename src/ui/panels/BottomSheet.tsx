@@ -15,7 +15,7 @@ export function clampSheetHeight(px: number): number {
  * floats above it, overlaying the board. Drag the grip to resize the panel.
  * On wide screens CSS turns this back into an always-open side rail.
  */
-export function BottomSheet({ open, onToggle, tab, tabs, onSelect, height, onHeightChange, children }: {
+export function BottomSheet({ open, onToggle, tab, tabs, onSelect, height, onHeightChange, inert, children }: {
   open: boolean;
   onToggle: () => void;
   tab: SheetTab;
@@ -23,6 +23,7 @@ export function BottomSheet({ open, onToggle, tab, tabs, onSelect, height, onHei
   onSelect: (t: SheetTab) => void;
   height: number;
   onHeightChange: (px: number) => void;
+  inert?: boolean;
   children: ReactNode;
 }) {
   const drag = useRef<{ startY: number; startH: number } | null>(null);
@@ -38,7 +39,9 @@ export function BottomSheet({ open, onToggle, tab, tabs, onSelect, height, onHei
   const endGrip = () => { drag.current = null; };
 
   return (
-    <div className={`bottom-sheet${open ? "" : " bottom-sheet--collapsed"}`}>
+    // `inert` lives on the root (not a wrapper): the ≥900px grid places
+    // `.bottom-sheet` via grid-area, which needs it as a direct grid child.
+    <div className={`bottom-sheet${open ? "" : " bottom-sheet--collapsed"}`} inert={inert || undefined}>
       <div className="sheet-bar">
         <div className="tabs" role="tablist">
           {tabs.map(({ id, label }) => (
