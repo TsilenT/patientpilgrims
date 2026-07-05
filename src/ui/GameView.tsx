@@ -280,25 +280,24 @@ export function GameView() {
         )}
       </div>
       </div>
-      <div inert={needReveal || owed > 0 ? true : undefined}>
-        <BottomSheet open={sheetOpen && !needReveal && owed === 0}
-          onToggle={() => setSheetOpen(!sheetOpen)}
-          tab={tab} onSelect={selectTab}
-          height={sheetHeight} onHeightChange={changeSheetHeight}
-          tabs={[
-            { id: "hand", label: "Hand" },
-            { id: "trades", label: tradesTabLabel(state.tradeOffers.length) },
-            { id: "log", label: "Log" },
-            ...(gameId !== null ? [{ id: "links" as const, label: "Links" }] : []),
-          ]}>
-          {tab === "hand" && (interactive ? <HandPanel onPlayDev={onPlayDev} /> : <HandPanel />)}
-          {tab === "trades" && <TradePanel />}
-          {tab === "log" && <LogRail />}
-          {tab === "links" && gameId !== null && (rescueLinks !== null
-            ? <HostLinksPanel id={gameId} links={rescueLinks} />
-            : <p>Recovery links are loading…</p>)}
-        </BottomSheet>
-      </div>
+      <BottomSheet open={sheetOpen && !needReveal && owed === 0}
+        inert={needReveal || owed > 0}
+        onToggle={() => setSheetOpen(!sheetOpen)}
+        tab={tab} onSelect={selectTab}
+        height={sheetHeight} onHeightChange={changeSheetHeight}
+        tabs={[
+          { id: "hand", label: "Hand" },
+          { id: "trades", label: tradesTabLabel(state.tradeOffers.length) },
+          { id: "log", label: "Log" },
+          ...(gameId !== null ? [{ id: "links" as const, label: "Links" }] : []),
+        ]}>
+        {tab === "hand" && (interactive ? <HandPanel onPlayDev={onPlayDev} /> : <HandPanel />)}
+        {tab === "trades" && <TradePanel />}
+        {tab === "log" && <LogRail />}
+        {tab === "links" && gameId !== null && (rescueLinks !== null
+          ? <HostLinksPanel id={gameId} links={rescueLinks} />
+          : <p>Recovery links are loading…</p>)}
+      </BottomSheet>
       {needReveal && (
         <PassDeviceScreen name={state.players[actor]!.name} onReveal={() => setRevealedSeat(actor)} />
       )}

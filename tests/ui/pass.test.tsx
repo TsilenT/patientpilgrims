@@ -16,10 +16,13 @@ test("ending the turn gates the next seat behind a pass screen", async () => {
   );
   g.phase = "main"; g.turn = { activeSeat: 0, subPhase: "main" }; delete g.setup;
   const s = new GameStore(g, new LocalStoragePersistence(), mulberry32(0));
-  render(<GameProvider store={s}><GameView /></GameProvider>);
+  const { container } = render(<GameProvider store={s}><GameView /></GameProvider>);
   await userEvent.click(screen.getByRole("button", { name: /end turn/i }));
   expect(screen.getByText(/pass the device to/i)).toHaveTextContent("Bob");
   expect(screen.queryByRole("button", { name: /roll/i })).toBeNull();
+  // The sheet stays rendered (constant layout) but must not be interactive.
+  expect(container.querySelector(".bottom-sheet")).toHaveAttribute("inert");
   await userEvent.click(screen.getByRole("button", { name: /reveal/i }));
   expect(screen.getByRole("button", { name: /roll/i })).toBeInTheDocument();
+  expect(container.querySelector(".bottom-sheet")).not.toHaveAttribute("inert");
 });
