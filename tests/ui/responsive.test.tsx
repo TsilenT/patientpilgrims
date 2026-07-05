@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { test, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { GameProvider } from "../../src/state/GameProvider";
 import { GameStore } from "../../src/state/gameStore";
@@ -44,6 +44,24 @@ test("the bottom sheet collapses to a hand summary and reopens from a tab", asyn
   await userEvent.click(screen.getByRole("tab", { name: "Hand" }));
   expect(screen.queryByRole("heading", { name: "A" })).toBeNull();
   expect(screen.getByLabelText("Hand summary")).toBeInTheDocument();
+});
+
+test("the sheet panel resizes by dragging the grip and persists the height", () => {
+  localStorage.removeItem("adultingcatan:sheetHeight");
+  const s = new GameStore(mainGame(), new LocalStoragePersistence(), mulberry32(0));
+  render(<GameProvider store={s}><GameView /></GameProvider>);
+
+  const grip = screen.getByRole("separator", { name: /resize panel/i });
+  const panel = grip.parentElement as HTMLElement;
+  expect(panel.style.height).toBe("300px");
+
+  // Drag the grip 100px upward → the panel grows 100px.
+  fireEvent.pointerDown(grip, { pointerId: 1, clientY: 500 });
+  fireEvent.pointerMove(grip, { pointerId: 1, clientY: 400 });
+  fireEvent.pointerUp(grip, { pointerId: 1 });
+
+  expect(panel.style.height).toBe("400px");
+  expect(localStorage.getItem("adultingcatan:sheetHeight")).toBe("400");
 });
 
 test("the bottom-sheet tabs switch between hand, trades, and log", async () => {

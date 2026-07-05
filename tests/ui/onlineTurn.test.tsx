@@ -48,7 +48,7 @@ test("online: when it is not your turn you see a read-only waiting view", () => 
   expect(banner.childNodes[0]?.textContent).toBe("Waiting for Alice…");
   expect(screen.queryByRole("button", { name: /roll/i })).toBeNull();
   // Hand stays left of the always-available Trades tab and Log.
-  expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["Your hand", "Trades", "Log"]);
+  expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["Hand", "Trades", "Log"]);
 });
 
 test("online: dice summary remains visible while waiting for another player", () => {

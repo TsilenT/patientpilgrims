@@ -5,7 +5,7 @@ import { legalTargets, legalRoadBuildingEdges, buildTargets } from "../state/leg
 import { currentActor, eligibleVictims } from "../state/viewModel";
 import { BoardSvg } from "./board/BoardSvg";
 import { HandPanel } from "./panels/HandPanel";
-import { SheetPeek } from "./panels/SheetPeek";
+import { BottomSheet, clampSheetHeight, type SheetTab } from "./panels/BottomSheet";
 import { ActionBar } from "./panels/ActionBar";
 import { BuildControls, type BuildMode } from "./panels/BuildControls";
 import { DiceSummary } from "./panels/DiceSummary";
@@ -25,6 +25,7 @@ import { Toast } from "./Toast";
 import type { DevCardType } from "../engine/devcards";
 
 const NO_TARGETS = { vertices: new Set<string>(), edges: new Set<string>(), hexes: new Set<string>() };
+const SHEET_HEIGHT_KEY = "adultingcatan:sheetHeight";
 
 function tradesTabLabel(openTradeCount: number) {
   return openTradeCount > 0 ? `Trades (${openTradeCount})` : "Trades";
@@ -50,13 +51,21 @@ export function GameView() {
     | { kind: "road"; edge: string }
     | null
   >(null);
-  const [tab, setTab] = useState<"hand" | "trades" | "log" | "links">("hand");
+  const [tab, setTab] = useState<SheetTab>("hand");
   // Phones start with the sheet collapsed so the board dominates; wide screens
   // (side-rail layout) and environments without matchMedia (jsdom) start open.
   const [sheetOpen, setSheetOpen] = useState(() =>
     typeof window.matchMedia === "function" ? window.matchMedia("(min-width: 900px)").matches : true,
   );
-  const selectTab = (t: typeof tab) => {
+  const [sheetHeight, setSheetHeight] = useState(() => {
+    const saved = Number(localStorage.getItem(SHEET_HEIGHT_KEY));
+    return Number.isFinite(saved) && saved > 0 ? clampSheetHeight(saved) : clampSheetHeight(300);
+  });
+  const changeSheetHeight = (px: number) => {
+    setSheetHeight(px);
+    try { localStorage.setItem(SHEET_HEIGHT_KEY, String(px)); } catch { /* private mode */ }
+  };
+  const selectTab = (t: SheetTab) => {
     if (sheetOpen && tab === t) { setSheetOpen(false); return; } // tap the active tab to collapse
     setTab(t);
     setSheetOpen(true);
@@ -233,31 +242,22 @@ export function GameView() {
           <div className="waiting-banner" role="status">
             {`Waiting for ${state.players[state.turn.activeSeat]!.name}…`}
           </div>
-          <div className={`bottom-sheet${sheetOpen ? "" : " bottom-sheet--collapsed"}`}>
-            <div className="sheet-bar">
-              <div className="tabs" role="tablist">
-                <button role="tab" aria-selected={tab === "hand"} onClick={() => selectTab("hand")}>Your hand</button>
-                <button role="tab" aria-selected={tab === "trades"} onClick={() => selectTab("trades")}>{tradesTabLabel(state.tradeOffers.length)}</button>
-                <button role="tab" aria-selected={tab === "log"} onClick={() => selectTab("log")}>Log</button>
-                {gameId !== null && <button role="tab" aria-selected={tab === "links"} onClick={() => selectTab("links")}>Links</button>}
-              </div>
-              <button className="sheet-toggle" aria-expanded={sheetOpen}
-                aria-label={sheetOpen ? "Collapse panel" : "Expand panel"}
-                onClick={() => setSheetOpen(!sheetOpen)}>{sheetOpen ? "⌄" : "⌃"}</button>
-            </div>
-            {sheetOpen ? (
-              <div className="tab-content" role="tabpanel" aria-label={tab}>
-                {tab === "log" && <LogRail />}
-                {tab === "trades" && <TradePanel />}
-                {tab === "hand" && <HandPanel />}
-                {tab === "links" && gameId !== null && (rescueLinks !== null
-                  ? <HostLinksPanel id={gameId} links={rescueLinks} />
-                  : <p>Recovery links are loading…</p>)}
-              </div>
-            ) : (
-              <SheetPeek seat={viewer} />
-            )}
-          </div>
+          <BottomSheet open={sheetOpen} onToggle={() => setSheetOpen(!sheetOpen)}
+            tab={tab} onSelect={selectTab} peekSeat={viewer}
+            height={sheetHeight} onHeightChange={changeSheetHeight}
+            tabs={[
+              { id: "hand", label: "Hand" },
+              { id: "trades", label: tradesTabLabel(state.tradeOffers.length) },
+              { id: "log", label: "Log" },
+              ...(gameId !== null ? [{ id: "links" as const, label: "Links" }] : []),
+            ]}>
+            {tab === "log" && <LogRail />}
+            {tab === "trades" && <TradePanel />}
+            {tab === "hand" && <HandPanel />}
+            {tab === "links" && gameId !== null && (rescueLinks !== null
+              ? <HostLinksPanel id={gameId} links={rescueLinks} />
+              : <p>Recovery links are loading…</p>)}
+          </BottomSheet>
         </>
       ) : owed > 0 ? (
         <DiscardModal state={state} seat={viewer} owed={owed}
@@ -288,31 +288,22 @@ export function GameView() {
               onSelect={(m) => { setBuildMode(m); setSheetOpen(false); }}
               onCancel={() => setBuildMode(null)} />
           )}
-          <div className={`bottom-sheet${sheetOpen ? "" : " bottom-sheet--collapsed"}`}>
-            <div className="sheet-bar">
-              <div className="tabs" role="tablist">
-                <button role="tab" aria-selected={tab === "hand"} onClick={() => selectTab("hand")}>Hand</button>
-                <button role="tab" aria-selected={tab === "trades"} onClick={() => selectTab("trades")}>{tradesTabLabel(state.tradeOffers.length)}</button>
-                <button role="tab" aria-selected={tab === "log"} onClick={() => selectTab("log")}>Log</button>
-                {gameId !== null && <button role="tab" aria-selected={tab === "links"} onClick={() => selectTab("links")}>Links</button>}
-              </div>
-              <button className="sheet-toggle" aria-expanded={sheetOpen}
-                aria-label={sheetOpen ? "Collapse panel" : "Expand panel"}
-                onClick={() => setSheetOpen(!sheetOpen)}>{sheetOpen ? "⌄" : "⌃"}</button>
-            </div>
-            {sheetOpen ? (
-              <div className="tab-content" role="tabpanel" aria-label={tab}>
-                {tab === "hand" && <HandPanel onPlayDev={onPlayDev} />}
-                {tab === "trades" && <TradePanel />}
-                {tab === "log" && <LogRail />}
-                {tab === "links" && gameId !== null && (rescueLinks !== null
-                  ? <HostLinksPanel id={gameId} links={rescueLinks} />
-                  : <p>Recovery links are loading…</p>)}
-              </div>
-            ) : (
-              <SheetPeek seat={viewer} />
-            )}
-          </div>
+          <BottomSheet open={sheetOpen} onToggle={() => setSheetOpen(!sheetOpen)}
+            tab={tab} onSelect={selectTab} peekSeat={viewer}
+            height={sheetHeight} onHeightChange={changeSheetHeight}
+            tabs={[
+              { id: "hand", label: "Hand" },
+              { id: "trades", label: tradesTabLabel(state.tradeOffers.length) },
+              { id: "log", label: "Log" },
+              ...(gameId !== null ? [{ id: "links" as const, label: "Links" }] : []),
+            ]}>
+            {tab === "hand" && <HandPanel onPlayDev={onPlayDev} />}
+            {tab === "trades" && <TradePanel />}
+            {tab === "log" && <LogRail />}
+            {tab === "links" && gameId !== null && (rescueLinks !== null
+              ? <HostLinksPanel id={gameId} links={rescueLinks} />
+              : <p>Recovery links are loading…</p>)}
+          </BottomSheet>
         </>
       )}
       {pendingSetup !== null && (
