@@ -1,0 +1,95 @@
+# Beta channel: publishes master to the Pages root AND this branch to /beta/,
+# so the production site stays intact while the branch is testable at
+# https://stevets.ai/adultingcatan/beta/
+#
+# Caveat: a push to master runs deploy.yml, which rebuilds the site without /beta.
+# Re-run this workflow (push to the beta branch, or workflow_dispatch) to restore it.
+name: Deploy beta to GitHub Pages
+
+on:
+  push:
+    branches: [turn-actions]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages # same group as deploy.yml: never race the production deploy
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run test:run
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      # Production build from master → site root
+      - uses: actions/checkout@v5
+        with:
+          ref: master
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_DATABASE_URL: ${{ secrets.VITE_FIREBASE_DATABASE_URL }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+      - run: mv dist site
+
+      # Beta build from this branch → /beta/ (vite base is "./", so a subpath just works)
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref }}
+          clean: false
+          path: beta-src
+      - run: npm ci
+        working-directory: beta-src
+      - run: npm run build
+        working-directory: beta-src
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_DATABASE_URL: ${{ secrets.VITE_FIREBASE_DATABASE_URL }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+      - run: mv beta-src/dist site/beta
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}beta/
+    steps:
+      # The Pages backend intermittently rejects deployments (transient).
+      - id: deployment
+        uses: actions/deploy-pages@v5
+        continue-on-error: true
+      - if: steps.deployment.outcome == 'failure'
+        run: sleep 60
+      - id: retry
+        if: steps.deployment.outcome == 'failure'
+        uses: actions/deploy-pages@v5

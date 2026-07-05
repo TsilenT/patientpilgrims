@@ -7,8 +7,7 @@ import { BoardSvg } from "./board/BoardSvg";
 import { HandPanel } from "./panels/HandPanel";
 import { SheetPeek } from "./panels/SheetPeek";
 import { BottomSheet, clampSheetHeight, type SheetTab } from "./panels/BottomSheet";
-import { ActionBar } from "./panels/ActionBar";
-import { BuildControls, type BuildMode } from "./panels/BuildControls";
+import { TurnActions, type BuildMode } from "./panels/TurnActions";
 import { DiceSummary } from "./panels/DiceSummary";
 import { OpponentBar } from "./panels/OpponentBar";
 import { LogRail } from "./panels/LogRail";
@@ -269,11 +268,10 @@ export function GameView() {
                   onClick={() => { void confirmRoadBuilding(); }}>Confirm</button>
                 <button onClick={() => setRoadEdges(null)}>Cancel</button>
               </div>
-            ) : buildMode === null && <ActionBar />}
-            {roadEdges === null && (
-              <BuildControls buildMode={buildMode}
-                onSelect={(m) => { setBuildMode(m); setSheetOpen(false); }}
-                onCancel={() => setBuildMode(null)} />
+            ) : (
+              <TurnActions buildMode={buildMode}
+                onSelectBuild={(m) => { setBuildMode(m); setSheetOpen(false); }}
+                onCancelBuild={() => setBuildMode(null)} />
             )}
             <SheetPeek seat={viewer} />
           </>
