@@ -398,7 +398,7 @@ main { min-height: 100vh; }
   left: -1px;
   right: -1px;
   bottom: 100%;
-  margin-bottom: -1px; /* fuse with the bar's top border */
+  margin-bottom: -1px; /* fuse with the bar below — one continuous surface */
   background: var(--panel);
   border: 1px solid var(--panel-edge);
   border-bottom: none;
@@ -408,6 +408,26 @@ main { min-height: 100vh; }
   display: flex;
   flex-direction: column;
   padding: 0 10px 10px;
+  animation: sheet-rise 0.16s ease-out;
+}
+@keyframes sheet-rise {
+  from { transform: translateY(10px); opacity: 0.5; }
+  to { transform: none; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sheet-panel { animation: none; }
+}
+/* While open, the bar is the bottom of ONE expanded sheet: square its top and
+   hide its top border (kept transparent so the bar's height — and therefore
+   the board — never changes). The tabs/content hairline lives on the panel. */
+@media (max-width: 899.98px) {
+  .bottom-sheet:not(.bottom-sheet--collapsed) {
+    border-top-color: transparent;
+    border-radius: 0;
+  }
+  .bottom-sheet:not(.bottom-sheet--collapsed) .sheet-panel {
+    box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.45), inset 0 -1px 0 var(--panel-edge);
+  }
 }
 .sheet-grip {
   flex: none;
@@ -1171,6 +1191,7 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
   .sheet-toggle { display: none; }
   .sheet-grip { display: none; }
   .sheet-peek { display: none; } /* the rail already shows the full hand */
+  .sheet-bar { border-bottom: 1px solid var(--panel-edge); margin-bottom: 8px; }
 }
 
 .build-controls { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
