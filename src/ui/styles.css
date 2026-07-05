@@ -450,16 +450,13 @@ main { min-height: 100vh; }
   min-height: 0;
   overflow-y: auto;
 }
-/* Collapsed-sheet hand summary: a HUD pill floating over the board's bottom
-   edge (the letterbox band at default fit), so it never collides with controls
-   and toggling the sheet never reflows anything. */
+/* Hand-summary pill: sits in flow below the turn buttons, above the tab bar.
+   Rendered in both sheet states (the open drawer covers it), so the layout —
+   and the board — never shift on toggle. */
 .sheet-peek {
-  position: absolute;
-  bottom: 6px;
-  left: 50%;
-  transform: translateX(-50%);
   width: max-content;
   max-width: 100%;
+  margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -470,7 +467,6 @@ main { min-height: 100vh; }
   border: 1px solid var(--panel-edge);
   border-radius: 999px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
-  pointer-events: none; /* informational — board taps pass through */
 }
 /* Mini versions of the hand's resource chips: same colors, tighter fit. */
 .peek-stat {

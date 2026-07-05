@@ -237,7 +237,6 @@ export function GameView() {
       )}
       <BoardSvg state={state} legal={legal} robberPlacement={placingRobber} selectedRobberHex={pendingRobberHex}
         pendingRoads={roadEdges !== null ? { edges: roadEdges, color: state.players[state.turn.activeSeat]!.color } : null}
-        hud={!sheetOpen && !needReveal ? <SheetPeek seat={viewer} /> : null}
         onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
       {needReveal ? (
         <PassDeviceScreen name={state.players[actor]!.name} onReveal={() => setRevealedSeat(actor)} />
@@ -246,6 +245,7 @@ export function GameView() {
           <div className="waiting-banner" role="status">
             {`Waiting for ${state.players[state.turn.activeSeat]!.name}…`}
           </div>
+          <SheetPeek seat={viewer} />
           <BottomSheet open={sheetOpen} onToggle={() => setSheetOpen(!sheetOpen)}
             tab={tab} onSelect={selectTab}
             height={sheetHeight} onHeightChange={changeSheetHeight}
@@ -292,6 +292,7 @@ export function GameView() {
               onSelect={(m) => { setBuildMode(m); setSheetOpen(false); }}
               onCancel={() => setBuildMode(null)} />
           )}
+          <SheetPeek seat={viewer} />
           <BottomSheet open={sheetOpen} onToggle={() => setSheetOpen(!sheetOpen)}
             tab={tab} onSelect={selectTab}
             height={sheetHeight} onHeightChange={changeSheetHeight}
