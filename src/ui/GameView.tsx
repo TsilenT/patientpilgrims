@@ -67,6 +67,13 @@ export function GameView() {
     setSheetHeight(px);
     try { localStorage.setItem(SHEET_HEIGHT_KEY, String(px)); } catch { /* private mode */ }
   };
+  // Collapsing the sheet frees the board on phones. The wide (≥900px) side
+  // rail sits beside the board and has no visible reopen control — collapsing
+  // it makes the whole hand vanish, so it stays put.
+  const collapseSheetForBoard = () => {
+    if (typeof window.matchMedia === "function" && window.matchMedia("(min-width: 900px)").matches) return;
+    setSheetOpen(false);
+  };
   const selectTab = (t: SheetTab) => {
     if (sheetOpen && tab === t) { setSheetOpen(false); return; } // tap the active tab to collapse
     setTab(t);
@@ -101,7 +108,7 @@ export function GameView() {
 
   // Robber placement (a rolled 7) needs the board: collapse the sheet.
   useEffect(() => {
-    if (sub === "movingRobber") setSheetOpen(false);
+    if (sub === "movingRobber") collapseSheetForBoard();
   }, [sub]);
 
   // Turn gating. Hotseat keeps the pass-the-device flow; online locks to your own seat.
@@ -190,10 +197,10 @@ export function GameView() {
 
   const onPlayDev = (type: DevCardType) => {
     // Board-targeting cards hand focus to the board: collapse the sheet.
-    if (type === "knight") { setPendingKnight(true); setPendingRobberHex(null); setRobberPick(null); setSheetOpen(false); return; }
+    if (type === "knight") { setPendingKnight(true); setPendingRobberHex(null); setRobberPick(null); collapseSheetForBoard(); return; }
     if (type === "monopoly") return setDevModal("monopoly");
     if (type === "yearOfPlenty") return setDevModal("yearOfPlenty");
-    if (type === "roadBuilding") { setRoadEdges([]); setSheetOpen(false); }
+    if (type === "roadBuilding") { setRoadEdges([]); collapseSheetForBoard(); }
   };
 
   const confirmRoadBuilding = async () => {
@@ -270,7 +277,7 @@ export function GameView() {
               </div>
             ) : (
               <TurnActions buildMode={buildMode}
-                onSelectBuild={(m) => { setBuildMode(m); setSheetOpen(false); }}
+                onSelectBuild={(m) => { setBuildMode(m); collapseSheetForBoard(); }}
                 onCancelBuild={() => setBuildMode(null)} />
             )}
             <SheetPeek seat={viewer} />

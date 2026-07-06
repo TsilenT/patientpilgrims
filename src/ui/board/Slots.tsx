@@ -15,8 +15,31 @@ export function Slots({ state, layout, legal, selectedHex, pendingRoads, onVerte
   const topo = topology();
   const color = (seat: number) => state.players[seat]!.color;
   const pendingSet = new Set(pendingRoads?.edges ?? []);
+  const legalHexOverlays = [...legal.hexes].map((hid) => {
+    const corners = topo.hexVertices.get(hid)!.map((v) => layout.vertex[v]!);
+    const points = corners.map((p) => `${p.x},${p.y}`).join(" ");
+    const selected = selectedHex === hid;
+    return (
+      <polygon key={hid} data-hex-slot={hid} data-selected={selected ? "true" : undefined}
+        points={points} fill="#fff" fillOpacity={0.15}
+        style={{ cursor: "pointer" }} onClick={() => onHex(hid)} />
+    );
+  });
+  const selectedHexDash = selectedHex && legal.hexes.has(selectedHex) ? (() => {
+    const corners = topo.hexVertices.get(selectedHex)!.map((v) => layout.vertex[v]!);
+    const points = corners.map((p) => `${p.x},${p.y}`).join(" ");
+    return (
+      <polygon className="hex-select-dash" points={points} fill="none" stroke="#ffffff"
+        strokeWidth={6} strokeLinejoin="round" strokeDasharray="10 9" pointerEvents="none" />
+    );
+  })() : null;
   return (
     <g>
+      {/* Legal-hex overlays (robber) are drawn below roads and buildings so
+          their white borders do not show through pieces. The selected confirm
+          ring is drawn separately at the end and remains on top. */}
+      {legalHexOverlays}
+
       {topo.edgeIds.map((eid) => {
         const road = state.board.roads[eid];
         const [a, b] = topo.edgeVertices.get(eid)!;
@@ -86,25 +109,8 @@ export function Slots({ state, layout, legal, selectedHex, pendingRoads, onVerte
         );
       })}
 
-      {/* Legal-hex overlays (robber) — drawn last so the highlight and the
-          selection ring read over roads and buildings. The selected ring is
-          marching white dashes with gaps: no solid player color looks like it. */}
-      {[...legal.hexes].map((hid) => {
-        const corners = topo.hexVertices.get(hid)!.map((v) => layout.vertex[v]!);
-        const points = corners.map((p) => `${p.x},${p.y}`).join(" ");
-        const selected = selectedHex === hid;
-        return (
-          <g key={hid}>
-            <polygon data-hex-slot={hid} data-selected={selected ? "true" : undefined}
-              points={points} fill="#fff" fillOpacity={0.15}
-              style={{ cursor: "pointer" }} onClick={() => onHex(hid)} />
-            {selected && (
-              <polygon className="hex-select-dash" points={points} fill="none" stroke="#ffffff"
-                strokeWidth={6} strokeLinejoin="round" strokeDasharray="10 9" pointerEvents="none" />
-            )}
-          </g>
-        );
-      })}
+      {/* The confirm dash stays above pieces so the chosen robber hex remains clear. */}
+      {selectedHexDash}
     </g>
   );
 }

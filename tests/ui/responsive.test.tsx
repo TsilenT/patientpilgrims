@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { test, expect } from "vitest";
+import { test, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { GameProvider } from "../../src/state/GameProvider";
@@ -25,6 +25,28 @@ test("the board renders inside a stage container that hosts overlays", () => {
   const stage = container.querySelector(".board-stage");
   expect(stage).not.toBeNull();
   expect(stage!.querySelector("svg.board")).not.toBeNull();
+});
+
+test("wide screens keep the side rail open when a knight play moves focus to the board", async () => {
+  // Collapsing the sheet is a phone affordance (board visibility). On the
+  // ≥900px side-rail layout there is no visible expand control, so collapsing
+  // makes the whole hand vanish — players read it as "my card was consumed".
+  vi.stubGlobal("matchMedia", (media: string) => ({
+    matches: true, media,
+    addEventListener: () => {}, removeEventListener: () => {},
+  }));
+  try {
+    const g = mainGame();
+    g.players[0]!.devCards = [{ type: "knight", boughtThisTurn: false, played: false }];
+    const s = new GameStore(g, new LocalStoragePersistence(), mulberry32(0));
+    render(<GameProvider store={s}><GameView /></GameProvider>);
+    await userEvent.click(screen.getByRole("button", { name: "Knight" }));
+    expect(screen.getByRole("status", { name: /robber placement/i })).toBeInTheDocument();
+    // The rail (and the pending knight card) must stay visible.
+    expect(screen.getByRole("heading", { name: "A" })).toBeInTheDocument();
+  } finally {
+    vi.unstubAllGlobals();
+  }
 });
 
 test("the bottom sheet is a direct grid child of the game view", () => {

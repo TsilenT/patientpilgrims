@@ -51,8 +51,10 @@ export function useBoardViewport(vb: ViewBox) {
     return { x: (clientX - rect.left - offX) * k + vb.minX, y: (clientY - rect.top - offY) * k + vb.minY, k };
   };
 
+  // No capture on pointerdown: browsers retarget pointerup/click to the capture
+  // element, which would steal every tap from the slot elements (hex/vertex/edge
+  // onClick would never fire). Capture starts only once a drag engages.
   const onPointerDown = (e: ReactPointerEvent<SVGSVGElement>) => {
-    e.currentTarget.setPointerCapture?.(e.pointerId);
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pointers.current.size === 1) dragged.current = false;
   };
@@ -65,6 +67,7 @@ export function useBoardViewport(vb: ViewBox) {
     if (pointers.current.size === 1) {
       if (Math.hypot(now.x - prev.x, now.y - prev.y) > TAP_SLOP_PX) dragged.current = true;
       if (dragged.current) {
+        e.currentTarget.setPointerCapture?.(e.pointerId); // keep the pan when it leaves the svg
         const { k } = toSvg(now.x, now.y);
         setTransform((t) => panBy(t, vb, (now.x - prev.x) * k, (now.y - prev.y) * k));
         pointers.current.set(e.pointerId, now);
@@ -76,6 +79,7 @@ export function useBoardViewport(vb: ViewBox) {
     const other = [...pointers.current.entries()].find(([id]) => id !== e.pointerId)?.[1];
     if (!other) return;
     dragged.current = true;
+    e.currentTarget.setPointerCapture?.(e.pointerId);
     const dPrev = Math.hypot(prev.x - other.x, prev.y - other.y);
     const dNow = Math.hypot(now.x - other.x, now.y - other.y);
     if (dPrev > 0 && dNow > 0) {
