@@ -67,6 +67,25 @@ test("dragging pans when zoomed and suppresses the trailing click", () => {
   expect(onEdge).not.toHaveBeenCalled();
 });
 
+test("a plain tap never captures the pointer; capture engages only once a drag starts", () => {
+  // Real browsers retarget pointerup/click to the capturing element, so taking
+  // capture on pointerdown steals every click from the slot elements (hexes,
+  // vertices, edges) — the robber/build taps silently die in Chrome and Safari.
+  const { container } = renderBoard();
+  const svg = container.querySelector("svg.board")! as SVGSVGElement;
+  const capture = vi.fn();
+  (svg as unknown as { setPointerCapture: typeof capture }).setPointerCapture = capture;
+
+  fireEvent.pointerDown(svg, { pointerId: 1, clientX: 100, clientY: 100 });
+  fireEvent.pointerUp(svg, { pointerId: 1, clientX: 100, clientY: 100 });
+  expect(capture).not.toHaveBeenCalled();
+
+  // Past the tap slop it is a pan: capture so the drag survives leaving the svg.
+  fireEvent.pointerDown(svg, { pointerId: 1, clientX: 100, clientY: 100 });
+  fireEvent.pointerMove(svg, { pointerId: 1, clientX: 120, clientY: 100 });
+  expect(capture).toHaveBeenCalledWith(1);
+});
+
 test("a clean tap still clicks board slots", () => {
   const onEdge = vi.fn();
   const eid = topology().edgeIds[0]!;
