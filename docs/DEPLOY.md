@@ -1,4 +1,4 @@
-# Deploying Adulting Catan
+# Deploying Patient Pilgrims
 
 The app is a static Vite build hosted on GitHub Pages. Game state lives in Firebase
 Realtime Database; security is enforced by `database.rules.json`. The rules engine and UI
@@ -31,6 +31,24 @@ Push to `master`. The workflow (`.github/workflows/deploy.yml`):
 
 `vite.config.ts` uses `base: "./"` (relative), so the project URL
 (`<user>.github.io/adultingcatan/`) works without further configuration.
+
+## Dual origins (rebrand transition)
+
+The same build serves at two origins:
+
+- `https://patientpilgrims.stevets.ai/` — canonical. A mirror step in both workflows
+  pushes the built site to `TsilenT/patientpilgrims` (`gh-pages` branch, force-orphan),
+  whose Pages site owns the subdomain (`MIRROR_DEPLOY_KEY` secret = deploy key).
+- `https://stevets.ai/adultingcatan/` — legacy. `src/app/legacyRedirect.ts` hops home
+  routes to the subdomain; game/claim hashes and hotseat saves stay put so
+  origin-bound anonymous-auth seats keep working. Cutover later = make the redirect
+  unconditional (or move the custom domain onto this repo for a true 301), then
+  retire the mirror.
+
+The `/beta` caveat applies to the mirror too: a master push republishes both origins
+without `/beta` until the beta workflow re-runs. Mirror pushes are `continue-on-error` —
+a mirror hiccup never blocks the primary deploy (check the Actions log if the subdomain
+goes stale).
 
 ## Local development
 
