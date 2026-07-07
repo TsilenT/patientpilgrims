@@ -85,6 +85,13 @@ Kept tiny (hard to unit-test; keep logic minimal).
      applicationServerKey: urlBase64ToUint8Array(VITE_VAPID_PUBLIC_KEY) })`,
   4. write `{ subscription, updatedAt }` to `/pushSubs/{uid}`.
 - `disablePush()`: unsubscribe + remove `/pushSubs/{uid}`.
+- **Startup re-sync:** on app load, if permission is already granted, read
+  the current `PushManager` subscription and re-write `/pushSubs/{uid}`
+  (last-write-wins). The uid is stable across refreshes, so this heals a
+  rotated push endpoint the moment the app opens, before any send fails.
+  When the uid genuinely changes (cleared data / new device), the old
+  session is gone; correctness then comes from the seat→uid indirection
+  below, not from the old session updating anything.
 
 UI: a **"Notify me when it's my turn"** toggle living in a new **Settings**
 tab (see "Settings tab restructure" below). Reflects the four states. On
@@ -124,6 +131,11 @@ Standalone (own `package.json`), not part of the web build.
   2. resolve uid → subscription via `/pushSubs/{uid}`,
   3. `webpush.sendNotification(subscription, payload)` where payload names
      the game.
+- **Resolution is at send time:** the sender always follows
+  seat → *current* uid → subscription when the turn changes. A player who
+  moved devices (new uid, re-claimed seat via rescue link) is reached
+  correctly; the old uid's `/pushSubs` entry is an orphan no seat points
+  to, never sent to, and left in place (YAGNI — TTL later if it matters).
 - **Dedup:** track the last-notified seat per game in memory; skip if
   unchanged (so reconnects / initial snapshot don't re-fire).
 - **Expiry:** on 404/410 from the push service, delete `/pushSubs/{uid}`.
