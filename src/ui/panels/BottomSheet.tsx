@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import type { PointerEvent as ReactPointerEvent, ReactNode } from "react";
 
-export type SheetTab = "hand" | "trades" | "log" | "links";
+export type SheetTab = "hand" | "trades" | "log" | "settings";
 
 export const MIN_SHEET_HEIGHT = 160;
 

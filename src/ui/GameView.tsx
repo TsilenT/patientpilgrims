@@ -19,7 +19,7 @@ import { DiscardModal } from "./overlays/DiscardModal";
 import { MonopolyPicker, YearOfPlentyPicker } from "./overlays/DevCardModals";
 import { WinScreen } from "./overlays/WinScreen";
 import { OrderRollReveal } from "./overlays/OrderRollReveal";
-import { HostLinksPanel } from "./overlays/HostLinksPanel";
+import { SettingsPanel } from "./panels/SettingsPanel";
 import { hostRescueLinks, loadRescueLinks } from "../net/lobby";
 import { parseRoute } from "../app/router";
 import { Toast } from "./Toast";
@@ -296,14 +296,14 @@ export function GameView() {
           { id: "hand", label: "Hand" },
           { id: "trades", label: tradesTabLabel(state.tradeOffers.length) },
           { id: "log", label: "Log" },
-          ...(gameId !== null ? [{ id: "links" as const, label: "Links" }] : []),
+          ...(gameId !== null ? [{ id: "settings" as const, label: "Settings" }] : []),
         ]}>
         {tab === "hand" && (interactive ? <HandPanel onPlayDev={onPlayDev} /> : <HandPanel />)}
         {tab === "trades" && <TradePanel />}
         {tab === "log" && <LogRail />}
-        {tab === "links" && gameId !== null && (rescueLinks !== null
-          ? <HostLinksPanel id={gameId} links={rescueLinks} />
-          : <p>Recovery links are loading…</p>)}
+        {tab === "settings" && gameId !== null && (
+          <SettingsPanel gameId={gameId} links={rescueLinks} />
+        )}
       </BottomSheet>
       {needReveal && (
         <PassDeviceScreen name={state.players[actor]!.name} onReveal={() => setRevealedSeat(actor)} />
