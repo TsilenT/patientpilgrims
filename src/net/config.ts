@@ -20,3 +20,9 @@ export function readFirebaseConfig(): FirebaseConfig | null {
     appId: (env.VITE_FIREBASE_APP_ID as string | undefined) ?? "",
   };
 }
+
+/** VAPID public key for Web Push. Null when not configured (→ push disabled). */
+export function readVapidPublicKey(): string | null {
+  const key = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined;
+  return key && key.length > 0 ? key : null;
+}
