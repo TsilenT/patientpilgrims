@@ -78,8 +78,10 @@ jobs:
           path: site
 
       # Dual-serve during the rebrand transition: same build, second origin.
+      # Best-effort: a mirror hiccup must never block the primary deploy.
       - name: Mirror to patientpilgrims.stevets.ai
         uses: peaceiris/actions-gh-pages@v4
+        continue-on-error: true
         with:
           deploy_key: ${{ secrets.MIRROR_DEPLOY_KEY }}
           external_repository: TsilenT/patientpilgrims
