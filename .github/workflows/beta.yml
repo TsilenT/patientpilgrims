@@ -77,6 +77,17 @@ jobs:
         with:
           path: site
 
+      # Dual-serve during the rebrand transition: same build, second origin.
+      - name: Mirror to patientpilgrims.stevets.ai
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          deploy_key: ${{ secrets.MIRROR_DEPLOY_KEY }}
+          external_repository: TsilenT/patientpilgrims
+          publish_branch: gh-pages
+          publish_dir: site
+          cname: patientpilgrims.stevets.ai
+          force_orphan: true
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
