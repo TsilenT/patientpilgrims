@@ -86,10 +86,28 @@ Kept tiny (hard to unit-test; keep logic minimal).
   4. write `{ subscription, updatedAt }` to `/pushSubs/{uid}`.
 - `disablePush()`: unsubscribe + remove `/pushSubs/{uid}`.
 
-UI: a **"Notify me when it's my turn"** toggle in settings/lobby.
-Reflects the four states. On `unsupported` specifically on iOS, show
-**"Add to Home Screen to enable notifications."** On `blocked`, explain
-the user must re-enable in browser settings (don't re-prompt).
+UI: a **"Notify me when it's my turn"** toggle living in a new **Settings**
+tab (see "Settings tab restructure" below). Reflects the four states. On
+`unsupported` specifically on iOS, show **"Add to Home Screen to enable
+notifications."** On `blocked`, explain the user must re-enable in browser
+settings (don't re-prompt).
+
+### Settings tab restructure
+
+The bottom-sheet's host-only **Links** tab becomes a **Settings** tab,
+because the notification toggle must reach every player, not just the host.
+
+- **Tab:** rename `links` → `settings` in `BottomSheet.tsx` / `GameView.tsx`.
+  The tab is shown to **all players** in a networked game (previously it
+  effectively only mattered to the host).
+- **Contents, top to bottom:**
+  1. **Notifications** — the "Notify me when it's my turn" toggle. Shown to
+     everyone.
+  2. **Host links** — the existing `HostLinksPanel` content, moved into a
+     **collapsible section** (expand/collapse), rendered **only** for the
+     host (when `rescueLinks` are present). Non-hosts don't see it.
+- `HostLinksPanel` is reused as the body of the collapsible section; no
+  change to its link-copying logic.
 
 VAPID **public** key reaches the client via a new
 `VITE_VAPID_PUBLIC_KEY` env var, read alongside the existing Firebase
