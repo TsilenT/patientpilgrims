@@ -36,3 +36,8 @@ test("with a save, delete saved game clears it and shows the start screen", asyn
   expect(await screen.findByRole("button", { name: /start hotseat game/i })).toBeInTheDocument();
   expect(await new LocalStoragePersistence().load()).toBeNull();
 });
+
+test("start screen shows the Patient Pilgrims brand", async () => {
+  render(<App />);
+  expect(await screen.findByRole("heading", { name: "Patient Pilgrims" })).toBeInTheDocument();
+});

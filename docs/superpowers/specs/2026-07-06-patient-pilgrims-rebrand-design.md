@@ -46,8 +46,9 @@ or in-flight games at `https://stevets.ai/adultingcatan/`.
 
 ### 2. Conditional redirect (old origin → subdomain)
 
-Tiny inline script at the top of `index.html`, framework-free, run at boot **and** on
-`hashchange`:
+Small module (`src/app/legacyRedirect.ts`) imported first by `main.tsx`, run at boot
+**and** on `hashchange` (module instead of an inline script: one testable source of
+truth, and nothing renders before the bundle anyway):
 
 Redirect to `https://patientpilgrims.stevets.ai` + `location.pathname` with the leading
 `/adultingcatan` stripped (so old `/beta/` lands on new `/beta/`) **only when all hold**:
@@ -89,7 +90,8 @@ for a true 301 — then retire the mirror repo.
 ## Testing
 
 - Unit: redirect predicate extracted where testable, or covered via real-input checks.
-- Real input (per project convention): Playwright against a local build — game-hash URLs
-  don't redirect, bare URL does, hotseat save pins, hashchange from a win/lobby exit hops.
+- Wiring covered by unit tests with an injected location (the hostname guard makes local
+  real-input testing moot — it never fires off stevets.ai); real-browser checks happen
+  post-deploy against both origins instead.
 - Post-deploy smoke: old prod URL redirects, old game link serves, subdomain serves,
   `/beta` on both.

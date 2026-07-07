@@ -52,6 +52,18 @@ jobs:
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
+      # Dual-serve during the rebrand transition: same build, second origin.
+      # Best-effort: a mirror hiccup must never block the primary deploy.
+      - name: Mirror to patientpilgrims.stevets.ai
+        uses: peaceiris/actions-gh-pages@v4
+        continue-on-error: true
+        with:
+          deploy_key: ${{ secrets.MIRROR_DEPLOY_KEY }}
+          external_repository: TsilenT/patientpilgrims
+          publish_branch: gh-pages
+          publish_dir: dist
+          cname: patientpilgrims.stevets.ai
+          force_orphan: true
 
   deploy:
     needs: build

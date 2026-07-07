@@ -29,7 +29,7 @@ export function StartScreen({ onStart, onCreateOnline }: {
 
   return (
     <div className="start-screen">
-      <h1>Adulting Catan</h1>
+      <h1>Patient Pilgrims</h1>
       <label>Players:{" "}
         <select aria-label="Player count" value={count} onChange={(e) => setCount(Number(e.target.value))}>
           <option value={3}>3</option>
