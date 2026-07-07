@@ -3,6 +3,8 @@ import { createRoot } from "react-dom/client";
 import { App } from "./app/App";
 import { ErrorBoundary } from "./app/ErrorBoundary";
 import { installLegacyRedirect } from "./app/legacyRedirect";
+import { isFirebaseConfigured, ensureSignedIn } from "./net/firebase";
+import { resyncPush } from "./net/push";
 import "./ui/styles.css";
 
 // Legacy-origin hop: stevets.ai/adultingcatan home routes move to the new brand
@@ -39,3 +41,18 @@ createRoot(document.getElementById("root")!).render(
     </ErrorBoundary>
   </StrictMode>,
 );
+
+// Register the push service worker and, if the user already granted
+// notifications, re-sync this browser's subscription (uid is stable across
+// refreshes, so this heals a rotated push endpoint on load).
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register(`${import.meta.env.BASE_URL}sw.js`)
+      .then(() => {
+        if (!isFirebaseConfigured()) return;
+        return ensureSignedIn().then((uid) => resyncPush(uid));
+      })
+      .catch(() => { /* push is best-effort; ignore registration failures */ });
+  });
+}
