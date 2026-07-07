@@ -13,6 +13,7 @@ build/
 .env
 .env.local
 *.local
+tools/push-sender/service-account.json
 
 # Firebase local
 .firebase/
