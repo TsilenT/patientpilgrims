@@ -45,6 +45,11 @@ The same build serves at two origins:
   unconditional (or move the custom domain onto this repo for a true 301), then
   retire the mirror.
 
+The `/beta` caveat applies to the mirror too: a master push republishes both origins
+without `/beta` until the beta workflow re-runs. Mirror pushes are `continue-on-error` —
+a mirror hiccup never blocks the primary deploy (check the Actions log if the subdomain
+goes stale).
+
 ## Local development
 
 ```bash
