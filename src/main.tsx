@@ -4,7 +4,7 @@ import { App } from "./app/App";
 import { ErrorBoundary } from "./app/ErrorBoundary";
 import { installLegacyRedirect } from "./app/legacyRedirect";
 import { isFirebaseConfigured, ensureSignedIn } from "./net/firebase";
-import { resyncPush } from "./net/push";
+import { resyncPush, clearTurnNotifications } from "./net/push";
 import "./ui/styles.css";
 
 // Legacy-origin hop: stevets.ai/adultingcatan home routes move to the new brand
@@ -50,9 +50,16 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker
       .register(`${import.meta.env.BASE_URL}sw.js`)
       .then(() => {
+        void clearTurnNotifications(); // opening the app clears any lingering turn pings
         if (!isFirebaseConfigured()) return;
         return ensureSignedIn().then((uid) => resyncPush(uid));
       })
       .catch(() => { /* push is best-effort; ignore registration failures */ });
+  });
+
+  // Returning an already-open (or installed) app to the foreground also clears
+  // the tray — the player is looking at the board, so the ping is redundant.
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") void clearTurnNotifications();
   });
 }

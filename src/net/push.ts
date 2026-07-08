@@ -64,6 +64,18 @@ export async function disablePush(uid: string): Promise<void> {
   await removePushSub(uid);
 }
 
+/** Close any turn notifications still in the tray. Call when the app opens or
+ *  returns to the foreground — all our notifications are turn pings, and once
+ *  the player is looking at the app the tray copy is redundant. No-op when
+ *  there's no service worker registration. */
+export async function clearTurnNotifications(): Promise<void> {
+  if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
+  const reg = await navigator.serviceWorker.getRegistration();
+  if (!reg) return;
+  const notes = await reg.getNotifications();
+  for (const n of notes) n.close();
+}
+
 /** On app startup: if already granted, re-write the current subscription so a
  *  rotated endpoint is picked up before any send fails. No-op otherwise. */
 export async function resyncPush(uid: string): Promise<void> {
