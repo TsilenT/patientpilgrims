@@ -63,7 +63,7 @@ function produce(state: GameState, sum: number): Record<number, Partial<Resource
     if (state.bank[res] >= demand) {
       for (let seat = 0; seat < owed.length; seat++) grant(seat, res, owed[seat]![res]);
     } else {
-      // Catan rule: if the bank can't cover everyone, only a sole claimant draws (partial).
+      // Bank rule: if the bank can't cover everyone, only a sole claimant draws (partial).
       const claimants = owed.filter((o) => o[res] > 0).length;
       if (claimants === 1) {
         const seat = owed.findIndex((o) => o[res] > 0);

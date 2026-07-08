@@ -62,10 +62,10 @@ describe("standings", () => {
 });
 
 describe("court titles", () => {
-  it("always crowns the winner Sovereign of Catan", () => {
+  it("always crowns the winner Sovereign of the Realm", () => {
     const s = gameSummary(finished());
     expect(s.standings.find((p) => p.seat === 0)!.title).toEqual({
-      text: "Sovereign of Catan",
+      text: "Sovereign of the Realm",
       detail: "first of their name",
     });
   });

@@ -19,14 +19,14 @@ function savedGame() {
 test("with no save, the start screen creates a game and shows the board", async () => {
   render(<App />);
   await userEvent.click(await screen.findByRole("button", { name: /start hotseat game/i }));
-  expect(await screen.findByRole("img", { name: /catan board/i })).toBeInTheDocument();
+  expect(await screen.findByRole("img", { name: /game board/i })).toBeInTheDocument();
 });
 
 test("with a save, resume enters the saved game", async () => {
   await new LocalStoragePersistence().save(savedGame());
   render(<App />);
   await userEvent.click(await screen.findByRole("button", { name: /resume hotseat game/i }));
-  expect(await screen.findByRole("img", { name: /catan board/i })).toBeInTheDocument();
+  expect(await screen.findByRole("img", { name: /game board/i })).toBeInTheDocument();
 });
 
 test("with a save, delete saved game clears it and shows the start screen", async () => {

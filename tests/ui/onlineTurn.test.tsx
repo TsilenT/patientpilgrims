@@ -91,7 +91,7 @@ test("online: discard panel can be minimized so the board remains viewable", asy
   g.players[1]!.resources = { wood: 2, brick: 0, sheep: 0, wheat: 0, ore: 0 };
   render(<GameProvider store={onlineStore(g, 1)}><GameView /></GameProvider>);
 
-  expect(screen.getByRole("img", { name: /catan board/i })).toBeInTheDocument();
+  expect(screen.getByRole("img", { name: /game board/i })).toBeInTheDocument();
   await userEvent.click(screen.getByRole("button", { name: /minimize/i }));
 
   expect(screen.getByRole("dialog", { name: /discard cards/i })).toHaveClass("discard-modal--collapsed");

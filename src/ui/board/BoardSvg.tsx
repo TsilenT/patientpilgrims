@@ -39,7 +39,7 @@ export function BoardSvg({ state, legal, robberPlacement = false, selectedRobber
     <div className="board-stage">
       <svg ref={vp.svgRef} {...vp.svgHandlers}
         className={`board${robberPlacement ? " board--robber-placement" : ""}${selectedRobberHex !== null ? " board--robber-selected" : ""}`}
-        viewBox={`${minX} ${minY} ${width} ${height}`} role="img" aria-label="Catan board">
+        viewBox={`${minX} ${minY} ${width} ${height}`} role="img" aria-label="game board">
         <defs>
           {Object.entries(HEX_GRADIENT).map(([kind, [top, bottom]]) => (
             <linearGradient key={kind} id={`hex-${kind}`} x1="0" y1="0" x2="0" y2="1">

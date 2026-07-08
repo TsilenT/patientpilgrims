@@ -99,7 +99,7 @@ export function gameSummary(state: GameState): GameSummary {
   });
 
   const titles = new Map<number, { text: string; detail: string }>();
-  titles.set(winner, { text: "Sovereign of Catan", detail: "first of their name" });
+  titles.set(winner, { text: "Sovereign of the Realm", detail: "first of their name" });
   for (const t of COURT_TITLES) {
     let bestSeat = -1;
     let bestVal = 0;

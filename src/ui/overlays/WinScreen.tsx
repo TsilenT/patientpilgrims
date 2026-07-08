@@ -70,7 +70,7 @@ export function WinScreen() {
         </div>
         <Crown />
         <h2>Long live {king.name}!</h2>
-        <p className="win-sub">Sovereign of Catan · {kingRow.totalVp} victory points</p>
+        <p className="win-sub">{kingRow.title.text} · {kingRow.totalVp} victory points</p>
         <div className="win-tabs" role="tablist" aria-label="Game over sections">
           <button
             type="button"

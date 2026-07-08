@@ -5,7 +5,7 @@ export function isVertexEmpty(board: BoardState, v: string): boolean {
   return board.buildings[v] === undefined;
 }
 
-/** Empty, and no adjacent vertex carries a building (Catan distance rule). */
+/** Empty, and no adjacent vertex carries a building (distance rule). */
 export function respectsDistance(board: BoardState, v: string): boolean {
   if (!isVertexEmpty(board, v)) return false;
   const neighbors = topology().vertexNeighbors.get(v) ?? [];

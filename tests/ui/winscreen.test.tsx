@@ -35,7 +35,7 @@ test("crowns the winner and lists every player with VP and court title", () => {
   renderFinished();
   const dialog = screen.getByRole("dialog", { name: /game over/i });
   expect(dialog).toHaveTextContent("Long live Alice!");
-  expect(dialog).toHaveTextContent("Sovereign of Catan · 10 victory points");
+  expect(dialog).toHaveTextContent("Sovereign of the Realm · 10 victory points");
   expect(dialog).toHaveTextContent("Lord Commander of the Army");
   expect(dialog).toHaveTextContent("Carol");
   expect(dialog).toHaveTextContent("Court Jester");

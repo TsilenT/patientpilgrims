@@ -18,7 +18,7 @@ export function snakeOrder(playerCount: number): number[] {
 
 export function createInitialGame(players: NewPlayer[], board: Board, rng?: Rng): GameState {
   if (players.length < 3 || players.length > 4) {
-    throw new Error("Catan base game supports 3-4 players");
+    throw new Error("This game supports 3-4 players");
   }
   const boardState: BoardState = {
     tiles: structuredClone(board.tiles),
