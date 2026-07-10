@@ -38,7 +38,7 @@ afterEach(() => {
   location.hash = "";
 });
 
-test("the hosting device gets a Settings tab with per-seat rescue links", async () => {
+test("the hosting device gets a Settings tab with per-seat device links", async () => {
   location.hash = "#/g/abc123";
   localStorage.setItem("adultingcatan:claims:abc123", JSON.stringify([
     { seat: 0, url: "https://x/#/g/abc123/claim/0/t0" },
@@ -47,12 +47,13 @@ test("the hosting device gets a Settings tab with per-seat rescue links", async 
   ]));
   render(<GameProvider store={onlineStore(mainGame(), 0)}><GameView /></GameProvider>);
   await userEvent.click(screen.getByRole("tab", { name: /settings/i }));
-  await userEvent.click(screen.getByRole("button", { name: /host links/i }));
+  await userEvent.click(screen.getByRole("button", { name: /device links/i }));
   const panel = screen.getByLabelText("Game links");
   expect(panel).toHaveTextContent("Alice");
   expect(panel).toHaveTextContent("Bob");
   expect(panel).toHaveTextContent("Carol");
-  expect(screen.getAllByRole("button", { name: /rescue link/i }).length).toBe(3);
+  expect(panel).toHaveTextContent("current devices stay connected");
+  expect(screen.getAllByRole("button", { name: /^copy device link$/i }).length).toBe(3);
 });
 
 test("non-hosting devices can open recovery links", async () => {
@@ -64,7 +65,7 @@ test("non-hosting devices can open recovery links", async () => {
   ]));
   render(<GameProvider store={onlineStore(mainGame(), 1)}><GameView /></GameProvider>);
   await userEvent.click(screen.getByRole("tab", { name: /settings/i }));
-  await userEvent.click(screen.getByRole("button", { name: /host links/i }));
+  await userEvent.click(screen.getByRole("button", { name: /device links/i }));
   const panel = screen.getByLabelText("Game links");
   expect(panel).toHaveTextContent("Alice");
   expect(panel).toHaveTextContent("Bob");

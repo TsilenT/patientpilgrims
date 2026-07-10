@@ -2,7 +2,7 @@ import "dotenv/config";
 import { readFileSync } from "node:fs";
 import admin from "firebase-admin";
 import webpush from "web-push";
-import { nextNotification } from "./recipients.mjs";
+import { nextNotifications } from "./recipients.mjs";
 
 const serviceAccount = JSON.parse(readFileSync(process.env.SERVICE_ACCOUNT_PATH, "utf8"));
 admin.initializeApp({
@@ -38,27 +38,32 @@ async function maybeSend(gameId, activeSeat, lastSeat) {
     db.ref(`games/${gameId}/meta`).get(),
   ]);
   const seats = seatsSnap.val() || {};
-  const uid = seats?.[activeSeat]?.uid;
-  if (!uid) return;
-  const subSnap = await db.ref(`pushSubs/${uid}`).get();
-  const send = nextNotification({
+  const seat = seats?.[activeSeat];
+  if (!seat?.uid) return;
+  const uids = [...new Set([seat.uid, ...Object.keys(seat.devices || {})])];
+  const subEntries = await Promise.all(uids.map(async (uid) => [
+    uid,
+    (await db.ref(`pushSubs/${uid}`).get()).val(),
+  ]));
+  const sends = nextNotifications({
     gameId,
     gameName: metaSnap.val()?.name,
     activeSeat,
     lastNotifiedSeat: lastSeat,
     seats,
-    subs: { [uid]: subSnap.val() },
+    subs: Object.fromEntries(subEntries),
   });
-  if (!send) return;
-  try {
-    await webpush.sendNotification(send.subscription, JSON.stringify(send.payload));
-    console.log(`sent turn ping → game ${gameId}, seat ${activeSeat}`);
-  } catch (err) {
-    if (err.statusCode === 404 || err.statusCode === 410) {
-      await db.ref(`pushSubs/${uid}`).remove();
-      console.log(`removed expired subscription for ${uid}`);
-    } else {
-      console.error(`send failed (${err.statusCode})`, err.body || err.message);
+  for (const send of sends) {
+    try {
+      await webpush.sendNotification(send.subscription, JSON.stringify(send.payload));
+      console.log(`sent turn ping → game ${gameId}, seat ${activeSeat}, device ${send.uid}`);
+    } catch (err) {
+      if (err.statusCode === 404 || err.statusCode === 410) {
+        await db.ref(`pushSubs/${send.uid}`).remove();
+        console.log(`removed expired subscription for ${send.uid}`);
+      } else {
+        console.error(`send failed (${err.statusCode})`, err.body || err.message);
+      }
     }
   }
 }

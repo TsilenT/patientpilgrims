@@ -22,9 +22,14 @@
         "seats": {
           ".read": "auth != null",
           "$seat": {
-            ".write": "auth != null && ((!data.exists() && root.child('games/'+$gameId+'/meta/status').val() === 'lobby') || (newData.child('uid').val() === auth.uid && (data.child('uid').val() === auth.uid || newData.child('proof').val() === root.child('games/'+$gameId+'/_claims/'+$seat).val())))",
+            ".write": "auth != null && !data.exists() && root.child('games/'+$gameId+'/meta/status').val() === 'lobby'",
             ".validate": "newData.hasChildren(['uid'])",
-            "proof": { ".read": false }
+            "proof": { ".read": false },
+            "devices": {
+              "$uid": {
+                ".write": "auth != null && auth.uid === $uid && newData.isString() && newData.val() === root.child('games/'+$gameId+'/_claims/'+$seat).val()"
+              }
+            }
           }
         },
         "state": {

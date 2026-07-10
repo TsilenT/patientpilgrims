@@ -119,15 +119,18 @@ describe("start + rescue rules", () => {
     expect(snap.val().status).toBe("active");
   });
 
-  it("rebinds a seat to a new device with the proof token (rescue link)", async () => {
+  it("adds another device to a seat without disconnecting the first device", async () => {
     await seed();
     await env.withSecurityRulesDisabled(async (c) => {
       await set(ref(c.database(), "games/g/seats/0"), { uid: "old-device" });
     });
     const fresh = env.authenticatedContext("new-device").database();
-    await assertSucceeds(set(ref(fresh, "games/g/seats/0"), { uid: "new-device", proof: "tokenZero" }));
+    await assertSucceeds(set(ref(fresh, "games/g/seats/0/devices/new-device"), "tokenZero"));
+    expect((await get(ref(fresh, "games/g/seats/0/uid"))).val()).toBe("old-device");
+    await assertFails(set(ref(fresh, "games/g/seats/0"), { uid: "new-device", proof: "tokenZero" }));
     const thief = env.authenticatedContext("thief").database();
-    await assertFails(set(ref(thief, "games/g/seats/0"), { uid: "thief", proof: "wrong" }));
+    await assertFails(set(ref(thief, "games/g/seats/0/devices/thief"), "wrong"));
+    await assertFails(set(ref(thief, "games/g/seats/0/devices/new-device"), "tokenZero"));
   });
 });
 
@@ -144,9 +147,10 @@ describe("pre-lobby games (old schema, no host/status in meta)", () => {
     // the active player still advances the game
     const alice = env.authenticatedContext("alice").database();
     await assertSucceeds(set(ref(alice, "games/old/state"), { version: 8, turn: { activeSeat: 0 } }));
-    // an old claim link still rebinds the seat to a new device
+    // an old claim link still adds a new device without replacing the old one
     const fresh = env.authenticatedContext("alice-new-phone").database();
-    await assertSucceeds(set(ref(fresh, "games/old/seats/0"), { uid: "alice-new-phone", proof: "tok0" }));
+    await assertSucceeds(set(ref(fresh, "games/old/seats/0/devices/alice-new-phone"), "tok0"));
+    expect((await get(ref(fresh, "games/old/seats/0/uid"))).val()).toBe("alice");
     // and the meta read used for routing still works
     await assertSucceeds(get(ref(alice, "games/old/meta")));
   });

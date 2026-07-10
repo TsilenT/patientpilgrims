@@ -3,9 +3,8 @@ import { useGame } from "../../state/GameProvider";
 import type { SeatLink } from "../../net/types";
 
 /**
- * Host-only panel (a bottom-sheet tab): the shareable game link plus per-seat
- * rescue links (minted at start, stored on the host device). Send a player their
- * link to move them to a new device or recover a lost session.
+ * A bottom-sheet panel with the shareable game link plus per-seat device links.
+ * Opening one adds that browser to the seat without disconnecting other devices.
  */
 export function HostLinksPanel({ id, links }: { id: string; links: SeatLink[] }) {
   const { state } = useGame();
@@ -22,7 +21,7 @@ export function HostLinksPanel({ id, links }: { id: string; links: SeatLink[] })
   return (
     <div className="host-links" aria-label="Game links">
       <p className="host-links-hint">
-        Send a player their rescue link to move them to a new device or recover a lost session.
+        Send a player their link to play their seat on another device. Their current devices stay connected.
       </p>
       <div className="host-link-row">
         <span className="who">Spectate / lobby</span>
@@ -32,7 +31,7 @@ export function HostLinksPanel({ id, links }: { id: string; links: SeatLink[] })
         <div key={l.seat} className="host-link-row">
           <span className="who">{state.players[l.seat]?.name ?? `Seat ${l.seat + 1}`}</span>
           <button onClick={() => copy(`s${l.seat}`, l.url)}>
-            {copied === `s${l.seat}` ? "Copied!" : "Copy rescue link"}
+            {copied === `s${l.seat}` ? "Copied!" : "Copy device link"}
           </button>
         </div>
       ))}

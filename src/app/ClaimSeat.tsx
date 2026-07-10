@@ -14,7 +14,7 @@ export function ClaimSeat({ id, seat, token, onClaimed }: {
   return (
     <main data-testid="app-root">
       <div className="start-screen">
-        <h1>Joining game…</h1>
+        <h1>Connecting this device…</h1>
         {error && <p role="alert">{error}</p>}
       </div>
     </main>

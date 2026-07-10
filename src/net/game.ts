@@ -4,11 +4,32 @@ import { database, ensureSignedIn } from "./firebase";
 import { normalizeState } from "./normalize";
 import type { RtdbBackend, CommitResult } from "./types";
 
-/** Binds this browser's uid to a seat if the token matches. Returns the seat index. */
+interface SeatOwners {
+  uid?: string;
+  devices?: Record<string, string>;
+}
+
+/** Finds a seat owned by either its original browser or an additional claimed device. */
+export function seatForUidInSeats(seats: Record<string, SeatOwners>, uid: string): number {
+  for (const [k, seat] of Object.entries(seats)) {
+    if (seat?.uid === uid || seat?.devices?.[uid] !== undefined) return Number(k);
+  }
+  return -1;
+}
+
+export function seatClaimConflict(currentSeat: number, requestedSeat: number): string | null {
+  if (currentSeat === -1 || currentSeat === requestedSeat) return null;
+  return `This browser already controls seat ${currentSeat + 1}. Open the link on the other device instead.`;
+}
+
+/** Adds this browser to a seat if the token matches. Existing devices remain connected. */
 export async function claimSeat(id: string, seat: number, token: string): Promise<number> {
   const uid = await ensureSignedIn();
-  // proof is written to a read:false subpath; the rule validates it against _claims/{seat}
-  await set(ref(database(), `games/${id}/seats/${seat}`), { uid, proof: token });
+  const snap = await get(ref(database(), `games/${id}/seats`));
+  const seats = (snap.val() as Record<string, SeatOwners> | null) ?? {};
+  const conflict = seatClaimConflict(seatForUidInSeats(seats, uid), seat);
+  if (conflict !== null) throw new Error(conflict);
+  await set(ref(database(), `games/${id}/seats/${seat}/devices/${uid}`), token);
   return seat;
 }
 
@@ -16,9 +37,8 @@ export async function claimSeat(id: string, seat: number, token: string): Promis
 export async function seatForUid(id: string): Promise<number> {
   const uid = await ensureSignedIn();
   const snap = await get(ref(database(), `games/${id}/seats`));
-  const seats = (snap.val() as Record<string, { uid?: string }> | null) ?? {};
-  for (const [k, v] of Object.entries(seats)) if (v?.uid === uid) return Number(k);
-  return -1;
+  const seats = (snap.val() as Record<string, SeatOwners> | null) ?? {};
+  return seatForUidInSeats(seats, uid);
 }
 
 /** A Firebase-backed RtdbBackend for the NetworkedGameStore. */

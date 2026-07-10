@@ -44,7 +44,7 @@ export function SettingsPanel({ gameId, links }: { gameId: string; links: SeatLi
         <div className="settings-section">
           <button className="settings-section-head" aria-expanded={linksOpen}
             onClick={() => setLinksOpen((v) => !v)}>
-            {linksOpen ? "⌄" : "⌃"} Host links
+            {linksOpen ? "⌄" : "⌃"} Device links
           </button>
           {linksOpen && <HostLinksPanel id={gameId} links={links} />}
         </div>
