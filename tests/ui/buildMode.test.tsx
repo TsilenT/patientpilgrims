@@ -4,7 +4,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { GameProvider } from "../../src/state/GameProvider";
 import { GameStore } from "../../src/state/gameStore";
-import { BuildControls } from "../../src/ui/panels/BuildControls";
+import { TurnActions } from "../../src/ui/panels/TurnActions";
 import { GameView } from "../../src/ui/GameView";
 import { createInitialGame, mulberry32 } from "../../src/engine";
 import { createBoard } from "../../src/board";
@@ -29,7 +29,7 @@ test("city button enables when you can afford it and own a settlement", () => {
   g.players[0]!.resources = { wood: 0, brick: 0, sheep: 0, wheat: 2, ore: 3 }; // exactly a city
   render(
     <GameProvider store={store(g)}>
-      <BuildControls buildMode={null} onSelect={() => {}} onCancel={() => {}} />
+      <TurnActions buildMode={null} onSelectBuild={() => {}} onCancelBuild={() => {}} />
     </GameProvider>,
   );
   expect(screen.getByRole("button", { name: /city/i })).toBeEnabled();
@@ -40,7 +40,7 @@ test("road button disabled with no resources / no network", () => {
   g.players[0]!.resources = { wood: 0, brick: 0, sheep: 0, wheat: 0, ore: 0 };
   render(
     <GameProvider store={store(g)}>
-      <BuildControls buildMode={null} onSelect={() => {}} onCancel={() => {}} />
+      <TurnActions buildMode={null} onSelectBuild={() => {}} onCancelBuild={() => {}} />
     </GameProvider>,
   );
   expect(screen.getByRole("button", { name: /road/i })).toBeDisabled();
@@ -49,7 +49,7 @@ test("road button disabled with no resources / no network", () => {
 test("placement mode shows a prompt and a cancel button", () => {
   render(
     <GameProvider store={store(mainGame())}>
-      <BuildControls buildMode="settlement" onSelect={() => {}} onCancel={() => {}} />
+      <TurnActions buildMode="settlement" onSelectBuild={() => {}} onCancelBuild={() => {}} />
     </GameProvider>,
   );
   expect(screen.getByText(/tap a spot to build a settlement/i)).toBeInTheDocument();

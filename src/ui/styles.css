@@ -313,6 +313,12 @@ main { min-height: 100vh; }
   border: 1px solid var(--panel-edge);
   color: #5f7183;
 }
+/* Dim a disabled chip's icon/cost art against its (opaque) background. */
+.control-dock button:disabled .chip-icon,
+.control-dock button:disabled .res-tile {
+  filter: grayscale(0.55);
+  opacity: 0.55;
+}
 .action-bar { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
 .dice-summary {
   display: flex;
@@ -1242,3 +1248,52 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
 
 .build-controls { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
 .build-controls .build-prompt { color: var(--gold); font-weight: 700; }
+
+/* ---- Turn actions: purchases row + morphing Roll/End Turn primary ---- */
+.turn-actions { display: flex; flex-direction: column; gap: 7px; pointer-events: none; }
+.purchases {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  pointer-events: none;
+}
+.purchases .chip {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 0 1 92px;
+  min-width: 0;
+  padding: 5px 6px 5px;
+  border-radius: 10px;
+}
+.chip-icon { font-size: 17px; }
+.chip-label { font-size: 11px; font-weight: 700; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.chip-count {
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  background: var(--panel-2);
+  border: 1px solid var(--panel-edge);
+  border-radius: 6px;
+  padding: 0 3px;
+  font-size: 9px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.chip-cost { display: inline-flex; gap: 2px; }
+.chip-cost .res-tile { width: 13px; height: 13px; border-radius: 4px; }
+.chip-cost .res-tile svg { width: 9px; height: 9px; }
+.turn-primary { display: flex; justify-content: center; pointer-events: none; }
+.turn-primary .btn-primary {
+  min-width: 200px;
+  padding: 10px 16px;
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 11px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
