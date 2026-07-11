@@ -9,6 +9,9 @@ describe("parseRoute", () => {
   it("parses the hotseat lobby route", () => {
     expect(parseRoute("#/hotseat")).toEqual({ kind: "hotseat" });
   });
+  it("parses the join screen route", () => {
+    expect(parseRoute("#/join")).toEqual({ kind: "join" });
+  });
   it("parses a game route", () => {
     expect(parseRoute("#/g/abc123")).toEqual({ kind: "game", id: "abc123" });
   });

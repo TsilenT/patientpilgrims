@@ -21,22 +21,22 @@ function savedGame() {
 
 test("with no save, the home menu leads to the hotseat lobby which starts a game", async () => {
   render(<App />);
-  await userEvent.click(await screen.findByRole("button", { name: /new hotseat game/i }));
+  await userEvent.click(await screen.findByRole("button", { name: /hotseat game/i }));
   await userEvent.click(await screen.findByRole("button", { name: /start game/i }));
   expect(await screen.findByRole("img", { name: /game board/i })).toBeInTheDocument();
 });
 
 test("the home menu does not show hotseat player setup", async () => {
   render(<App />);
-  await screen.findByRole("button", { name: /new hotseat game/i });
+  await screen.findByRole("button", { name: /hotseat game/i });
   expect(screen.queryByLabelText(/player count/i)).toBeNull();
   expect(screen.queryByLabelText(/player 1 name/i)).toBeNull();
 });
 
-test("with a save, the home menu offers resume and the hotseat lobby resumes it", async () => {
+test("with a save, the hotseat lobby offers resume and enters the saved game", async () => {
   await new LocalStoragePersistence().save(savedGame());
   render(<App />);
-  await userEvent.click(await screen.findByRole("button", { name: /resume hotseat game/i }));
+  await userEvent.click(await screen.findByRole("button", { name: /hotseat game/i }));
   await userEvent.click(await screen.findByRole("button", { name: /resume game/i }));
   expect(await screen.findByRole("img", { name: /game board/i })).toBeInTheDocument();
 });
@@ -44,7 +44,7 @@ test("with a save, the home menu offers resume and the hotseat lobby resumes it"
 test("with a save, the hotseat lobby can delete it and still start a new game", async () => {
   await new LocalStoragePersistence().save(savedGame());
   render(<App />);
-  await userEvent.click(await screen.findByRole("button", { name: /resume hotseat game/i }));
+  await userEvent.click(await screen.findByRole("button", { name: /hotseat game/i }));
   await userEvent.click(await screen.findByRole("button", { name: /delete saved game/i }));
   expect(screen.queryByRole("button", { name: /resume game/i })).toBeNull();
   expect(await new LocalStoragePersistence().load()).toBeNull();
@@ -53,9 +53,15 @@ test("with a save, the hotseat lobby can delete it and still start a new game", 
 
 test("the hotseat lobby has a way back to the menu", async () => {
   render(<App />);
-  await userEvent.click(await screen.findByRole("button", { name: /new hotseat game/i }));
+  await userEvent.click(await screen.findByRole("button", { name: /hotseat game/i }));
   await userEvent.click(await screen.findByRole("button", { name: /back to menu/i }));
-  expect(await screen.findByRole("button", { name: /new hotseat game/i })).toBeInTheDocument();
+  expect(await screen.findByRole("button", { name: /hotseat game/i })).toBeInTheDocument();
+});
+
+test("the join route shows the join screen", async () => {
+  history.replaceState(null, "", "#/join");
+  render(<App />);
+  expect(await screen.findByLabelText(/game code/i)).toBeInTheDocument();
 });
 
 test("home menu shows the Patient Pilgrims brand", async () => {
@@ -65,7 +71,7 @@ test("home menu shows the Patient Pilgrims brand", async () => {
 
 test("the hotseat lobby defaults to a collapsed random board layout picker", async () => {
   render(<App />);
-  await userEvent.click(await screen.findByRole("button", { name: /new hotseat game/i }));
+  await userEvent.click(await screen.findByRole("button", { name: /hotseat game/i }));
   const trigger = await screen.findByRole("button", { name: /board layout: random/i });
   expect(trigger).toHaveAttribute("aria-expanded", "false");
   expect(screen.queryByText(/standard a–r token spiral/i)).toBeNull();

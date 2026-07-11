@@ -5,6 +5,7 @@ import { NetworkedGameStore } from "../state/NetworkedGameStore";
 import { GameView } from "../ui/GameView";
 import { StartScreen } from "./StartScreen";
 import { HotseatLobby } from "./HotseatLobby";
+import { JoinScreen } from "./JoinScreen";
 import { Lobby } from "./Lobby";
 import { ClaimSeat } from "./ClaimSeat";
 import { LocalStoragePersistence } from "../state/persistence";
@@ -126,6 +127,9 @@ export function App() {
   if (route.kind === "game") {
     return <main data-testid="app-root" />; // resolving meta (effect above)
   }
+  if (route.kind === "join") {
+    return <main data-testid="app-root"><JoinScreen /></main>;
+  }
   if (!checked) return <main data-testid="app-root" />;
   if (route.kind === "hotseat") {
     return (
@@ -141,7 +145,6 @@ export function App() {
   return (
     <main data-testid="app-root">
       <StartScreen
-        hasSave={resumable !== null}
         onCreateOnline={isFirebaseConfigured() ? () => {
           void createLobby()
             .then((id) => { location.hash = `#/g/${id}`; })
