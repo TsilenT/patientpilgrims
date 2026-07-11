@@ -1,52 +1,38 @@
 import { useState } from "react";
-import { GameStore } from "../state/gameStore";
-import { LocalStoragePersistence } from "../state/persistence";
-import { createInitialGame, cryptoRng } from "../engine";
-import { createBoard, type BoardMode } from "../board";
-import { BoardModePicker } from "./BoardModePicker";
+import { extractGameId } from "./router";
 
-const COLORS = ["red", "blue", "white", "orange"];
-const DEFAULT_NAMES = ["Player 1", "Player 2", "Player 3", "Player 4"];
-
-export function StartScreen({ onStart, onCreateOnline }: {
-  onStart: (store: GameStore) => void;
+export function StartScreen({ hasSave, onCreateOnline }: {
+  hasSave: boolean;
   onCreateOnline?: (() => void) | undefined;
 }) {
-  const [count, setCount] = useState(3);
-  const [names, setNames] = useState<string[]>(DEFAULT_NAMES);
-  const [mode, setMode] = useState<BoardMode>("random");
-
-  const start = () => {
-    const players = Array.from({ length: count }, (_, i) => ({
-      name: names[i]!.trim() || DEFAULT_NAMES[i]!,
-      color: COLORS[i]!,
-    }));
-    const rng = cryptoRng();
-    const board = mode === "beginner"
-      ? createBoard({ mode: "beginner" })
-      : createBoard({ mode, rng });
-    onStart(new GameStore(createInitialGame(players, board, rng), new LocalStoragePersistence(), rng));
-  };
+  const [joinOpen, setJoinOpen] = useState(false);
+  const [code, setCode] = useState("");
+  const joinId = extractGameId(code);
 
   return (
     <div className="start-screen">
       <h1>Patient Pilgrims</h1>
-      <label>Players:{" "}
-        <select aria-label="Player count" value={count} onChange={(e) => setCount(Number(e.target.value))}>
-          <option value={3}>3</option>
-          <option value={4}>4</option>
-        </select>
-      </label>
-      {Array.from({ length: count }, (_, i) => (
-        <div key={i} className="player-row">
-          <span className="swatch" style={{ background: COLORS[i] }} aria-hidden="true" />
-          <input aria-label={`Player ${i + 1} name`} value={names[i]}
-            onChange={(e) => setNames((ns) => ns.map((n, j) => (j === i ? e.target.value : n)))} />
-        </div>
-      ))}
-      <BoardModePicker value={mode} onChange={setMode} />
-      <button onClick={start}>Start hotseat game</button>
-      {onCreateOnline && <button onClick={onCreateOnline}>New online game</button>}
+      {onCreateOnline && (
+        <>
+          <button className="btn-primary" onClick={onCreateOnline}>New online game</button>
+          <button aria-expanded={joinOpen} onClick={() => setJoinOpen((o) => !o)}>
+            Join online game
+          </button>
+          {joinOpen && (
+            <form className="join-online" onSubmit={(e) => {
+              e.preventDefault();
+              if (joinId !== null) location.hash = `#/g/${joinId}`;
+            }}>
+              <input aria-label="Game code" placeholder="Game code or invite link"
+                autoFocus value={code} onChange={(e) => setCode(e.target.value)} />
+              <button className="btn-primary" type="submit" disabled={joinId === null}>Join</button>
+            </form>
+          )}
+        </>
+      )}
+      <button onClick={() => { location.hash = "#/hotseat"; }}>
+        {hasSave ? "Resume hotseat game" : "New hotseat game"}
+      </button>
     </div>
   );
 }

@@ -148,6 +148,23 @@ main { min-height: 100vh; }
 .start-screen legend { color: var(--muted); padding: 0 6px; }
 .start-screen > button { padding: 10px; }
 
+/* Home menu: inline join-by-code form */
+.start-screen .join-online { display: flex; gap: 8px; margin: 0; }
+.start-screen .join-online input { flex: 1; min-width: 0; }
+.start-screen .join-online .btn-primary { padding: 7px 16px; }
+
+/* Hotseat lobby: resume block above the new-game setup */
+.start-screen .hotseat-resume,
+.start-screen .hotseat-new { display: flex; flex-direction: column; gap: 10px; }
+.start-screen .hotseat-resume { padding-bottom: 14px; border-bottom: 1px solid var(--panel-edge); }
+.start-screen .hotseat-resume button,
+.start-screen .hotseat-new > button { padding: 10px; }
+.start-screen .hotseat-new h2 { margin: 0; font-size: 1rem; color: var(--muted); font-weight: 600; }
+.hotseat-warning { margin: 0; color: var(--muted); font-size: 0.85rem; text-align: center; }
+.start-screen > .back-link,
+.start-screen > .back-link:hover:not(:disabled) { background: none; border: none; color: var(--muted); }
+.start-screen > .back-link:hover:not(:disabled) { color: var(--ink); }
+
 .board-mode-picker { position: relative; margin: 4px 0; }
 .board-mode-trigger {
   width: 100%;

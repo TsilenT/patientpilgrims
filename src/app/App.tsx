@@ -4,6 +4,7 @@ import { GameStore } from "../state/gameStore";
 import { NetworkedGameStore } from "../state/NetworkedGameStore";
 import { GameView } from "../ui/GameView";
 import { StartScreen } from "./StartScreen";
+import { HotseatLobby } from "./HotseatLobby";
 import { Lobby } from "./Lobby";
 import { ClaimSeat } from "./ClaimSeat";
 import { LocalStoragePersistence } from "../state/persistence";
@@ -29,7 +30,7 @@ export function App() {
     const onHash = () => {
       const r = parseRoute(location.hash);
       setRoute(r);
-      if (r.kind === "start") {
+      if (r.kind === "start" || r.kind === "hotseat") {
         // Leaving a game (e.g. "Back to menu" on the win screen): drop the store and re-check saves.
         setStore(null);
         setJoinError(null);
@@ -126,21 +127,21 @@ export function App() {
     return <main data-testid="app-root" />; // resolving meta (effect above)
   }
   if (!checked) return <main data-testid="app-root" />;
-  if (resumable) {
+  if (route.kind === "hotseat") {
     return (
       <main data-testid="app-root">
-        <div className="start-screen">
-          <h1>Patient Pilgrims</h1>
-          <button onClick={() => setStore(resumable)}>Resume hotseat game</button>
-          <button onClick={() => { void persistence.clear(); setResumable(null); }}>Delete saved game</button>
-        </div>
+        <HotseatLobby
+          resumable={resumable}
+          onStart={setStore}
+          onDeleteSave={() => { void persistence.clear(); setResumable(null); }}
+        />
       </main>
     );
   }
   return (
     <main data-testid="app-root">
       <StartScreen
-        onStart={setStore}
+        hasSave={resumable !== null}
         onCreateOnline={isFirebaseConfigured() ? () => {
           void createLobby()
             .then((id) => { location.hash = `#/g/${id}`; })
