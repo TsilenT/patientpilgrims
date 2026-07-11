@@ -2,7 +2,8 @@ import { useState } from "react";
 import { GameStore } from "../state/gameStore";
 import { LocalStoragePersistence } from "../state/persistence";
 import { createInitialGame, cryptoRng } from "../engine";
-import { createBoard } from "../board";
+import { createBoard, type BoardMode } from "../board";
+import { BoardModePicker } from "./BoardModePicker";
 
 const COLORS = ["red", "blue", "white", "orange"];
 const DEFAULT_NAMES = ["Player 1", "Player 2", "Player 3", "Player 4"];
@@ -13,7 +14,7 @@ export function StartScreen({ onStart, onCreateOnline }: {
 }) {
   const [count, setCount] = useState(3);
   const [names, setNames] = useState<string[]>(DEFAULT_NAMES);
-  const [mode, setMode] = useState<"beginner" | "alphabetical" | "random">("beginner");
+  const [mode, setMode] = useState<BoardMode>("random");
 
   const start = () => {
     const players = Array.from({ length: count }, (_, i) => ({
@@ -43,12 +44,7 @@ export function StartScreen({ onStart, onCreateOnline }: {
             onChange={(e) => setNames((ns) => ns.map((n, j) => (j === i ? e.target.value : n)))} />
         </div>
       ))}
-      <fieldset>
-        <legend>Board</legend>
-        <label><input type="radio" name="mode" checked={mode === "beginner"} onChange={() => setMode("beginner")} /> Beginner</label>
-        <label><input type="radio" name="mode" checked={mode === "alphabetical"} onChange={() => setMode("alphabetical")} /> Alphabetical</label>
-        <label><input type="radio" name="mode" checked={mode === "random"} onChange={() => setMode("random")} /> Random</label>
-      </fieldset>
+      <BoardModePicker value={mode} onChange={setMode} />
       <button onClick={start}>Start hotseat game</button>
       {onCreateOnline && <button onClick={onCreateOnline}>New online game</button>}
     </div>

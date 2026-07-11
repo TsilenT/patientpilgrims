@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { LobbyBackend, LobbyView } from "../net/lobby";
 import { MAX_SLOTS } from "../net/lobby";
 import { CrownIcon } from "../ui/icons";
+import { BoardModePicker } from "./BoardModePicker";
 
 const COLORS = ["red", "blue", "white", "orange"];
 const NAME_KEY = "adultingcatan:name";
@@ -136,21 +137,11 @@ export function Lobby({ id, backend, onEnterGame }: {
         </div>
       )}
 
-      <fieldset disabled={!canManageLobby}>
-        <legend>Board</legend>
-        <label>
-          <input type="radio" name="mode" checked={meta.mode === "beginner"}
-            onChange={() => run(() => backend.setMode("beginner"), "Could not change the board.")} /> Beginner
-        </label>
-        <label>
-          <input type="radio" name="mode" checked={meta.mode === "alphabetical"}
-            onChange={() => run(() => backend.setMode("alphabetical"), "Could not change the board.")} /> Alphabetical
-        </label>
-        <label>
-          <input type="radio" name="mode" checked={meta.mode === "random"}
-            onChange={() => run(() => backend.setMode("random"), "Could not change the board.")} /> Random
-        </label>
-      </fieldset>
+      <BoardModePicker
+        value={meta.mode}
+        disabled={!canManageLobby || busy}
+        onChange={(mode) => run(() => backend.setMode(mode), "Could not change the board.")}
+      />
 
       {error && <p role="alert">{error}</p>}
       <button className="btn-primary" disabled={busy || claimedCount < 3}

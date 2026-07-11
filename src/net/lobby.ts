@@ -43,7 +43,7 @@ export interface LobbyBackend {
 export async function createLobby(): Promise<string> {
   const uid = await ensureSignedIn();
   const id = randomId(6);
-  const meta: GameMeta = { createdAt: Date.now(), host: uid, status: "lobby", mode: "beginner" };
+  const meta: GameMeta = { createdAt: Date.now(), host: uid, status: "lobby", mode: "random" };
   await set(ref(database(), `games/${id}/meta`), meta);
   return id;
 }

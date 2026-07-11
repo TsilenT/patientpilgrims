@@ -41,3 +41,12 @@ test("start screen shows the Patient Pilgrims brand", async () => {
   render(<App />);
   expect(await screen.findByRole("heading", { name: "Patient Pilgrims" })).toBeInTheDocument();
 });
+
+test("new games default to a collapsed random board layout picker", async () => {
+  render(<App />);
+  const trigger = await screen.findByRole("button", { name: /board layout: random/i });
+  expect(trigger).toHaveAttribute("aria-expanded", "false");
+  expect(screen.queryByText(/standard a–r token spiral/i)).toBeNull();
+  await userEvent.click(trigger);
+  expect(screen.getByText(/standard a–r token spiral/i)).toBeInTheDocument();
+});

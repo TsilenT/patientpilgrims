@@ -1,4 +1,5 @@
 import type { GameState } from "../engine/types";
+import type { BoardMode } from "../board";
 
 /** Result of a transactional commit attempt. */
 export type CommitResult =
@@ -20,7 +21,7 @@ export interface GameMeta {
   /** uid of the device that created the game; retained for display, not privilege-gating. */
   host: string;
   status: "lobby" | "active";
-  mode: "beginner" | "alphabetical" | "random";
+  mode: BoardMode;
 }
 
 export interface SeatLink {

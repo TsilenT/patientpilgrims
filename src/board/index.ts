@@ -16,6 +16,8 @@ export interface Board {
   ports: Port[];
 }
 
+export type BoardMode = "beginner" | "alphabetical" | "random";
+
 export type CreateBoardOptions =
   | { mode: "random"; rng: Rng }
   | { mode: "alphabetical"; rng: Rng }

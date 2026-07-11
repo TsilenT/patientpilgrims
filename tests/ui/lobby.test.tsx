@@ -92,7 +92,8 @@ test("a non-host can start and manage the lobby", async () => {
   render(<Lobby id="abc123" backend={backend} onEnterGame={() => {}} />);
   expect(screen.queryByText(/waiting for the host/i)).toBeNull();
   expect(screen.getByRole("button", { name: /remove steve/i })).toBeInTheDocument();
-  await userEvent.click(screen.getByRole("radio", { name: /random/i }));
+  await userEvent.click(screen.getByRole("button", { name: /board layout: beginner/i }));
+  await userEvent.click(screen.getByRole("button", { name: /^random/i }));
   expect(backend.setMode).toHaveBeenCalledWith("random");
   const start = screen.getByRole("button", { name: /start game/i });
   expect(start).toBeEnabled();
@@ -100,15 +101,23 @@ test("a non-host can start and manage the lobby", async () => {
   expect(backend.start).toHaveBeenCalled();
 });
 
-test("offers the alphabetical board between beginner and random", async () => {
+test("board layout opens explanations and collapses after choosing", async () => {
   const { backend } = fakeBackend({ meta: meta(), roster: {}, myUid: "me" });
   render(<Lobby id="abc123" backend={backend} onEnterGame={() => {}} />);
-  const boardGroup = screen.getByRole("group", { name: /board/i });
-  expect(Array.from(boardGroup.querySelectorAll("label")).map((label) => label.textContent?.trim())).toEqual([
-    "Beginner", "Alphabetical", "Random",
-  ]);
-  await userEvent.click(screen.getByRole("radio", { name: /alphabetical/i }));
+
+  const trigger = screen.getByRole("button", { name: /board layout: beginner/i });
+  expect(trigger).toHaveAttribute("aria-expanded", "false");
+  expect(screen.queryByText(/standard a–r token spiral/i)).toBeNull();
+
+  await userEvent.click(trigger);
+  expect(trigger).toHaveAttribute("aria-expanded", "true");
+  expect(screen.getByText(/standard a–r token spiral/i)).toBeInTheDocument();
+  expect(screen.getByText(/numbers are shuffled freely/i)).toBeInTheDocument();
+
+  await userEvent.click(screen.getByRole("button", { name: /^alphabetical/i }));
   expect(backend.setMode).toHaveBeenCalledWith("alphabetical");
+  expect(trigger).toHaveAttribute("aria-expanded", "false");
+  expect(screen.queryByText(/standard a–r token spiral/i)).toBeNull();
 });
 
 test("status flipping to active enters the game", () => {
