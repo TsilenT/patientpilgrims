@@ -143,6 +143,10 @@ export function Lobby({ id, backend, onEnterGame }: {
             onChange={() => run(() => backend.setMode("beginner"), "Could not change the board.")} /> Beginner
         </label>
         <label>
+          <input type="radio" name="mode" checked={meta.mode === "alphabetical"}
+            onChange={() => run(() => backend.setMode("alphabetical"), "Could not change the board.")} /> Alphabetical
+        </label>
+        <label>
           <input type="radio" name="mode" checked={meta.mode === "random"}
             onChange={() => run(() => backend.setMode("random"), "Could not change the board.")} /> Random
         </label>

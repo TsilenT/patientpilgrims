@@ -13,7 +13,7 @@ export function StartScreen({ onStart, onCreateOnline }: {
 }) {
   const [count, setCount] = useState(3);
   const [names, setNames] = useState<string[]>(DEFAULT_NAMES);
-  const [mode, setMode] = useState<"beginner" | "random">("beginner");
+  const [mode, setMode] = useState<"beginner" | "alphabetical" | "random">("beginner");
 
   const start = () => {
     const players = Array.from({ length: count }, (_, i) => ({
@@ -21,9 +21,9 @@ export function StartScreen({ onStart, onCreateOnline }: {
       color: COLORS[i]!,
     }));
     const rng = cryptoRng();
-    const board = mode === "random"
-      ? createBoard({ mode: "random", rng })
-      : createBoard({ mode: "beginner" });
+    const board = mode === "beginner"
+      ? createBoard({ mode: "beginner" })
+      : createBoard({ mode, rng });
     onStart(new GameStore(createInitialGame(players, board, rng), new LocalStoragePersistence(), rng));
   };
 
@@ -46,6 +46,7 @@ export function StartScreen({ onStart, onCreateOnline }: {
       <fieldset>
         <legend>Board</legend>
         <label><input type="radio" name="mode" checked={mode === "beginner"} onChange={() => setMode("beginner")} /> Beginner</label>
+        <label><input type="radio" name="mode" checked={mode === "alphabetical"} onChange={() => setMode("alphabetical")} /> Alphabetical</label>
         <label><input type="radio" name="mode" checked={mode === "random"} onChange={() => setMode("random")} /> Random</label>
       </fieldset>
       <button onClick={start}>Start hotseat game</button>

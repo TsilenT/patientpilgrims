@@ -100,6 +100,17 @@ test("a non-host can start and manage the lobby", async () => {
   expect(backend.start).toHaveBeenCalled();
 });
 
+test("offers the alphabetical board between beginner and random", async () => {
+  const { backend } = fakeBackend({ meta: meta(), roster: {}, myUid: "me" });
+  render(<Lobby id="abc123" backend={backend} onEnterGame={() => {}} />);
+  const boardGroup = screen.getByRole("group", { name: /board/i });
+  expect(Array.from(boardGroup.querySelectorAll("label")).map((label) => label.textContent?.trim())).toEqual([
+    "Beginner", "Alphabetical", "Random",
+  ]);
+  await userEvent.click(screen.getByRole("radio", { name: /alphabetical/i }));
+  expect(backend.setMode).toHaveBeenCalledWith("alphabetical");
+});
+
 test("status flipping to active enters the game", () => {
   const onEnter = vi.fn();
   const { backend, push } = fakeBackend({ meta: meta(), roster: {}, myUid: "me" });

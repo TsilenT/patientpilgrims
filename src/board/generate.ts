@@ -2,6 +2,18 @@ import { buildTopology } from "./topology";
 import { TILE_BAG, NUMBER_BAG, PIP, type TileKind } from "./constants";
 import type { Rng } from "../engine/rng";
 
+/** A–R token order printed on the backs of the standard number tokens. */
+export const ALPHABETICAL_NUMBERS = [
+  5, 2, 6, 3, 8, 10, 9, 12, 11, 4, 8, 10, 9, 4, 5, 6, 3, 11,
+] as const;
+
+/** Counterclockwise outer-to-inner spiral, starting at a coastal corner. */
+export const ALPHABETICAL_SPIRAL = [
+  "-2,0,2", "-1,-1,2", "0,-2,2", "1,-2,1", "2,-2,0", "2,-1,-1",
+  "2,0,-2", "1,1,-2", "0,2,-2", "-1,2,-1", "-2,2,0", "-2,1,1",
+  "-1,0,1", "0,-1,1", "1,-1,0", "1,0,-1", "0,1,-1", "-1,1,0", "0,0,0",
+] as const;
+
 export interface Tile {
   kind: TileKind;
   number?: number; // undefined on desert
@@ -60,6 +72,24 @@ export function generateRandomBoard(rng: Rng): TileAssignment {
   }
   // Extremely unlikely; return last attempt rather than loop forever.
   return assignOnce(rng);
+}
+
+/** Random terrain with number tokens laid A–R in the standard spiral, skipping desert. */
+export function generateAlphabeticalBoard(rng: Rng): TileAssignment {
+  const kinds = rng.shuffle([...TILE_BAG]);
+  const tiles: Record<string, Tile> = {};
+  let robber = "";
+  topo.hexIds.forEach((hid, i) => {
+    const kind = kinds[i]!;
+    tiles[hid] = { kind };
+    if (kind === "desert") robber = hid;
+  });
+
+  let token = 0;
+  for (const hid of ALPHABETICAL_SPIRAL) {
+    if (tiles[hid]!.kind !== "desert") tiles[hid]!.number = ALPHABETICAL_NUMBERS[token++]!;
+  }
+  return { tiles, robber };
 }
 
 // A fixed, deterministic reference layout (correct distributions).

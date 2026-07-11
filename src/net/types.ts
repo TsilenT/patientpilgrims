@@ -20,7 +20,7 @@ export interface GameMeta {
   /** uid of the device that created the game; retained for display, not privilege-gating. */
   host: string;
   status: "lobby" | "active";
-  mode: "beginner" | "random";
+  mode: "beginner" | "alphabetical" | "random";
 }
 
 export interface SeatLink {

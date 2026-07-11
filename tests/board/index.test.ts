@@ -33,4 +33,20 @@ describe("createBoard", () => {
     assertWellFormed(a);
     expect(a.tiles).toEqual(createBoard({ mode: "beginner" }).tiles);
   });
+
+  it("creates an alphabetical board with randomized terrain and the official token spiral", () => {
+    const board = createBoard({ mode: "alphabetical", rng: mulberry32(5) });
+    const again = createBoard({ mode: "alphabetical", rng: mulberry32(5) });
+    assertWellFormed(board);
+    expect(board.tiles).toEqual(again.tiles);
+
+    const spiral = [
+      "-2,0,2", "-1,-1,2", "0,-2,2", "1,-2,1", "2,-2,0", "2,-1,-1",
+      "2,0,-2", "1,1,-2", "0,2,-2", "-1,2,-1", "-2,2,0", "-2,1,1",
+      "-1,0,1", "0,-1,1", "1,-1,0", "1,0,-1", "0,1,-1", "-1,1,0", "0,0,0",
+    ];
+    const expectedTokens = [5, 2, 6, 3, 8, 10, 9, 12, 11, 4, 8, 10, 9, 4, 5, 6, 3, 11];
+    expect(spiral.filter((id) => id !== board.robber).map((id) => board.tiles[id]!.number))
+      .toEqual(expectedTokens);
+  });
 });

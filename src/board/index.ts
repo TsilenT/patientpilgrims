@@ -1,5 +1,5 @@
 import { buildTopology, type BoardTopology } from "./topology";
-import { generateRandomBoard, beginnerBoard, type Tile } from "./generate";
+import { generateAlphabeticalBoard, generateRandomBoard, beginnerBoard, type Tile } from "./generate";
 import { placePorts, type Port } from "./ports";
 import type { Rng } from "../engine/rng";
 
@@ -18,14 +18,19 @@ export interface Board {
 
 export type CreateBoardOptions =
   | { mode: "random"; rng: Rng }
+  | { mode: "alphabetical"; rng: Rng }
   | { mode: "beginner" };
 
 export function createBoard(opts: CreateBoardOptions): Board {
-  const assignment = opts.mode === "random" ? generateRandomBoard(opts.rng) : beginnerBoard();
+  const assignment = opts.mode === "random"
+    ? generateRandomBoard(opts.rng)
+    : opts.mode === "alphabetical"
+      ? generateAlphabeticalBoard(opts.rng)
+      : beginnerBoard();
   return {
     topology: buildTopology(),
     tiles: assignment.tiles,
     robber: assignment.robber,
-    ports: opts.mode === "random" ? placePorts(opts.rng) : placePorts(),
+    ports: opts.mode === "beginner" ? placePorts() : placePorts(opts.rng),
   };
 }

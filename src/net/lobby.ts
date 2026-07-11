@@ -136,9 +136,9 @@ export function makeLobbyBackend(id: string): LobbyBackend {
       const meta = metaSnap.val() as GameMeta;
       const slots = (lobbySnap.val() ?? {}) as Record<string, LobbySeat>;
       const roster = Object.keys(slots).map(Number).sort((a, b) => a - b).map((k) => slots[k]!);
-      const board = meta.mode === "random"
-        ? createBoard({ mode: "random", rng: cryptoRng() })
-        : createBoard({ mode: "beginner" });
+      const board = meta.mode === "beginner"
+        ? createBoard({ mode: "beginner" })
+        : createBoard({ mode: meta.mode, rng: cryptoRng() });
       const state = createInitialGame(roster.map((s) => ({ name: s.name, color: s.color })), board, cryptoRng());
       const tokens = roster.map(() => randomId(16));
 
