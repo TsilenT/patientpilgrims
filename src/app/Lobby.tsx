@@ -13,8 +13,8 @@ export function Lobby({ id, backend, onEnterGame }: {
   onEnterGame: (id: string) => void;
 }) {
   const [view, setView] = useState<LobbyView | null>(null);
-  const [name, setName] = useState(() => {
-    try { return localStorage.getItem(NAME_KEY) ?? ""; } catch { return ""; }
+  const [name, setName] = useState<string | null>(() => {
+    try { return localStorage.getItem(NAME_KEY); } catch { return null; }
   });
   const [color, setColor] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -60,7 +60,7 @@ export function Lobby({ id, backend, onEnterGame }: {
   };
 
   // Seated players see their roster name even if this device never typed one.
-  const formName = name !== "" ? name : (mySlot >= 0 ? slots[mySlot]!.name : "");
+  const formName = name ?? (mySlot >= 0 ? slots[mySlot]!.name : "");
 
   const join = () => {
     const n = formName.trim();
@@ -100,11 +100,6 @@ export function Lobby({ id, backend, onEnterGame }: {
                   {s.uid === meta.host && <CrownIcon className="host-crown" aria-label="host" />}
                   {s.uid === myUid && <span className="you"> (you)</span>}
                 </span>
-                {s.uid === myUid && (
-                  <button disabled={busy} onClick={() => run(() => backend.leave(i), "Could not leave the seat.")}>
-                    Leave
-                  </button>
-                )}
                 {canManageLobby && s.uid !== myUid && (
                   <button disabled={busy} aria-label={`Remove ${s.name}`}
                     onClick={() => run(() => backend.kick(i), "Could not remove the player.")}>
@@ -120,21 +115,40 @@ export function Lobby({ id, backend, onEnterGame }: {
       </ul>
 
       {(mySlot >= 0 || freeSlot >= 0) && (
-        <div className="lobby-join">
-          <input aria-label="Your name" placeholder="Your name" maxLength={24}
-            value={formName} onChange={(e) => setName(e.target.value)} />
-          <div className="color-picker" role="radiogroup" aria-label="Color">
-            {COLORS.map((c) => (
-              <button key={c} role="radio" aria-checked={selectedColor === c} aria-label={c}
-                disabled={!freeColors.includes(c)}
-                className={selectedColor === c ? "color-dot selected" : "color-dot"}
-                style={{ background: c }} onClick={() => setColor(c)} />
-            ))}
+        <section className="lobby-join" aria-labelledby="player-setup-heading">
+          <div className="lobby-join-heading">
+            <h2 id="player-setup-heading">{mySlot >= 0 ? "Your player" : "Join the game"}</h2>
+            <p>{mySlot >= 0
+              ? `You have joined as ${slots[mySlot]!.name}. You can update your details below.`
+              : "Choose your name and color to claim an available player slot."}</p>
           </div>
-          <button className="btn-primary" disabled={busy || formName.trim() === ""} onClick={join}>
-            {mySlot >= 0 ? "Update seat" : "Join game"}
-          </button>
-        </div>
+          <label className="lobby-field" htmlFor="lobby-player-name">
+            <span>Player name</span>
+            <input id="lobby-player-name" aria-label="Your name" placeholder="Your name" maxLength={24}
+              value={formName} onChange={(e) => setName(e.target.value)} />
+          </label>
+          <fieldset className="color-fieldset">
+            <legend>Choose a color</legend>
+            <div className="color-picker" role="radiogroup" aria-label="Color">
+              {COLORS.map((c) => (
+                <button key={c} role="radio" aria-checked={selectedColor === c} aria-label={c}
+                  disabled={!freeColors.includes(c)} title={c}
+                  className={selectedColor === c ? "color-dot selected" : "color-dot"}
+                  style={{ background: c }} onClick={() => setColor(c)} />
+              ))}
+            </div>
+          </fieldset>
+          <div className="lobby-join-actions">
+            <button className="btn-primary" disabled={busy || formName.trim() === ""} onClick={join}>
+              {mySlot >= 0 ? "Save changes" : "Join game"}
+            </button>
+            {mySlot >= 0 && (
+              <button disabled={busy} onClick={() => run(() => backend.leave(mySlot), "Could not leave the seat.")}>
+                Leave game
+              </button>
+            )}
+          </div>
+        </section>
       )}
 
       <BoardModePicker

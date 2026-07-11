@@ -29,6 +29,10 @@ test("a visitor joins with their own name and color", async () => {
 
   expect(screen.getByText(/game code/i)).toHaveTextContent("abc123");
   expect(screen.getAllByText(/open seat/i)).toHaveLength(4);
+  expect(screen.getByRole("heading", { name: /join the game/i })).toBeInTheDocument();
+  expect(screen.getByText(/choose your name and color/i)).toBeInTheDocument();
+  expect(screen.getByText(/player name/i)).toBeInTheDocument();
+  expect(screen.getByText(/choose a color/i)).toBeInTheDocument();
 
   await userEvent.type(screen.getByLabelText(/your name/i), "Maya");
   await userEvent.click(screen.getByRole("radio", { name: "blue" }));
@@ -50,7 +54,26 @@ test("roster updates live, marks you and the host crown", () => {
   expect(screen.getByText("Steve")).toBeInTheDocument();
   expect(screen.getByLabelText(/host/i)).toBeInTheDocument();
   expect(screen.getByText(/\(you\)/)).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: /your player/i })).toBeInTheDocument();
+  expect(screen.getByText(/you have joined as maya/i)).toBeInTheDocument();
+  const save = screen.getByRole("button", { name: /save changes/i });
+  expect(save).toBeInTheDocument();
   expect(screen.getByRole("button", { name: /leave/i })).toBeInTheDocument();
+});
+
+test("a seated player can clear their name while save remains blocked", async () => {
+  const { backend } = fakeBackend({
+    meta: meta(),
+    roster: { 0: { uid: "me", name: "Maya", color: "blue" } },
+    myUid: "me",
+  });
+  render(<Lobby id="abc123" backend={backend} onEnterGame={() => {}} />);
+
+  const input = screen.getByLabelText(/your name/i);
+  expect(input).toHaveValue("Maya");
+  await userEvent.clear(input);
+  expect(input).toHaveValue("");
+  expect(screen.getByRole("button", { name: /save changes/i })).toBeDisabled();
 });
 
 test("host sees kick buttons on others and start gating at 3 players", async () => {

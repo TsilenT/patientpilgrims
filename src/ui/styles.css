@@ -972,8 +972,23 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
 .lobby-slots .lobby-name { flex: 1; font-weight: 600; }
 .lobby-slots .you { color: var(--muted); font-weight: 400; }
 .lobby-slots .lobby-open { color: var(--muted); font-style: italic; }
-.lobby-join { display: flex; flex-direction: column; gap: 8px; }
-.color-picker { display: flex; gap: 10px; justify-content: center; }
+.lobby-join {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  background: rgba(16, 32, 49, 0.72);
+  border: 1px solid var(--panel-edge);
+  border-radius: 12px;
+}
+.lobby-join-heading h2 { margin: 0; color: var(--gold); font-size: 1.05rem; }
+.lobby-join-heading p { margin: 4px 0 0; color: var(--muted); font-size: 0.86rem; line-height: 1.35; }
+.lobby-field { display: flex; flex-direction: column; gap: 5px; }
+.lobby-field > span,
+.color-fieldset legend { color: var(--ink); font-size: 0.82rem; font-weight: 650; }
+.color-fieldset { margin: 0; padding: 0; border: 0; }
+.color-fieldset legend { margin-bottom: 7px; padding: 0; }
+.color-picker { display: flex; gap: 12px; justify-content: flex-start; }
 .color-dot {
   width: 30px;
   height: 30px;
@@ -983,6 +998,8 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
 }
 .color-dot.selected { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(242, 193, 78, 0.35); }
 .color-dot:disabled { opacity: 0.25; }
+.lobby-join-actions { display: flex; gap: 8px; }
+.lobby-join-actions .btn-primary { flex: 1; }
 .lobby-wait { text-align: center; color: var(--muted); }
 
 /* ---- Opening roll-off reveal ---- */
