@@ -10,7 +10,7 @@ vi.mock("../../src/net/push", () => ({
 }));
 vi.mock("../../src/net/firebase", () => ({ ensureSignedIn: vi.fn(async () => "uid-1") }));
 
-import { NotificationToggle } from "../../src/ui/panels/SettingsPanel";
+import { NotificationToggle, SettingsPanel } from "../../src/ui/panels/SettingsPanel";
 import { getPushState, enablePush } from "../../src/net/push";
 
 beforeEach(() => { vi.clearAllMocks(); (getPushState as any).mockResolvedValue("off"); });
@@ -21,11 +21,33 @@ describe("NotificationToggle", () => {
     const btn = await screen.findByRole("button", { name: /notify me when it's my turn/i });
     await userEvent.click(btn);
     await waitFor(() => expect(enablePush).toHaveBeenCalledWith("uid-1"));
+    expect(btn).toHaveAttribute("aria-pressed", "true");
+    expect(btn).toHaveTextContent(/turn notifications are on/i);
   });
 
-  it("shows the install hint when unsupported", async () => {
+  it("stays out of the way when notifications are unsupported", async () => {
     (getPushState as any).mockResolvedValue("unsupported");
-    render(<NotificationToggle />);
-    expect(await screen.findByText(/add to home screen/i)).toBeInTheDocument();
+    const { container } = render(<NotificationToggle />);
+    await waitFor(() => expect(container).toBeEmptyDOMElement());
+  });
+});
+
+describe("SettingsPanel", () => {
+  it("organizes preferences and includes an expandable basic rulebook", async () => {
+    render(<SettingsPanel gameId="abc123" links={null} />);
+
+    expect(screen.getByRole("heading", { name: /game settings/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /notifications/i })).toBeInTheDocument();
+
+    const rulebook = screen.getByRole("button", { name: /how to play/i });
+    expect(rulebook).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByText(/first player to reach 10 victory points/i)).not.toBeInTheDocument();
+
+    await userEvent.click(rulebook);
+    expect(rulebook).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByText(/first player to reach 10 victory points/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /on your turn/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /building costs/i })).toBeInTheDocument();
+    expect(screen.getByText(/longest road/i)).toBeInTheDocument();
   });
 });
