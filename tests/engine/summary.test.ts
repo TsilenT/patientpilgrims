@@ -127,7 +127,7 @@ describe("other statistics", () => {
     );
     expect(gameSummary(g).otherStats).toEqual([
       expect.objectContaining({ seat: 0, resourcesBlocked: 1, resourcesStolen: 1, resourcesDiscarded: 0, sevensRolled: 0 }),
-      expect.objectContaining({ seat: 1, resourcesBlocked: 2, resourcesStolen: 0, resourcesDiscarded: 4, sevensRolled: 1 }),
+      expect.objectContaining({ seat: 1, resourcesBlocked: 2, resourcesStolen: 0, resourcesStolenFrom: 1, resourcesDiscarded: 4, sevensRolled: 1 }),
       expect.objectContaining({ seat: 2, trades: 2, builds: 1, devCardsBought: 1 }),
     ]);
   });

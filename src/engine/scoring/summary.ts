@@ -31,6 +31,7 @@ export interface PlayerOtherStats {
   color: string;
   resourcesBlocked: number;
   resourcesStolen: number;
+  resourcesStolenFrom: number;
   resourcesDiscarded: number;
   sevensRolled: number;
   trades: number;
@@ -167,6 +168,7 @@ export function gameSummary(state: GameState): GameSummary {
     color: p.color,
     resourcesBlocked: state.log.reduce((n, e) => n + (e.blocked?.[p.seat] ?? 0), 0),
     resourcesStolen: countLog(state, p.seat, (e) => e.type === "steal"),
+    resourcesStolenFrom: state.log.filter((e) => e.type === "steal" && e.victim === p.seat).length,
     resourcesDiscarded: state.log.filter((e) => e.seat === p.seat && e.type === "discard").reduce((n, e) => n + (e.count ?? 0), 0),
     sevensRolled: countLog(state, p.seat, (e) => e.type === "roll" && e.sum === 7),
     trades: countLog(state, p.seat, (e) => e.type === "tradeBank" || e.type === "proposeTrade"),

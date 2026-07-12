@@ -68,12 +68,14 @@ test("shows dice roll stats in a separate tab and excludes turn-order rolls", as
     ],
   }));
 
-  expect(screen.getByRole("combobox", { name: /results section/i })).toHaveValue("standings");
+  expect(screen.getByRole("button", { name: /results section: standings/i })).toHaveAttribute("aria-expanded", "false");
   expect(screen.queryByText("Dice roll stats")).toBeNull();
 
-  await userEvent.selectOptions(screen.getByRole("combobox", { name: /results section/i }), "dice");
+  await userEvent.click(screen.getByRole("button", { name: /results section: standings/i }));
+  expect(screen.getByRole("listbox", { name: /results section/i })).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("option", { name: /dice stats/i }));
 
-  expect(screen.getByRole("combobox", { name: /results section/i })).toHaveValue("dice");
+  expect(screen.getByRole("button", { name: /results section: dice stats/i })).toHaveAttribute("aria-expanded", "false");
   expect(screen.getByRole("region", { name: /dice stats/i })).toHaveTextContent("3 turn rolls");
   expect(screen.getByLabelText("7: 2 rolls, 67%")).toBeInTheDocument();
   expect(screen.getByLabelText("8: 1 rolls, 33%")).toBeInTheDocument();
@@ -100,10 +102,12 @@ test("shows per-player robber, discard, and activity totals under Other stats", 
     ],
   }));
 
-  await userEvent.selectOptions(screen.getByRole("combobox", { name: /results section/i }), "other");
+  await userEvent.click(screen.getByRole("button", { name: /results section: standings/i }));
+  await userEvent.click(screen.getByRole("option", { name: /other stats/i }));
   const other = screen.getByRole("region", { name: /other stats/i });
   expect(other).toHaveTextContent("Alice");
   expect(screen.getByRole("row", { name: /alice/i })).toHaveTextContent("2");
   expect(screen.getByRole("row", { name: /bob/i })).toHaveTextContent("6");
+  expect(other).toHaveTextContent("Stolen from");
   expect(screen.getByRole("row", { name: /carol/i })).toHaveTextContent("1");
 });

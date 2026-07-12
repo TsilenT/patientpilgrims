@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useGame } from "../../state/GameProvider";
 import { gameSummary } from "../../engine/scoring/summary";
 import { LocalStoragePersistence } from "../../state/persistence";
@@ -18,6 +18,11 @@ function Crown() {
 }
 
 const ROLL_TOTALS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
+const RESULT_SECTIONS = [
+  { value: "standings", label: "Standings", detail: "Final ranks and titles" },
+  { value: "dice", label: "Dice stats", detail: "Roll totals and distribution" },
+  { value: "other", label: "Other stats", detail: "Robber, discards, trades, and builds" },
+] as const;
 
 function rollStats(state: GameState) {
   const counts = new Map<number, number>(ROLL_TOTALS.map((sum) => [sum, 0]));
@@ -36,6 +41,16 @@ export function WinScreen() {
   const { state, mySeat } = useGame();
   const [open, setOpen] = useState(true);
   const [section, setSection] = useState<"standings" | "dice" | "other">("standings");
+  const [sectionMenuOpen, setSectionMenuOpen] = useState(false);
+  const sectionPickerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!sectionMenuOpen) return;
+    const close = (event: MouseEvent) => {
+      if (!sectionPickerRef.current?.contains(event.target as Node)) setSectionMenuOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [sectionMenuOpen]);
   if (state.phase !== "finished" || state.winner === undefined) return null;
 
   if (!open) {
@@ -71,14 +86,24 @@ export function WinScreen() {
         <Crown />
         <h2>Long live {king.name}!</h2>
         <p className="win-sub">{kingRow.title.text} · {kingRow.totalVp} victory points</p>
-        <label className="win-section-picker">
-          <span>Results section</span>
-          <select value={section} onChange={(e) => setSection(e.target.value as typeof section)}>
-            <option value="standings">Standings</option>
-            <option value="dice">Dice stats</option>
-            <option value="other">Other stats</option>
-          </select>
-        </label>
+        <div className="win-section-picker" ref={sectionPickerRef}>
+          <span className="win-section-picker__label">Results section</span>
+          <button type="button" className="win-section-trigger"
+            aria-label={`Results section: ${RESULT_SECTIONS.find((item) => item.value === section)!.label}`}
+            aria-expanded={sectionMenuOpen} aria-haspopup="listbox"
+            onClick={() => setSectionMenuOpen((open) => !open)}>
+            <span><strong>{RESULT_SECTIONS.find((item) => item.value === section)!.label}</strong>
+              <small>{RESULT_SECTIONS.find((item) => item.value === section)!.detail}</small></span>
+            <span className="win-section-chevron" aria-hidden="true">⌄</span>
+          </button>
+          {sectionMenuOpen && <div className="win-section-menu" role="listbox" aria-label="Results section">
+            {RESULT_SECTIONS.map((item) => <button type="button" role="option" key={item.value}
+              aria-selected={section === item.value} onClick={() => { setSection(item.value); setSectionMenuOpen(false); }}>
+              <span><strong>{item.label}</strong><small>{item.detail}</small></span>
+              {section === item.value && <span className="win-section-check" aria-hidden="true">✓</span>}
+            </button>)}
+          </div>}
+        </div>
         {section === "standings" ? (
           <ol
             className="standings"
@@ -140,13 +165,14 @@ export function WinScreen() {
               <table>
                 <thead><tr>
                   <th>Player</th><th title="Resources blocked by the robber">Blocked</th>
-                  <th title="Resources stolen with the robber">Stolen</th><th title="Cards discarded after rolling 7">Discarded</th>
+                  <th title="Resources stolen with the robber">Stolen</th><th title="Resources stolen from this player">Stolen from</th>
+                  <th title="Cards discarded after rolling 7">Discarded</th>
                   <th>7s</th><th>Trades</th><th>Builds</th><th>Dev cards</th>
                 </tr></thead>
                 <tbody>{summary.otherStats.map((p) => (
                   <tr key={p.seat}>
                     <th><span className="swatch" style={{ background: p.color }} aria-hidden="true" />{p.name}</th>
-                    <td>{p.resourcesBlocked}</td><td>{p.resourcesStolen}</td><td>{p.resourcesDiscarded}</td>
+                    <td>{p.resourcesBlocked}</td><td>{p.resourcesStolen}</td><td>{p.resourcesStolenFrom}</td><td>{p.resourcesDiscarded}</td>
                     <td>{p.sevensRolled}</td><td>{p.trades}</td><td>{p.builds}</td><td>{p.devCardsBought}</td>
                   </tr>
                 ))}</tbody>
