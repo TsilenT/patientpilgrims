@@ -27,6 +27,7 @@ import type { DevCardType } from "../engine/devcards";
 
 const NO_TARGETS = { vertices: new Set<string>(), edges: new Set<string>(), hexes: new Set<string>() };
 const SHEET_HEIGHT_KEY = "adultingcatan:sheetHeight";
+const CONFIRM_PURCHASES_KEY = "adultingcatan:confirmPurchases";
 
 function tradesTabLabel(openTradeCount: number) {
   return openTradeCount > 0 ? `Trades (${openTradeCount})` : "Trades";
@@ -47,6 +48,12 @@ export function GameView() {
   const [devModal, setDevModal] = useState<"monopoly" | "yearOfPlenty" | null>(null);
   const [roadEdges, setRoadEdges] = useState<string[] | null>(null);
   const [buildMode, setBuildMode] = useState<BuildMode>(null);
+  const [confirmPurchases, setConfirmPurchases] = useState(() => localStorage.getItem(CONFIRM_PURCHASES_KEY) === "true");
+  const [pendingBuild, setPendingBuild] = useState<
+    | { kind: "settlement" | "city"; vertex: string }
+    | { kind: "road"; edge: string }
+    | null
+  >(null);
   const [pendingSetup, setPendingSetup] = useState<
     | { kind: "settlement"; vertex: string }
     | { kind: "road"; edge: string }
@@ -67,6 +74,10 @@ export function GameView() {
   const changeSheetHeight = (px: number) => {
     setSheetHeight(px);
     try { localStorage.setItem(SHEET_HEIGHT_KEY, String(px)); } catch { /* private mode */ }
+  };
+  const changeConfirmPurchases = (enabled: boolean) => {
+    setConfirmPurchases(enabled);
+    try { localStorage.setItem(CONFIRM_PURCHASES_KEY, String(enabled)); } catch { /* private mode */ }
   };
   // Collapsing the sheet frees the board on phones. The wide (≥900px) side
   // rail sits beside the board and has no visible reopen control — collapsing
@@ -147,10 +158,14 @@ export function GameView() {
     if (!interactive || roadEdges !== null) return;
     if (effectiveMode === "settlement") {
       if (sub === "setupSettlement") { setPendingSetup({ kind: "settlement", vertex: v }); return; }
-      if (sub === "main") { const r = await run({ type: "buildSettlement", vertex: v }); finishBuild(r.ok); }
+      if (sub === "main") {
+        if (confirmPurchases) { setPendingBuild({ kind: "settlement", vertex: v }); return; }
+        const r = await run({ type: "buildSettlement", vertex: v }); finishBuild(r.ok);
+      }
       return;
     }
     if (effectiveMode === "city" && sub === "main") {
+      if (confirmPurchases) { setPendingBuild({ kind: "city", vertex: v }); return; }
       const r = await run({ type: "buildCity", vertex: v }); finishBuild(r.ok);
     }
   };
@@ -164,7 +179,10 @@ export function GameView() {
     }
     if (effectiveMode !== "road") return;
     if (sub === "setupRoad") { setPendingSetup({ kind: "road", edge: e }); return; }
-    if (sub === "main") { const r = await run({ type: "buildRoad", edge: e }); finishBuild(r.ok); }
+    if (sub === "main") {
+      if (confirmPurchases) { setPendingBuild({ kind: "road", edge: e }); return; }
+      const r = await run({ type: "buildRoad", edge: e }); finishBuild(r.ok);
+    }
   };
   const onHex = (h: string) => {
     if (!interactive || (sub !== "movingRobber" && !pendingKnight)) return;
@@ -216,6 +234,16 @@ export function GameView() {
       ? await run({ type: "setupSettlement", vertex: pendingSetup.vertex })
       : await run({ type: "setupRoad", edge: pendingSetup.edge });
     if (result.ok) setPendingSetup(null);
+  };
+
+  const confirmBuildPlacement = async () => {
+    if (pendingBuild === null) return;
+    const result = pendingBuild.kind === "road"
+      ? await run({ type: "buildRoad", edge: pendingBuild.edge })
+      : pendingBuild.kind === "settlement"
+        ? await run({ type: "buildSettlement", vertex: pendingBuild.vertex })
+        : await run({ type: "buildCity", vertex: pendingBuild.vertex });
+    if (result.ok) { setPendingBuild(null); setBuildMode(null); }
   };
 
   return (
@@ -276,11 +304,11 @@ export function GameView() {
                   onClick={() => { void confirmRoadBuilding(); }}>Confirm</button>
                 <button onClick={() => setRoadEdges(null)}>Cancel</button>
               </div>
-            ) : buildMode === null && <ActionBar />}
+            ) : buildMode === null && <ActionBar confirmPurchases={confirmPurchases} />}
             {roadEdges === null && (
               <BuildControls buildMode={buildMode}
                 onSelect={(m) => { setBuildMode(m); collapseSheetForBoard(); }}
-                onCancel={() => setBuildMode(null)} />
+                onCancel={() => { setBuildMode(null); setPendingBuild(null); }} />
             )}
             <SheetPeek seat={viewer} />
           </>
@@ -302,7 +330,8 @@ export function GameView() {
         {tab === "trades" && <TradePanel />}
         {tab === "log" && <LogRail />}
         {tab === "settings" && gameId !== null && (
-          <SettingsPanel gameId={gameId} links={rescueLinks} />
+          <SettingsPanel gameId={gameId} links={rescueLinks}
+            confirmPurchases={confirmPurchases} onConfirmPurchasesChange={changeConfirmPurchases} />
         )}
       </BottomSheet>
       {needReveal && (
@@ -321,6 +350,13 @@ export function GameView() {
             Confirm
           </button>
           <button onClick={() => setPendingSetup(null)}>Cancel</button>
+        </div>
+      )}
+      {pendingBuild !== null && (
+        <div className="setup-confirm" role="dialog" aria-modal="true" aria-label="Confirm build">
+          <p>Build this {pendingBuild.kind}?</p>
+          <button className="btn-primary" onClick={() => { void confirmBuildPlacement(); }}>Confirm</button>
+          <button onClick={() => setPendingBuild(null)}>Cancel</button>
         </div>
       )}
       {devModal === "monopoly" && (

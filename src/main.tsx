@@ -18,9 +18,9 @@ for (const evt of ["gesturestart", "gesturechange", "gestureend"]) {
 // the toolbar with no scroll to recover it. visualViewport reports the truth.
 const setAppHeight = () => {
   const vv = window.visualViewport;
-  // Multiply by scale so a pinch-zoomed page (iOS ignores the meta) reports the
-  // layout-viewport height — otherwise zooming would shrink the app layout too.
-  const h = vv ? vv.height * vv.scale : window.innerHeight;
+  // visualViewport.height is already expressed in CSS pixels. Multiplying it by
+  // scale makes the shell far too short when iOS applies page/display zoom.
+  const h = vv ? vv.height : window.innerHeight;
   document.documentElement.style.setProperty("--app-height", `${Math.round(h)}px`);
 };
 setAppHeight();

@@ -98,7 +98,12 @@ function BasicRulebook() {
   );
 }
 
-export function SettingsPanel({ gameId, links }: { gameId: string; links: SeatLink[] | null }) {
+export function SettingsPanel({ gameId, links, confirmPurchases = false, onConfirmPurchasesChange = () => {} }: {
+  gameId: string;
+  links: SeatLink[] | null;
+  confirmPurchases?: boolean;
+  onConfirmPurchasesChange?: (enabled: boolean) => void;
+}) {
   const [openSection, setOpenSection] = useState<"rules" | "links" | null>(null);
   const toggle = (section: "rules" | "links") => {
     setOpenSection((current) => current === section ? null : section);
@@ -117,6 +122,21 @@ export function SettingsPanel({ gameId, links }: { gameId: string; links: SeatLi
           <p>Keep up with the game when this tab is closed.</p>
         </div>
         <NotificationToggle />
+      </section>
+
+      <section className="settings-card" aria-labelledby="confirmation-heading">
+        <div className="settings-card-heading">
+          <h3 id="confirmation-heading">Action confirmation</h3>
+          <p>Prevent accidental resource spending.</p>
+        </div>
+        <button className="settings-toggle" aria-pressed={confirmPurchases}
+          onClick={() => onConfirmPurchasesChange(!confirmPurchases)}>
+          <span className="settings-toggle-copy">
+            <strong>Confirm builds and development cards</strong>
+            <small>{confirmPurchases ? "Confirmation is on" : "Confirmation is off"}</small>
+          </span>
+          <span className="settings-switch" aria-hidden="true"><span /></span>
+        </button>
       </section>
 
       <SettingsAccordion title="How to play" summary="A quick game rulebook"

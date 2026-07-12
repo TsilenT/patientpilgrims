@@ -65,3 +65,15 @@ test("Buy Dev Card is enabled when the active player can afford it", () => {
   render(<GameProvider store={s}><ActionBar /></GameProvider>);
   expect(screen.getByRole("button", { name: /buy dev card/i })).toBeEnabled();
 });
+
+test("development-card confirmation can be cancelled without spending resources", async () => {
+  const s = store("main");
+  s.getState().players[0]!.resources = { wood: 0, brick: 0, sheep: 1, wheat: 1, ore: 1 };
+  render(<GameProvider store={s}><ActionBar confirmPurchases /></GameProvider>);
+  await userEvent.click(screen.getByRole("button", { name: /buy dev card/i }));
+  expect(screen.getByRole("dialog", { name: /confirm development card purchase/i })).toBeInTheDocument();
+  expect(s.getState().players[0]!.resources).toMatchObject({ sheep: 1, wheat: 1, ore: 1 });
+  await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
+  expect(screen.queryByRole("dialog", { name: /confirm development card purchase/i })).toBeNull();
+  expect(s.getState().players[0]!.resources).toMatchObject({ sheep: 1, wheat: 1, ore: 1 });
+});

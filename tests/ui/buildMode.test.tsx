@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { test, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { GameProvider } from "../../src/state/GameProvider";
 import { GameStore } from "../../src/state/gameStore";
@@ -91,4 +91,24 @@ test("cancel exits placement without building", async () => {
   await userEvent.click(screen.getByRole("button", { name: /road/i }));
   await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
   expect(screen.queryByText(/tap a spot to build a road/i)).toBeNull();
+});
+
+test("optional build confirmation delays the build and supports cancel", async () => {
+  localStorage.setItem("adultingcatan:confirmPurchases", "true");
+  const g = mainGame();
+  g.players[0]!.resources = { wood: 2, brick: 2, sheep: 0, wheat: 0, ore: 0 };
+  const e0 = topology().edgeIds[0]!;
+  g.board.roads[e0] = { owner: 0 };
+  const s = store(g);
+  const { container } = render(<GameProvider store={s}><GameView /></GameProvider>);
+  await userEvent.click(screen.getByRole("button", { name: /road/i }));
+  const slot = container.querySelector("[data-edge-slot]") as SVGElement;
+  await userEvent.click(slot);
+  const dialog = screen.getByRole("dialog", { name: /confirm build/i });
+  expect(dialog).toBeInTheDocument();
+  expect(Object.keys(s.getState().board.roads)).toHaveLength(1);
+  await userEvent.click(within(dialog).getByRole("button", { name: /cancel/i }));
+  expect(screen.queryByRole("dialog", { name: /confirm build/i })).toBeNull();
+  expect(Object.keys(s.getState().board.roads)).toHaveLength(1);
+  localStorage.removeItem("adultingcatan:confirmPurchases");
 });
