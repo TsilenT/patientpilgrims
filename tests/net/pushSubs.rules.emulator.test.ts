@@ -7,7 +7,7 @@ let env: RulesTestEnvironment;
 
 beforeAll(async () => {
   env = await initializeTestEnvironment({
-    projectId: "adulting-catan-test",
+    projectId: "patient-pilgrims-test",
     database: { rules: readFileSync("database.rules.json", "utf8"), host: "127.0.0.1", port: 9000 },
   });
 });

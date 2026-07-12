@@ -30,25 +30,18 @@ Push to `master`. The workflow (`.github/workflows/deploy.yml`):
 3. **deploy** — publishes `dist/` to Pages.
 
 `vite.config.ts` uses `base: "./"` (relative), so the project URL
-(`<user>.github.io/adultingcatan/`) works without further configuration.
+(`<user>.github.io/patientpilgrims/`) works without further configuration.
 
-## Dual origins (rebrand transition)
+## Canonical origin
 
-The same build serves at two origins:
+The single canonical origin is `https://patientpilgrims.stevets.ai/`, served directly
+by this repository's GitHub Pages deployment. In repo Settings → Pages, keep Source set
+to **GitHub Actions** (`build_type: workflow`) and set the custom domain to
+`patientpilgrims.stevets.ai`.
 
-- `https://patientpilgrims.stevets.ai/` — canonical. A mirror step in both workflows
-  pushes the built site to `TsilenT/patientpilgrims` (`gh-pages` branch, force-orphan),
-  whose Pages site owns the subdomain (`MIRROR_DEPLOY_KEY` secret = deploy key).
-- `https://stevets.ai/adultingcatan/` — legacy. `src/app/legacyRedirect.ts` hops home
-  routes to the subdomain; game/claim hashes and hotseat saves stay put so
-  origin-bound anonymous-auth seats keep working. Cutover later = make the redirect
-  unconditional (or move the custom domain onto this repo for a true 301), then
-  retire the mirror.
-
-The `/beta` caveat applies to the mirror too: a master push republishes both origins
-without `/beta` until the beta workflow re-runs. Mirror pushes are `continue-on-error` —
-a mirror hiccup never blocks the primary deploy (check the Actions log if the subdomain
-goes stale).
+After the repository rename and Pages cutover are complete, the `MIRROR_DEPLOY_KEY`
+repository secret and the former mirror repository can be deleted; neither is used by
+the deployment workflow.
 
 ## Local development
 
