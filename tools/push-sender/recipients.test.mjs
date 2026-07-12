@@ -17,6 +17,13 @@ test("dedups when the active seat is unchanged", () => {
   assert.deepEqual(nextNotifications({ gameId: "g1", activeSeat: 1, lastNotifiedSeat: 1, seats, subs }), []);
 });
 
+test("stays quiet once the game is finished", () => {
+  assert.deepEqual(
+    nextNotifications({ gameId: "g1", activeSeat: 1, lastNotifiedSeat: 0, phase: "finished", seats, subs }),
+    [],
+  );
+});
+
 test("returns null when the seat has no uid", () => {
   assert.deepEqual(nextNotifications({ gameId: "g1", activeSeat: 5, lastNotifiedSeat: 0, seats, subs }), []);
 });

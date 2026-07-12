@@ -33,9 +33,10 @@ function watchGame(gameId) {
 }
 
 async function maybeSend(gameId, activeSeat, lastSeat) {
-  const [seatsSnap, metaSnap] = await Promise.all([
+  const [seatsSnap, metaSnap, phaseSnap] = await Promise.all([
     db.ref(`games/${gameId}/seats`).get(),
     db.ref(`games/${gameId}/meta`).get(),
+    db.ref(`games/${gameId}/state/phase`).get(),
   ]);
   const seats = seatsSnap.val() || {};
   const seat = seats?.[activeSeat];
@@ -50,6 +51,7 @@ async function maybeSend(gameId, activeSeat, lastSeat) {
     gameName: metaSnap.val()?.name,
     activeSeat,
     lastNotifiedSeat: lastSeat,
+    phase: phaseSnap.val(),
     seats,
     subs: Object.fromEntries(subEntries),
   });

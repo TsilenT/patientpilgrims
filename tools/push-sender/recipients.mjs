@@ -2,7 +2,8 @@
  * Pure resolver: given a turn change, decide which devices (if any) to notify.
  * @returns {{ uid: string, subscription: object, payload: object }[]}
  */
-export function nextNotifications({ gameId, gameName, activeSeat, lastNotifiedSeat, seats, subs }) {
+export function nextNotifications({ gameId, gameName, activeSeat, lastNotifiedSeat, phase, seats, subs }) {
+  if (phase === "finished") return [];
   if (activeSeat === null || activeSeat === undefined) return [];
   if (activeSeat === lastNotifiedSeat) return [];
   const seat = seats?.[activeSeat];
