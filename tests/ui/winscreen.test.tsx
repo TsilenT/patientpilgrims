@@ -68,13 +68,13 @@ test("shows dice roll stats in a separate tab and excludes turn-order rolls", as
     ],
   }));
 
-  expect(screen.getByRole("tab", { name: /standings/i })).toHaveAttribute("aria-selected", "true");
+  expect(screen.getByRole("combobox", { name: /results section/i })).toHaveValue("standings");
   expect(screen.queryByText("Dice roll stats")).toBeNull();
 
-  await userEvent.click(screen.getByRole("tab", { name: /dice stats/i }));
+  await userEvent.selectOptions(screen.getByRole("combobox", { name: /results section/i }), "dice");
 
-  expect(screen.getByRole("tab", { name: /dice stats/i })).toHaveAttribute("aria-selected", "true");
-  expect(screen.getByRole("tabpanel", { name: /dice stats/i })).toHaveTextContent("3 turn rolls");
+  expect(screen.getByRole("combobox", { name: /results section/i })).toHaveValue("dice");
+  expect(screen.getByRole("region", { name: /dice stats/i })).toHaveTextContent("3 turn rolls");
   expect(screen.getByLabelText("7: 2 rolls, 67%")).toBeInTheDocument();
   expect(screen.getByLabelText("8: 1 rolls, 33%")).toBeInTheDocument();
   expect(screen.getByLabelText("12: 0 rolls, 0%")).toBeInTheDocument();
@@ -84,4 +84,26 @@ test("shows dice roll stats in a separate tab and excludes turn-order rolls", as
   expect(screen.getByLabelText("7: 2 rolls, 67%")).toHaveStyle({ "--fill": "100%" });
   expect(screen.getByLabelText("8: 1 rolls, 33%")).toHaveStyle({ "--fill": "50%" });
   expect(screen.getByLabelText("2: 0 rolls, 0%")).toHaveStyle({ "--fill": "0%" });
+});
+
+test("shows per-player robber, discard, and activity totals under Other stats", async () => {
+  renderFinished(finishedGame({
+    log: [
+      { type: "roll", seat: 0, dice: [2, 4], sum: 6, blocked: { 1: 2, 2: 1 } },
+      { type: "roll", seat: 1, dice: [3, 4], sum: 7 },
+      { type: "steal", seat: 0, victim: 1, resource: "wood" },
+      { type: "steal", seat: 0, victim: 2, resource: "brick" },
+      { type: "discard", seat: 1, count: 4 },
+      { type: "discard", seat: 1, count: 2 },
+      { type: "tradeBank", seat: 2, resource: "ore" },
+      { type: "buildRoad", seat: 2, edge: "e1" },
+    ],
+  }));
+
+  await userEvent.selectOptions(screen.getByRole("combobox", { name: /results section/i }), "other");
+  const other = screen.getByRole("region", { name: /other stats/i });
+  expect(other).toHaveTextContent("Alice");
+  expect(screen.getByRole("row", { name: /alice/i })).toHaveTextContent("2");
+  expect(screen.getByRole("row", { name: /bob/i })).toHaveTextContent("6");
+  expect(screen.getByRole("row", { name: /carol/i })).toHaveTextContent("1");
 });

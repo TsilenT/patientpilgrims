@@ -87,6 +87,8 @@ export interface LogEntry {
   round?: number;
   /** For roll entries: resources produced this roll, by seat (only non-zero entries). */
   gains?: Record<number, Partial<ResourceMap>>;
+  /** For roll entries: production prevented by the robber, by seat. */
+  blocked?: Record<number, number>;
 }
 
 export interface GameState {

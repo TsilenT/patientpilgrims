@@ -35,7 +35,7 @@ function rollStats(state: GameState) {
 export function WinScreen() {
   const { state, mySeat } = useGame();
   const [open, setOpen] = useState(true);
-  const [tab, setTab] = useState<"standings" | "dice">("standings");
+  const [section, setSection] = useState<"standings" | "dice" | "other">("standings");
   if (state.phase !== "finished" || state.winner === undefined) return null;
 
   if (!open) {
@@ -71,34 +71,18 @@ export function WinScreen() {
         <Crown />
         <h2>Long live {king.name}!</h2>
         <p className="win-sub">{kingRow.title.text} · {kingRow.totalVp} victory points</p>
-        <div className="win-tabs" role="tablist" aria-label="Game over sections">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === "standings"}
-            aria-controls="win-panel-standings"
-            id="win-tab-standings"
-            onClick={() => setTab("standings")}
-          >
-            Standings
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === "dice"}
-            aria-controls="win-panel-dice"
-            id="win-tab-dice"
-            onClick={() => setTab("dice")}
-          >
-            Dice stats
-          </button>
-        </div>
-        {tab === "standings" ? (
+        <label className="win-section-picker">
+          <span>Results section</span>
+          <select value={section} onChange={(e) => setSection(e.target.value as typeof section)}>
+            <option value="standings">Standings</option>
+            <option value="dice">Dice stats</option>
+            <option value="other">Other stats</option>
+          </select>
+        </label>
+        {section === "standings" ? (
           <ol
             className="standings"
-            role="tabpanel"
-            id="win-panel-standings"
-            aria-labelledby="win-tab-standings"
+            aria-label="Standings"
           >
             {summary.standings.map((p) => (
               <li key={p.seat} className={p.seat === summary.winner ? "is-winner" : undefined}>
@@ -121,12 +105,11 @@ export function WinScreen() {
               </li>
             ))}
           </ol>
-        ) : (
+        ) : section === "dice" ? (
           <section
             className="win-dice-stats"
-            role="tabpanel"
-            id="win-panel-dice"
-            aria-labelledby="win-tab-dice"
+            role="region"
+            aria-label="Dice stats"
           >
             <div className="win-dice-stats__header">
               <h3>Dice roll stats</h3>
@@ -145,6 +128,29 @@ export function WinScreen() {
                   </div>
                 );
               })}
+            </div>
+          </section>
+        ) : (
+          <section className="win-other-stats" role="region" aria-label="Other stats">
+            <div className="win-other-stats__header">
+              <h3>Other stats</h3>
+              <span>Totals by player</span>
+            </div>
+            <div className="win-other-stats__scroll">
+              <table>
+                <thead><tr>
+                  <th>Player</th><th title="Resources blocked by the robber">Blocked</th>
+                  <th title="Resources stolen with the robber">Stolen</th><th title="Cards discarded after rolling 7">Discarded</th>
+                  <th>7s</th><th>Trades</th><th>Builds</th><th>Dev cards</th>
+                </tr></thead>
+                <tbody>{summary.otherStats.map((p) => (
+                  <tr key={p.seat}>
+                    <th><span className="swatch" style={{ background: p.color }} aria-hidden="true" />{p.name}</th>
+                    <td>{p.resourcesBlocked}</td><td>{p.resourcesStolen}</td><td>{p.resourcesDiscarded}</td>
+                    <td>{p.sevensRolled}</td><td>{p.trades}</td><td>{p.builds}</td><td>{p.devCardsBought}</td>
+                  </tr>
+                ))}</tbody>
+              </table>
             </div>
           </section>
         )}

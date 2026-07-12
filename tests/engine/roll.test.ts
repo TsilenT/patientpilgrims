@@ -135,6 +135,19 @@ describe("roll gains recorded in the log", () => {
     expect(lastRoll(r.state).gains).toBeUndefined();
   });
 
+  it("records resources blocked by the robber for each affected player", () => {
+    const { g, hid, number } = setup();
+    const vs = topology().hexVertices.get(hid)!;
+    g.board.robber = hid;
+    g.board.buildings = {
+      [vs[0]!]: { owner: 0, type: "city" },
+      [vs[2]!]: { owner: 1, type: "settlement" },
+    };
+    const r = apply(g, { type: "rollDice" }, scriptedRng(...diceFor(number)));
+    expectOk(r);
+    expect(lastRoll(r.state).blocked).toEqual({ 0: 2, 1: 1 });
+  });
+
   it("records only what the bank could pay a lone claimant", () => {
     const { g, hid, number, kind } = setup();
     const vs = topology().hexVertices.get(hid)!;

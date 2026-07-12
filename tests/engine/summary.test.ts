@@ -111,3 +111,24 @@ describe("court titles", () => {
     expect(s.standings.find((p) => p.seat === 2)!.title.text).toBe("Court Jester"); // last place
   });
 });
+
+describe("other statistics", () => {
+  it("totals resources blocked, stolen, discarded, sevens, trades, builds, and dev cards by player", () => {
+    const g = finished();
+    g.log.push(
+      { type: "roll", seat: 0, dice: [3, 3], sum: 6, blocked: { 0: 1, 1: 2 } },
+      { type: "roll", seat: 1, dice: [3, 4], sum: 7 },
+      { type: "steal", seat: 0, victim: 1, resource: "wood" },
+      { type: "discard", seat: 1, count: 4 },
+      { type: "tradeBank", seat: 2, resource: "ore" },
+      { type: "proposeTrade", seat: 2 },
+      { type: "buildRoad", seat: 2, edge: "e1" },
+      { type: "buyDevCard", seat: 2 },
+    );
+    expect(gameSummary(g).otherStats).toEqual([
+      expect.objectContaining({ seat: 0, resourcesBlocked: 1, resourcesStolen: 1, resourcesDiscarded: 0, sevensRolled: 0 }),
+      expect.objectContaining({ seat: 1, resourcesBlocked: 2, resourcesStolen: 0, resourcesDiscarded: 4, sevensRolled: 1 }),
+      expect.objectContaining({ seat: 2, trades: 2, builds: 1, devCardsBought: 1 }),
+    ]);
+  });
+});

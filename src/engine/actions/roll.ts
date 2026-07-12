@@ -28,9 +28,24 @@ export function applyRollDice(state: GameState, rng: Rng): string | null {
   }
 
   state.turn.subPhase = "main";
+  const blocked = robberBlockedProduction(state, sum);
+  if (Object.keys(blocked).length > 0) entry.blocked = blocked;
   const gains = produce(state, sum);
   if (Object.keys(gains).length > 0) entry.gains = gains;
   return null;
+}
+
+/** Counts cards buildings would have produced from the robber's tile. */
+function robberBlockedProduction(state: GameState, sum: number): Record<number, number> {
+  const tile = state.board.tiles[state.board.robber];
+  if (!tile || tile.kind === "desert" || tile.number !== sum) return {};
+  const blocked: Record<number, number> = {};
+  for (const vertex of topology().hexVertices.get(state.board.robber) ?? []) {
+    const building = state.board.buildings[vertex];
+    if (!building) continue;
+    blocked[building.owner] = (blocked[building.owner] ?? 0) + (building.type === "city" ? 2 : 1);
+  }
+  return blocked;
 }
 
 /** Distributes production for `sum` and returns the resources actually gained, by seat. */

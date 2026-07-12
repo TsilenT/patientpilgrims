@@ -22,6 +22,20 @@ export interface PlayerSummary {
 export interface GameSummary {
   winner: number;
   standings: PlayerSummary[];
+  otherStats: PlayerOtherStats[];
+}
+
+export interface PlayerOtherStats {
+  seat: number;
+  name: string;
+  color: string;
+  resourcesBlocked: number;
+  resourcesStolen: number;
+  resourcesDiscarded: number;
+  sevensRolled: number;
+  trades: number;
+  builds: number;
+  devCardsBought: number;
 }
 
 interface CourtTitle {
@@ -147,5 +161,18 @@ export function gameSummary(state: GameState): GameSummary {
     };
   });
 
-  return { winner, standings };
+  const otherStats = state.players.map((p) => ({
+    seat: p.seat,
+    name: p.name,
+    color: p.color,
+    resourcesBlocked: state.log.reduce((n, e) => n + (e.blocked?.[p.seat] ?? 0), 0),
+    resourcesStolen: countLog(state, p.seat, (e) => e.type === "steal"),
+    resourcesDiscarded: state.log.filter((e) => e.seat === p.seat && e.type === "discard").reduce((n, e) => n + (e.count ?? 0), 0),
+    sevensRolled: countLog(state, p.seat, (e) => e.type === "roll" && e.sum === 7),
+    trades: countLog(state, p.seat, (e) => e.type === "tradeBank" || e.type === "proposeTrade"),
+    builds: countLog(state, p.seat, (e) => e.type === "buildRoad" || e.type === "buildSettlement" || e.type === "buildCity"),
+    devCardsBought: countLog(state, p.seat, (e) => e.type === "buyDevCard"),
+  }));
+
+  return { winner, standings, otherStats };
 }
