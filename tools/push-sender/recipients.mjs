@@ -18,7 +18,9 @@ export function nextNotifications({ gameId, gameName, activeSeat, lastNotifiedSe
       payload: {
         title: "Your turn",
         body: `It's your turn in ${gameName || "Patient Pilgrims"}.`,
-        url: `#/g/${gameId}`,
+        // Explicitly include the app-directory segment. Hash-only targets can
+        // otherwise be resolved against sw.js by notification openWindow().
+        url: `./#/g/${gameId}`,
       },
     }];
   });

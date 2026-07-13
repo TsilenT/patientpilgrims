@@ -10,7 +10,7 @@ test("returns a send for the new active seat's subscribed player", () => {
   assert.equal(out.uid, "bob");
   assert.equal(out.subscription.endpoint, "https://x/bob");
   assert.match(out.payload.body, /your turn/i);
-  assert.equal(out.payload.url, "#/g/g1");
+  assert.equal(out.payload.url, "./#/g/g1");
 });
 
 test("dedups when the active seat is unchanged", () => {
