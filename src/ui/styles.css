@@ -21,7 +21,7 @@
 
 body {
   margin: 0;
-  min-height: 100vh;
+  min-height: 0;
   background:
     radial-gradient(1200px 600px at 50% -10%, #1b3247 0%, rgba(27, 50, 71, 0) 60%),
     linear-gradient(180deg, #0f1620 0%, #0b121a 100%);
@@ -113,7 +113,10 @@ button:disabled { opacity: 0.4; cursor: default; }
 .hex-icon { filter: drop-shadow(0 0 0.7px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 0.7px rgba(0, 0, 0, 0.7)); }
 
 /* ---- App shell / start screen ---- */
-main { min-height: 100vh; }
+/* Do not restore a 100vh minimum here. iOS Chrome's 100vh includes the area
+   behind its bottom toolbar, which can make this internal scroller taller than
+   the fixed body and leave the Start button trapped below the visible edge. */
+main { min-height: 0; }
 
 .start-screen {
   max-width: 420px;
