@@ -132,3 +132,23 @@ describe("other statistics", () => {
     ]);
   });
 });
+
+describe("resource history", () => {
+  it("tracks production and both sides of robber steals without charging trades or builds", () => {
+    const g = finished();
+    g.log.push(
+      { type: "roll", seat: 0, dice: [3, 3], sum: 6, gains: { 0: { wood: 2 }, 1: { ore: 1 } } },
+      { type: "buildRoad", seat: 0, edge: "e1" },
+      { type: "tradeBank", seat: 1, resource: "ore" },
+      { type: "proposeTrade", seat: 1 },
+      { type: "acceptTrade", seat: 0 },
+      { type: "steal", seat: 0, victim: 1, resource: "ore" },
+      { type: "roll", seat: 2, dice: [4, 4], sum: 8, gains: { 1: { brick: 2 }, 2: { wheat: 1, sheep: 1 } } },
+    );
+
+    const histories = gameSummary(g).resourceHistory;
+    expect(histories.find((p) => p.seat === 0)!.values).toEqual([0, 2, 2, 2, 2, 2, 3, 3]);
+    expect(histories.find((p) => p.seat === 1)!.values).toEqual([0, 1, 1, 1, 1, 1, 0, 2]);
+    expect(histories.find((p) => p.seat === 2)!.values).toEqual([0, 0, 0, 0, 0, 0, 0, 2]);
+  });
+});

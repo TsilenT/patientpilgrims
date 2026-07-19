@@ -111,3 +111,24 @@ test("shows per-player robber, discard, and activity totals under Other stats", 
   expect(other).toHaveTextContent("Stolen from");
   expect(screen.getByRole("row", { name: /carol/i })).toHaveTextContent("1");
 });
+
+test("shows a resources-over-time graph of gains minus steals", async () => {
+  renderFinished(finishedGame({
+    log: [
+      { type: "roll", seat: 0, dice: [2, 4], sum: 6, gains: { 0: { wood: 2 }, 1: { ore: 1 } } },
+      { type: "buildRoad", seat: 0, edge: "e1" },
+      { type: "tradeBank", seat: 1, resource: "ore" },
+      { type: "steal", seat: 0, victim: 1, resource: "ore" },
+    ],
+  }));
+
+  await userEvent.click(screen.getByRole("button", { name: /results section: standings/i }));
+  await userEvent.click(screen.getByRole("option", { name: /resources/i }));
+
+  const region = screen.getByRole("region", { name: /resources over time/i });
+  expect(region).toHaveTextContent("Production gains and robber steals");
+  expect(screen.getByRole("img", { name: /resources gained minus stolen over time/i })).toBeInTheDocument();
+  expect(screen.getByLabelText("Alice: 3 net resources")).toBeInTheDocument();
+  expect(screen.getByLabelText("Bob: 0 net resources")).toBeInTheDocument();
+  expect(region).toHaveTextContent("Trades and building costs are excluded");
+});

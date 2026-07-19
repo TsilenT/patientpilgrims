@@ -21,8 +21,10 @@ const ROLL_TOTALS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 const RESULT_SECTIONS = [
   { value: "standings", label: "Standings", detail: "Final ranks and titles" },
   { value: "dice", label: "Dice stats", detail: "Roll totals and distribution" },
+  { value: "resources", label: "Resources", detail: "Gained minus stolen over time" },
   { value: "other", label: "Other stats", detail: "Robber, discards, trades, and builds" },
 ] as const;
+type ResultSection = (typeof RESULT_SECTIONS)[number]["value"];
 
 function rollStats(state: GameState) {
   const counts = new Map<number, number>(ROLL_TOTALS.map((sum) => [sum, 0]));
@@ -37,10 +39,69 @@ function rollStats(state: GameState) {
   };
 }
 
+function ResourceHistoryChart({ histories }: { histories: ReturnType<typeof gameSummary>["resourceHistory"] }) {
+  const width = 460;
+  const height = 200;
+  const left = 30;
+  const right = 10;
+  const top = 12;
+  const bottom = 24;
+  const allValues = histories.flatMap((history) => history.values);
+  const rawMin = Math.min(0, ...allValues);
+  const rawMax = Math.max(0, ...allValues);
+  const min = rawMin === rawMax ? rawMin - 1 : rawMin;
+  const max = rawMin === rawMax ? rawMax + 1 : rawMax;
+  const steps = Math.max(1, histories[0]?.values.length ? histories[0].values.length - 1 : 0);
+  const x = (index: number) => left + (index / steps) * (width - left - right);
+  const y = (value: number) => top + ((max - value) / (max - min)) * (height - top - bottom);
+  const ticks = Array.from(new Set([min, 0, max])).sort((a, b) => a - b);
+
+  return (
+    <section className="win-resource-history" role="region" aria-label="Resources over time">
+      <div className="win-resource-history__header">
+        <h3>Resources over time</h3>
+        <span>Production gains and robber steals</span>
+      </div>
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Resources gained minus stolen over time">
+        {ticks.map((tick) => (
+          <g key={tick} className={tick === 0 ? "resource-zero-line" : "resource-grid-line"}>
+            <line x1={left} x2={width - right} y1={y(tick)} y2={y(tick)} />
+            <text x={left - 6} y={y(tick) + 3}>{tick}</text>
+          </g>
+        ))}
+        <line className="resource-axis" x1={left} x2={left} y1={top} y2={height - bottom} />
+        <line className="resource-axis" x1={left} x2={width - right} y1={height - bottom} y2={height - bottom} />
+        <text className="resource-axis-label" x={left} y={height - 6}>Start</text>
+        <text className="resource-axis-label" x={width - right} y={height - 6} textAnchor="end">End</text>
+        {histories.map((history) => (
+          <path
+            key={history.seat}
+            className="resource-history-line"
+            d={history.values.map((value, index) => `${index === 0 ? "M" : "L"}${x(index)},${y(value)}`).join(" ")}
+            style={{ "--player-color": history.color } as CSSProperties}
+          />
+        ))}
+      </svg>
+      <ul className="resource-history-legend" aria-label="Final net resources">
+        {histories.map((history) => {
+          const total = history.values.at(-1) ?? 0;
+          return (
+            <li key={history.seat} aria-label={`${history.name}: ${total} net resources`}>
+              <span className="swatch" style={{ background: history.color }} aria-hidden="true" />
+              <span>{history.name}</span><strong>{total > 0 ? `+${total}` : total}</strong>
+            </li>
+          );
+        })}
+      </ul>
+      <p>Trades and building costs are excluded.</p>
+    </section>
+  );
+}
+
 export function WinScreen() {
   const { state, mySeat } = useGame();
   const [open, setOpen] = useState(true);
-  const [section, setSection] = useState<"standings" | "dice" | "other">("standings");
+  const [section, setSection] = useState<ResultSection>("standings");
   const [sectionMenuOpen, setSectionMenuOpen] = useState(false);
   const sectionPickerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -155,6 +216,8 @@ export function WinScreen() {
               })}
             </div>
           </section>
+        ) : section === "resources" ? (
+          <ResourceHistoryChart histories={summary.resourceHistory} />
         ) : (
           <section className="win-other-stats" role="region" aria-label="Other stats">
             <div className="win-other-stats__header">

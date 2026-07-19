@@ -1308,6 +1308,48 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
 .win-dice-stat strong { display: block; color: var(--ink); font-size: 0.78rem; }
 .win-dice-stat span { display: block; color: var(--gold); font-weight: 800; font-size: 0.92rem; }
 .win-dice-stat small { color: var(--muted); font-size: 0.62rem; }
+.win-resource-history {
+  margin: 0 0 16px;
+  padding: 10px 12px 9px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--panel-edge);
+  border-radius: 12px;
+  text-align: left;
+}
+.win-resource-history__header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+.win-resource-history__header h3 { margin: 0; color: var(--gold); font-size: 0.95rem; }
+.win-resource-history__header span { color: var(--muted); font-size: 0.72rem; text-align: right; }
+.win-resource-history svg { display: block; width: 100%; height: auto; overflow: visible; }
+.resource-grid-line line { stroke: rgba(255, 255, 255, 0.09); stroke-width: 1; }
+.resource-zero-line line { stroke: rgba(242, 193, 78, 0.4); stroke-width: 1.25; stroke-dasharray: 4 4; }
+.resource-grid-line text, .resource-zero-line text, .resource-axis-label {
+  fill: var(--muted);
+  font-size: 9px;
+  text-anchor: end;
+}
+.resource-axis { stroke: rgba(255, 255, 255, 0.22); stroke-width: 1; }
+.resource-history-line {
+  fill: none;
+  stroke: var(--player-color);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  paint-order: stroke;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.75));
+}
+.resource-history-legend {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin: 3px 0 0;
+  padding: 0;
+  font-size: 0.72rem;
+}
+.resource-history-legend li { display: flex; align-items: center; gap: 5px; min-width: 90px; }
+.resource-history-legend .swatch { width: 9px; height: 9px; border-radius: 3px; border: 1px solid rgba(255, 255, 255, 0.35); }
+.resource-history-legend strong { color: var(--gold); margin-left: auto; font-variant-numeric: tabular-nums; }
+.win-resource-history > p { margin: 7px 0 0; color: var(--muted); font-size: 0.67rem; }
 .win-other-stats {
   margin: 0 0 16px;
   padding: 10px 12px 12px;

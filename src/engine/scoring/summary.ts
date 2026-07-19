@@ -1,4 +1,5 @@
 import type { GameState, LogEntry } from "../types";
+import { RESOURCE_LIST } from "../resources";
 import { totalVictoryPoints } from "./victory";
 
 export interface PlayerSummary {
@@ -23,6 +24,15 @@ export interface GameSummary {
   winner: number;
   standings: PlayerSummary[];
   otherStats: PlayerOtherStats[];
+  resourceHistory: PlayerResourceHistory[];
+}
+
+export interface PlayerResourceHistory {
+  seat: number;
+  name: string;
+  color: string;
+  /** Cumulative production plus robber thefts, minus resources stolen away, after each log entry. */
+  values: number[];
 }
 
 export interface PlayerOtherStats {
@@ -176,5 +186,29 @@ export function gameSummary(state: GameState): GameSummary {
     devCardsBought: countLog(state, p.seat, (e) => e.type === "buyDevCard"),
   }));
 
-  return { winner, standings, otherStats };
+  const resourceTotals = state.players.map(() => 0);
+  const resourceHistory: PlayerResourceHistory[] = state.players.map((p) => ({
+    seat: p.seat,
+    name: p.name,
+    color: p.color,
+    values: [0],
+  }));
+  for (const entry of state.log) {
+    if (entry.type === "roll" && entry.gains) {
+      for (const p of state.players) {
+        const gains = entry.gains[p.seat];
+        if (!gains) continue;
+        resourceTotals[p.seat] = (resourceTotals[p.seat] ?? 0) + RESOURCE_LIST.reduce(
+          (total, resource) => total + (gains[resource] ?? 0),
+          0,
+        );
+      }
+    } else if (entry.type === "steal" && entry.victim !== undefined) {
+      resourceTotals[entry.seat] = (resourceTotals[entry.seat] ?? 0) + 1;
+      resourceTotals[entry.victim] = (resourceTotals[entry.victim] ?? 0) - 1;
+    }
+    for (const p of state.players) resourceHistory[p.seat]!.values.push(resourceTotals[p.seat]!);
+  }
+
+  return { winner, standings, otherStats, resourceHistory };
 }
