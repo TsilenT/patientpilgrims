@@ -25,6 +25,8 @@ export interface GameSummary {
   standings: PlayerSummary[];
   otherStats: PlayerOtherStats[];
   resourceHistory: PlayerResourceHistory[];
+  /** False when a pre-history non-7 roll cannot prove whether production occurred. */
+  resourceHistoryComplete: boolean;
 }
 
 export interface PlayerResourceHistory {
@@ -186,6 +188,9 @@ export function gameSummary(state: GameState): GameSummary {
     devCardsBought: countLog(state, p.seat, (e) => e.type === "buyDevCard"),
   }));
 
+  const resourceHistoryComplete = state.log.every(
+    (entry) => entry.type !== "roll" || entry.sum === 7 || entry.gains !== undefined,
+  );
   const resourceTotals = state.players.map(() => 0);
   const resourceHistory: PlayerResourceHistory[] = state.players.map((p) => ({
     seat: p.seat,
@@ -210,5 +215,5 @@ export function gameSummary(state: GameState): GameSummary {
     for (const p of state.players) resourceHistory[p.seat]!.values.push(resourceTotals[p.seat]!);
   }
 
-  return { winner, standings, otherStats, resourceHistory };
+  return { winner, standings, otherStats, resourceHistory, resourceHistoryComplete };
 }

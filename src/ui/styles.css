@@ -19,6 +19,18 @@
 
 * { box-sizing: border-box; }
 
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
 body {
   margin: 0;
   min-height: 0;
@@ -1319,7 +1331,7 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
 .win-resource-history__header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 4px; }
 .win-resource-history__header h3 { margin: 0; color: var(--gold); font-size: 0.95rem; }
 .win-resource-history__header span { color: var(--muted); font-size: 0.72rem; text-align: right; }
-.win-resource-history svg { display: block; width: 100%; height: auto; overflow: visible; }
+.win-resource-history > svg { display: block; width: 100%; height: auto; overflow: visible; }
 .resource-grid-line line { stroke: rgba(255, 255, 255, 0.09); stroke-width: 1; }
 .resource-zero-line line { stroke: rgba(242, 193, 78, 0.4); stroke-width: 1.25; stroke-dasharray: 4 4; }
 .resource-grid-line text, .resource-zero-line text, .resource-axis-label {
@@ -1347,7 +1359,7 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
   font-size: 0.72rem;
 }
 .resource-history-legend li { display: flex; align-items: center; gap: 5px; min-width: 90px; }
-.resource-history-legend .swatch { width: 9px; height: 9px; border-radius: 3px; border: 1px solid rgba(255, 255, 255, 0.35); }
+.resource-legend-line { width: 18px; height: 8px; flex: none; overflow: visible; }
 .resource-history-legend strong { color: var(--gold); margin-left: auto; font-variant-numeric: tabular-nums; }
 .win-resource-history > p { margin: 7px 0 0; color: var(--muted); font-size: 0.67rem; }
 .win-other-stats {

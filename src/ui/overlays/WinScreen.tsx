@@ -39,7 +39,12 @@ function rollStats(state: GameState) {
   };
 }
 
-function ResourceHistoryChart({ histories }: { histories: ReturnType<typeof gameSummary>["resourceHistory"] }) {
+const RESOURCE_LINE_PATTERNS = ["none", "8 4", "2 4", "10 3 2 3"] as const;
+
+function ResourceHistoryChart({ histories, complete }: {
+  histories: ReturnType<typeof gameSummary>["resourceHistory"];
+  complete: boolean;
+}) {
   const width = 460;
   const height = 200;
   const left = 30;
@@ -55,6 +60,7 @@ function ResourceHistoryChart({ histories }: { histories: ReturnType<typeof game
   const x = (index: number) => left + (index / steps) * (width - left - right);
   const y = (value: number) => top + ((max - value) / (max - min)) * (height - top - bottom);
   const ticks = Array.from(new Set([min, 0, max])).sort((a, b) => a - b);
+  const pattern = (seat: number) => RESOURCE_LINE_PATTERNS[seat % RESOURCE_LINE_PATTERNS.length]!;
 
   return (
     <section className="win-resource-history" role="region" aria-label="Resources over time">
@@ -76,24 +82,38 @@ function ResourceHistoryChart({ histories }: { histories: ReturnType<typeof game
         {histories.map((history) => (
           <path
             key={history.seat}
+            data-testid={`resource-line-${history.seat}`}
             className="resource-history-line"
             d={history.values.map((value, index) => `${index === 0 ? "M" : "L"}${x(index)},${y(value)}`).join(" ")}
+            strokeDasharray={pattern(history.seat)}
             style={{ "--player-color": history.color } as CSSProperties}
           />
         ))}
       </svg>
+      <ol className="sr-only" aria-label="Resource totals by game event">
+        {histories.map((history) => (
+          <li key={history.seat}>
+            {history.name}: start {history.values[0] ?? 0}; after each event {history.values.slice(1).join(", ") || "no events"}
+          </li>
+        ))}
+      </ol>
       <ul className="resource-history-legend" aria-label="Final net resources">
         {histories.map((history) => {
           const total = history.values.at(-1) ?? 0;
           return (
             <li key={history.seat} aria-label={`${history.name}: ${total} net resources`}>
-              <span className="swatch" style={{ background: history.color }} aria-hidden="true" />
+              <svg className="resource-legend-line" viewBox="0 0 18 8" aria-hidden="true">
+                <line x1="1" x2="17" y1="4" y2="4" stroke={history.color} strokeWidth="3" strokeDasharray={pattern(history.seat)} />
+              </svg>
               <span>{history.name}</span><strong>{total > 0 ? `+${total}` : total}</strong>
             </li>
           );
         })}
       </ul>
-      <p>Trades and building costs are excluded.</p>
+      <p>
+        {!complete && <><strong>Older game log:</strong> some production may be missing. </>}
+        Trades and building costs are excluded.
+      </p>
     </section>
   );
 }
@@ -217,7 +237,10 @@ export function WinScreen() {
             </div>
           </section>
         ) : section === "resources" ? (
-          <ResourceHistoryChart histories={summary.resourceHistory} />
+          <ResourceHistoryChart
+            histories={summary.resourceHistory}
+            complete={summary.resourceHistoryComplete}
+          />
         ) : (
           <section className="win-other-stats" role="region" aria-label="Other stats">
             <div className="win-other-stats__header">

@@ -31,7 +31,9 @@ export function applyRollDice(state: GameState, rng: Rng): string | null {
   const blocked = robberBlockedProduction(state, sum);
   if (Object.keys(blocked).length > 0) entry.blocked = blocked;
   const gains = produce(state, sum);
-  if (Object.keys(gains).length > 0) entry.gains = gains;
+  // Presence (including an empty object) distinguishes complete modern logs from
+  // legacy roll entries that predate production-history recording.
+  entry.gains = gains;
   return null;
 }
 

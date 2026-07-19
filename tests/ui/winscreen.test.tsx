@@ -130,5 +130,24 @@ test("shows a resources-over-time graph of gains minus steals", async () => {
   expect(screen.getByRole("img", { name: /resources gained minus stolen over time/i })).toBeInTheDocument();
   expect(screen.getByLabelText("Alice: 3 net resources")).toBeInTheDocument();
   expect(screen.getByLabelText("Bob: 0 net resources")).toBeInTheDocument();
+  expect(screen.getByRole("list", { name: /resource totals by game event/i })).toHaveTextContent(
+    "Alice: start 0; after each event 2, 2, 2, 3",
+  );
+  expect(screen.getByTestId("resource-line-0")).toHaveAttribute("stroke-dasharray", "none");
+  expect(screen.getByTestId("resource-line-1")).toHaveAttribute("stroke-dasharray", "8 4");
   expect(region).toHaveTextContent("Trades and building costs are excluded");
+  expect(region).not.toHaveTextContent("Older game log");
+});
+
+test("warns when an older game log cannot supply complete production history", async () => {
+  renderFinished(finishedGame({
+    log: [{ type: "roll", seat: 0, dice: [2, 4], sum: 6 }],
+  }));
+
+  await userEvent.click(screen.getByRole("button", { name: /results section: standings/i }));
+  await userEvent.click(screen.getByRole("option", { name: /resources/i }));
+
+  expect(screen.getByRole("region", { name: /resources over time/i })).toHaveTextContent(
+    "Older game log: some production may be missing",
+  );
 });

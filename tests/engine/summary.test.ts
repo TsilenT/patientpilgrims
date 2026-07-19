@@ -150,5 +150,16 @@ describe("resource history", () => {
     expect(histories.find((p) => p.seat === 0)!.values).toEqual([0, 2, 2, 2, 2, 2, 3, 3]);
     expect(histories.find((p) => p.seat === 1)!.values).toEqual([0, 1, 1, 1, 1, 1, 0, 2]);
     expect(histories.find((p) => p.seat === 2)!.values).toEqual([0, 0, 0, 0, 0, 0, 0, 2]);
+    expect(gameSummary(g).resourceHistoryComplete).toBe(true);
+  });
+
+  it("marks older logs with ambiguous missing production data as incomplete", () => {
+    const g = finished();
+    g.log.push(
+      { type: "roll", seat: 0, dice: [3, 3], sum: 6 },
+      { type: "roll", seat: 1, dice: [3, 4], sum: 7 },
+    );
+
+    expect(gameSummary(g).resourceHistoryComplete).toBe(false);
   });
 });

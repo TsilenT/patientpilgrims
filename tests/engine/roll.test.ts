@@ -127,12 +127,12 @@ describe("roll gains recorded in the log", () => {
     expect(lastRoll(r.state).gains).toBeUndefined();
   });
 
-  it("omits gains when nothing is produced", () => {
+  it("records an empty gains object when nothing is produced", () => {
     const { g, hid, number } = setup();
     g.board.robber = hid; // robbed hex → no production
     const r = apply(g, { type: "rollDice" }, scriptedRng(...diceFor(number)));
     expectOk(r);
-    expect(lastRoll(r.state).gains).toBeUndefined();
+    expect(lastRoll(r.state).gains).toEqual({});
   });
 
   it("records resources blocked by the robber for each affected player", () => {

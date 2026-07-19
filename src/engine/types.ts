@@ -85,7 +85,7 @@ export interface LogEntry {
   resource?: Resource;
   /** Roll-off round for orderRoll entries: 1 is the opening round, 2+ are tie-breaks. */
   round?: number;
-  /** For roll entries: resources produced this roll, by seat (only non-zero entries). */
+  /** For non-7 roll entries: resources produced this roll, by seat. Empty means no production. */
   gains?: Record<number, Partial<ResourceMap>>;
   /** For roll entries: production prevented by the robber, by seat. */
   blocked?: Record<number, number>;
