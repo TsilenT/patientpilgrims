@@ -40,15 +40,15 @@ body {
   background-attachment: fixed;
 }
 
-/* ---- Game shell: lock the page; the app manages its own scrolling ---- */
-html, body {
+/* Normal routes use document scrolling so iOS can pan forms above its software
+   keyboard. Only the actual game locks the page and manages its own panes. */
+html, body { min-height: 100%; }
+html:has(.game-view), body:has(.game-view) {
   height: 100%;
   overflow: hidden;
-  overscroll-behavior: none; /* no pull-to-refresh / rubber-banding */
+  overscroll-behavior: none;
 }
-/* iOS WebKit ignores overflow:hidden as a scroll lock but honors position:fixed —
-   without this the document can end up scrolled with no gesture to undo it. */
-body {
+body:has(.game-view) {
   position: fixed;
   inset: 0;
 }
@@ -68,11 +68,13 @@ input, textarea {
    min() guards against a stale/over-reported visualViewport height on iOS:
    whichever unit is smaller matches what is actually visible. */
 main {
-  height: 100dvh;
-  height: min(var(--app-height, 100dvh), 100dvh);
-  overflow-y: auto;
+  min-height: 100dvh;
+  min-height: min(var(--app-height, 100dvh), 100dvh);
+  overflow: visible;
   padding: max(4px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom));
 }
+.lobby:has(input:focus) { margin-bottom: max(45dvh, 280px); }
+.lobby input { scroll-margin-block: 18dvh; }
 /* Kill double-tap-to-zoom everywhere — rapid game taps must never zoom the page.
    Panning/scrolling still works; the board overrides with touch-action: none. */
 * { touch-action: manipulation; }
@@ -292,6 +294,9 @@ main { min-height: 0; }
   fill-opacity: 0.08;
   stroke-opacity: 0.32;
 }
+.board--placement-selected .legal-placement-slot { opacity: 0.22; }
+.pending-building { animation: placement-dash 0.85s linear infinite; }
+@keyframes placement-dash { to { stroke-dashoffset: -24; } }
 
 /* ---- Opponent bar ---- */
 /* The opponent cards AND the dice share one auto-fill grid, so every card is the
@@ -490,6 +495,14 @@ main { min-height: 0; }
   font-weight: 700;
   text-align: center;
 }
+.placement-confirm {
+  width: min(100%, 390px);
+  margin: 0 auto;
+  padding: 7px 9px;
+  gap: 7px;
+}
+.placement-confirm p { flex: 1 1 auto; text-align: left; }
+.placement-confirm button { padding: 7px 11px; }
 /* Inside a confirm bar, only the explicit primary button is blue; Cancel stays ghost. */
 .action-confirm button:not(.btn-primary) {
   background: var(--ghost);
@@ -980,7 +993,7 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
   to { stroke-dashoffset: -17; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .pending-road { animation: none; }
+  .pending-road, .pending-building { animation: none; }
 }
 /* ---- Settings & game help (bottom-sheet tab) ---- */
 .settings-panel { display: flex; flex-direction: column; gap: 10px; max-width: 680px; margin: 0 auto; padding-bottom: 12px; }

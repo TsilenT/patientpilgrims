@@ -13,6 +13,10 @@ export interface BoardSvgProps {
   robberPlacement?: boolean;
   selectedRobberHex?: string | null;
   pendingRoads?: { edges: string[]; color: string } | null;
+  pendingPlacement?:
+    | { kind: "settlement" | "city"; vertex: string; color: string }
+    | { kind: "road"; edge: string; color: string }
+    | null;
   onVertex: (v: string) => void;
   onEdge: (e: string) => void;
   onHex: (h: string) => void;
@@ -31,14 +35,14 @@ const HEX_GRADIENT: Record<string, [string, string]> = {
   desert: ["#efe4c0", "#e3d5a8"],
 };
 
-export function BoardSvg({ state, legal, robberPlacement = false, selectedRobberHex = null, pendingRoads = null, onVertex, onEdge, onHex }: BoardSvgProps) {
+export function BoardSvg({ state, legal, robberPlacement = false, selectedRobberHex = null, pendingRoads = null, pendingPlacement = null, onVertex, onEdge, onHex }: BoardSvgProps) {
   const layout = LAYOUT;
   const { minX, minY, width, height } = layout.viewBox;
   const vp = useBoardViewport(layout.viewBox);
   return (
     <div className="board-stage">
       <svg ref={vp.svgRef} {...vp.svgHandlers}
-        className={`board${robberPlacement ? " board--robber-placement" : ""}${selectedRobberHex !== null ? " board--robber-selected" : ""}`}
+        className={`board${robberPlacement ? " board--robber-placement" : ""}${selectedRobberHex !== null ? " board--robber-selected" : ""}${pendingPlacement !== null ? " board--placement-selected" : ""}`}
         viewBox={`${minX} ${minY} ${width} ${height}`} role="img" aria-label="game board">
         <defs>
           {Object.entries(HEX_GRADIENT).map(([kind, [top, bottom]]) => (
@@ -55,7 +59,8 @@ export function BoardSvg({ state, legal, robberPlacement = false, selectedRobber
           ))}
           <Ports ports={state.board.ports} layout={layout} />
           <Slots state={state} layout={layout} legal={legal} selectedHex={selectedRobberHex}
-            pendingRoads={pendingRoads} onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
+            pendingRoads={pendingRoads} pendingPlacement={pendingPlacement}
+            onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
         </g>
       </svg>
       <div className="board-controls" role="group" aria-label="Board view">

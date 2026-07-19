@@ -6,15 +6,21 @@ import { topology } from "../../engine/board";
 const VERTEX_HIT = 20; // invisible tap radius (SVG units) over the small visible ghost
 const EDGE_HIT = 20;   // invisible tap band width over the thin visible ghost
 
-export function Slots({ state, layout, legal, selectedHex, pendingRoads, onVertex, onEdge, onHex }: {
+export function Slots({ state, layout, legal, selectedHex, pendingRoads, pendingPlacement, onVertex, onEdge, onHex }: {
   state: GameState; layout: BoardLayout; legal: LegalTargets;
   selectedHex?: string | null;
   pendingRoads?: { edges: string[]; color: string } | null;
+  pendingPlacement?:
+    | { kind: "settlement" | "city"; vertex: string; color: string }
+    | { kind: "road"; edge: string; color: string }
+    | null;
   onVertex: (v: string) => void; onEdge: (e: string) => void; onHex: (h: string) => void;
 }) {
   const topo = topology();
   const color = (seat: number) => state.players[seat]!.color;
   const pendingSet = new Set(pendingRoads?.edges ?? []);
+  if (pendingPlacement?.kind === "road") pendingSet.add(pendingPlacement.edge);
+  const pendingRoadColor = pendingRoads?.color ?? pendingPlacement?.color;
   const legalHexOverlays = [...legal.hexes].map((hid) => {
     const corners = topo.hexVertices.get(hid)!.map((v) => layout.vertex[v]!);
     const points = corners.map((p) => `${p.x},${p.y}`).join(" ");
@@ -50,13 +56,13 @@ export function Slots({ state, layout, legal, selectedHex, pendingRoads, onVerte
           // A road picked but not yet confirmed (Road Building) — tap again to remove.
           return (
             <g key={eid}>
-              <line data-pending-road={eid} x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y}
+              <line data-pending-road={eid} data-selected="true" x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y}
                 stroke="transparent" strokeWidth={EDGE_HIT} strokeLinecap="round"
                 style={{ cursor: "pointer" }} onClick={() => onEdge(eid)} />
               <line x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y} stroke="#ffffff" strokeOpacity={0.9}
                 strokeWidth={9} strokeLinecap="round" pointerEvents="none" />
               <line className="pending-road" x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y}
-                stroke={pendingRoads!.color} strokeWidth={7} strokeLinecap="round"
+                stroke={pendingRoadColor} strokeWidth={7} strokeLinecap="round"
                 strokeDasharray="10 7" pointerEvents="none" />
             </g>
           );
@@ -67,7 +73,7 @@ export function Slots({ state, layout, legal, selectedHex, pendingRoads, onVerte
             <line data-edge-slot={eid} x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y}
               stroke="transparent" strokeWidth={EDGE_HIT} strokeLinecap="round"
               style={{ cursor: "pointer" }} onClick={() => onEdge(eid)} />
-            <line x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y} stroke="#ffffff" strokeOpacity={0.7}
+            <line className="legal-placement-slot" x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y} stroke="#ffffff" strokeOpacity={0.7}
               strokeWidth={7} strokeLinecap="round" pointerEvents="none" />
           </g>
         );
@@ -77,6 +83,9 @@ export function Slots({ state, layout, legal, selectedHex, pendingRoads, onVerte
         const b = state.board.buildings[vid];
         const p = layout.vertex[vid]!;
         const isLegal = legal.vertices.has(vid);
+        const pendingBuilding = pendingPlacement?.kind !== "road" && pendingPlacement?.vertex === vid
+          ? pendingPlacement
+          : null;
         if (b) {
           // A placed building. In city mode it is a legal upgrade target → add a big hit zone.
           return (
@@ -96,15 +105,34 @@ export function Slots({ state, layout, legal, selectedHex, pendingRoads, onVerte
                   aria-hidden="true"
                 />
               )}
+              {pendingBuilding?.kind === "city" && (
+                <g data-pending-building={vid} data-pending-kind="city" pointerEvents="none">
+                  <circle cx={p.x} cy={p.y} r={13} fill={pendingBuilding.color} fillOpacity={0.62}
+                    stroke="#fff" strokeWidth={3} strokeDasharray="7 5" className="pending-building" />
+                  <polygon points={`${p.x},${p.y - 8} ${p.x - 8},${p.y + 7} ${p.x + 8},${p.y + 7}`}
+                    fill="#fff" fillOpacity={0.82} />
+                </g>
+              )}
             </g>
           );
         }
         if (!isLegal) return null; // inert empty vertex
+        if (pendingBuilding?.kind === "settlement") {
+          return (
+            <g key={vid} data-pending-building={vid} data-pending-kind="settlement">
+              <circle data-vertex-slot={vid} data-selected="true" cx={p.x} cy={p.y} r={VERTEX_HIT}
+                fill="transparent" style={{ cursor: "pointer" }} onClick={() => onVertex(vid)} />
+              <circle className="pending-building" cx={p.x} cy={p.y} r={10}
+                fill={pendingBuilding.color} fillOpacity={0.68} stroke="#fff" strokeWidth={3}
+                strokeDasharray="7 5" pointerEvents="none" />
+            </g>
+          );
+        }
         return (
           <g key={vid}>
             <circle data-vertex-slot={vid} cx={p.x} cy={p.y} r={VERTEX_HIT} fill="transparent"
               style={{ cursor: "pointer" }} onClick={() => onVertex(vid)} />
-            <circle cx={p.x} cy={p.y} r={8} fill="#ffffff" fillOpacity={0.85} pointerEvents="none" />
+            <circle className="legal-placement-slot" cx={p.x} cy={p.y} r={8} fill="#ffffff" fillOpacity={0.85} pointerEvents="none" />
           </g>
         );
       })}

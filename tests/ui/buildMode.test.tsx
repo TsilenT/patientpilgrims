@@ -106,9 +106,65 @@ test("optional build confirmation delays the build and supports cancel", async (
   await userEvent.click(slot);
   const dialog = screen.getByRole("dialog", { name: /confirm build/i });
   expect(dialog).toBeInTheDocument();
+  expect(dialog).toHaveClass("action-confirm");
+  expect(dialog.closest(".control-dock")).not.toBeNull();
+  expect(container.querySelector("[data-pending-road]")).not.toBeNull();
   expect(Object.keys(s.getState().board.roads)).toHaveLength(1);
   await userEvent.click(within(dialog).getByRole("button", { name: /cancel/i }));
   expect(screen.queryByRole("dialog", { name: /confirm build/i })).toBeNull();
   expect(Object.keys(s.getState().board.roads)).toHaveLength(1);
+  localStorage.removeItem("adultingcatan:confirmPurchases");
+});
+
+test("setup settlement and road show board previews and confirm from the control dock", async () => {
+  const s = store(createInitialGame(
+    [{ name: "A", color: "red" }, { name: "B", color: "blue" }, { name: "C", color: "white" }],
+    createBoard({ mode: "beginner" }),
+  ));
+  const { container } = render(<GameProvider store={s}><GameView /></GameProvider>);
+
+  await userEvent.click(container.querySelector("[data-vertex-slot]") as SVGElement);
+  expect(Object.keys(s.getState().board.buildings)).toHaveLength(0);
+  expect(container.querySelector("[data-pending-building][data-pending-kind=\"settlement\"]")).not.toBeNull();
+  expect(container.querySelector(".board--placement-selected")).not.toBeNull();
+
+  let dialog = screen.getByRole("dialog", { name: /confirm placement/i });
+  expect(dialog).toHaveClass("action-confirm");
+  expect(dialog.closest(".control-dock")).not.toBeNull();
+  expect(dialog.compareDocumentPosition(container.querySelector(".bottom-sheet")!))
+    .toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+
+  await userEvent.click(within(dialog).getByRole("button", { name: /cancel/i }));
+  expect(container.querySelector("[data-pending-building]")).toBeNull();
+  expect(Object.keys(s.getState().board.buildings)).toHaveLength(0);
+
+  await userEvent.click(container.querySelector("[data-vertex-slot]") as SVGElement);
+  dialog = screen.getByRole("dialog", { name: /confirm placement/i });
+  await userEvent.click(within(dialog).getByRole("button", { name: /confirm/i }));
+  expect(Object.keys(s.getState().board.buildings)).toHaveLength(1);
+  expect(s.getState().turn.subPhase).toBe("setupRoad");
+
+  await userEvent.click(container.querySelector("[data-edge-slot]") as SVGElement);
+  expect(Object.keys(s.getState().board.roads)).toHaveLength(0);
+  expect(container.querySelector("[data-pending-road]")).not.toBeNull();
+  dialog = screen.getByRole("dialog", { name: /confirm placement/i });
+  expect(dialog.closest(".control-dock")).not.toBeNull();
+  await userEvent.click(within(dialog).getByRole("button", { name: /confirm/i }));
+  expect(Object.keys(s.getState().board.roads)).toHaveLength(1);
+});
+
+test("optional city confirmation previews the upgrade on its selected settlement", async () => {
+  localStorage.setItem("adultingcatan:confirmPurchases", "true");
+  const g = mainGame();
+  const vertex = topology().vertexIds[0]!;
+  g.board.buildings[vertex] = { owner: 0, type: "settlement" };
+  g.players[0]!.resources = { wood: 0, brick: 0, sheep: 0, wheat: 2, ore: 3 };
+  const { container } = render(<GameProvider store={store(g)}><GameView /></GameProvider>);
+
+  await userEvent.click(screen.getByRole("button", { name: /city/i }));
+  await userEvent.click(container.querySelector(`[data-vertex-slot="${vertex}"]`) as SVGElement);
+
+  expect(container.querySelector(`[data-pending-building="${vertex}"][data-pending-kind="city"]`)).not.toBeNull();
+  expect(screen.getByRole("dialog", { name: /confirm build/i }).closest(".control-dock")).not.toBeNull();
   localStorage.removeItem("adultingcatan:confirmPurchases");
 });

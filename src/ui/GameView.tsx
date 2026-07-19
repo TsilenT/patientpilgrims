@@ -275,6 +275,10 @@ export function GameView() {
       )}
       <BoardSvg state={state} legal={legal} robberPlacement={placingRobber} selectedRobberHex={pendingRobberHex}
         pendingRoads={roadEdges !== null ? { edges: roadEdges, color: state.players[state.turn.activeSeat]!.color } : null}
+        pendingPlacement={(pendingSetup ?? pendingBuild) === null ? null : {
+          ...(pendingSetup ?? pendingBuild)!,
+          color: state.players[state.turn.activeSeat]!.color,
+        }}
         onVertex={onVertex} onEdge={onEdge} onHex={onHex} />
       <div className="control-dock">
         {needReveal || owed > 0 ? null : waiting ? (
@@ -304,8 +308,20 @@ export function GameView() {
                   onClick={() => { void confirmRoadBuilding(); }}>Confirm</button>
                 <button onClick={() => setRoadEdges(null)}>Cancel</button>
               </div>
+            ) : pendingSetup !== null ? (
+              <div className="action-bar action-confirm placement-confirm" role="dialog" aria-label="Confirm placement">
+                <p>Place this {pendingSetup.kind}?</p>
+                <button className="btn-primary" onClick={() => { void confirmSetupPlacement(); }}>Confirm</button>
+                <button onClick={() => setPendingSetup(null)}>Cancel</button>
+              </div>
+            ) : pendingBuild !== null ? (
+              <div className="action-bar action-confirm placement-confirm" role="dialog" aria-label="Confirm build">
+                <p>Build this {pendingBuild.kind}?</p>
+                <button className="btn-primary" onClick={() => { void confirmBuildPlacement(); }}>Confirm</button>
+                <button onClick={() => setPendingBuild(null)}>Cancel</button>
+              </div>
             ) : buildMode === null && <ActionBar confirmPurchases={confirmPurchases} />}
-            {roadEdges === null && (
+            {roadEdges === null && pendingSetup === null && pendingBuild === null && (
               <BuildControls buildMode={buildMode}
                 onSelect={(m) => { setBuildMode(m); collapseSheetForBoard(); }}
                 onCancel={() => { setBuildMode(null); setPendingBuild(null); }} />
@@ -340,24 +356,6 @@ export function GameView() {
       {!needReveal && owed > 0 && (
         <DiscardModal state={state} seat={viewer} owed={owed}
           onDiscard={(cards) => run({ type: "discard", seat: viewer, cards })} />
-      )}
-      {pendingSetup !== null && (
-        <div className="setup-confirm" role="dialog" aria-modal="true" aria-label="Confirm placement">
-          <p>
-            Confirm {pendingSetup.kind} placement?
-          </p>
-          <button className="btn-primary" onClick={() => { void confirmSetupPlacement(); }}>
-            Confirm
-          </button>
-          <button onClick={() => setPendingSetup(null)}>Cancel</button>
-        </div>
-      )}
-      {pendingBuild !== null && (
-        <div className="setup-confirm" role="dialog" aria-modal="true" aria-label="Confirm build">
-          <p>Build this {pendingBuild.kind}?</p>
-          <button className="btn-primary" onClick={() => { void confirmBuildPlacement(); }}>Confirm</button>
-          <button onClick={() => setPendingBuild(null)}>Cancel</button>
-        </div>
       )}
       {devModal === "monopoly" && (
         <MonopolyPicker onCancel={() => setDevModal(null)}
