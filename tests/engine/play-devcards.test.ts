@@ -45,13 +45,20 @@ describe("monopoly", () => {
     g.players[2]!.resources = { wood: 0, brick: 2, sheep: 0, wheat: 0, ore: 0 };
     return g;
   }
-  it("takes all of one resource from every opponent", () => {
+  it("takes all of one resource from every opponent and records each victim's loss", () => {
     const r = apply(withMonopoly(), { type: "playMonopoly", resource: "brick" }, rngOf());
     expectOk(r);
     expect(r.state.players[0]!.resources.brick).toBe(5);
     expect(r.state.players[1]!.resources.brick).toBe(0);
     expect(r.state.players[2]!.resources.brick).toBe(0);
     expect(r.state.turn.devCardPlayedThisTurn).toBe(true);
+    expect(r.state.log.at(-1)).toEqual({
+      type: "playMonopoly",
+      seat: 0,
+      resource: "brick",
+      count: 5,
+      monopolyStolen: { 1: 3, 2: 2 },
+    });
   });
   it("can be played before rolling", () => {
     const g = withMonopoly();

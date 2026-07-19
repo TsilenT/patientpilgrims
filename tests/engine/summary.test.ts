@@ -153,13 +153,33 @@ describe("resource history", () => {
     expect(gameSummary(g).resourceHistoryComplete).toBe(true);
   });
 
-  it("marks older logs with ambiguous missing production data as incomplete", () => {
+  it("tracks Monopoly gains and each victim's losses", () => {
+    const g = finished();
+    g.log.push({
+      type: "playMonopoly",
+      seat: 0,
+      resource: "brick",
+      count: 5,
+      monopolyStolen: { 1: 3, 2: 2 },
+    });
+
+    const summary = gameSummary(g);
+    expect(summary.resourceHistory.find((p) => p.seat === 0)!.values).toEqual([0, 5]);
+    expect(summary.resourceHistory.find((p) => p.seat === 1)!.values).toEqual([0, -3]);
+    expect(summary.resourceHistory.find((p) => p.seat === 2)!.values).toEqual([0, -2]);
+    expect(summary.resourceHistoryComplete).toBe(true);
+  });
+
+  it("marks older logs with ambiguous missing production or Monopoly victim data as incomplete", () => {
     const g = finished();
     g.log.push(
       { type: "roll", seat: 0, dice: [3, 3], sum: 6 },
       { type: "roll", seat: 1, dice: [3, 4], sum: 7 },
+      { type: "playMonopoly", seat: 0, resource: "brick", count: 5 },
     );
 
-    expect(gameSummary(g).resourceHistoryComplete).toBe(false);
+    const summary = gameSummary(g);
+    expect(summary.resourceHistoryComplete).toBe(false);
+    expect(summary.resourceHistory.find((p) => p.seat === 0)!.values.at(-1)).toBe(5);
   });
 });

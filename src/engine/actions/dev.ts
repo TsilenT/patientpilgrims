@@ -46,13 +46,16 @@ export function applyPlayMonopoly(state: GameState, resource: Resource): string 
   if (err) return err;
   const seat = state.turn.activeSeat;
   let taken = 0;
+  const monopolyStolen: Record<number, number> = {};
   for (const p of state.players) {
     if (p.seat === seat) continue;
-    taken += p.resources[resource];
-    state.players[seat]!.resources[resource] += p.resources[resource];
+    const amount = p.resources[resource];
+    taken += amount;
+    state.players[seat]!.resources[resource] += amount;
     p.resources[resource] = 0;
+    if (amount > 0) monopolyStolen[p.seat] = amount;
   }
-  state.log.push({ type: "playMonopoly", seat, resource, count: taken });
+  state.log.push({ type: "playMonopoly", seat, resource, count: taken, monopolyStolen });
   return null;
 }
 

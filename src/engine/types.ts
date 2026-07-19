@@ -83,6 +83,8 @@ export interface LogEntry {
   hex?: string;
   victim?: number;
   resource?: Resource;
+  /** For Monopoly entries: exact cards taken from each victim seat. */
+  monopolyStolen?: Record<number, number>;
   /** Roll-off round for orderRoll entries: 1 is the opening round, 2+ are tie-breaks. */
   round?: number;
   /** For non-7 roll entries: resources produced this roll, by seat. Empty means no production. */

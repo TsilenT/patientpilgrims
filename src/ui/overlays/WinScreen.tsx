@@ -66,7 +66,7 @@ function ResourceHistoryChart({ histories, complete }: {
     <section className="win-resource-history" role="region" aria-label="Resources over time">
       <div className="win-resource-history__header">
         <h3>Resources over time</h3>
-        <span>Production gains and robber steals</span>
+        <span>Production gains, robber steals, and Monopoly</span>
       </div>
       <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Resources gained minus stolen over time">
         {ticks.map((tick) => (

@@ -119,6 +119,7 @@ test("shows a resources-over-time graph of gains minus steals", async () => {
       { type: "buildRoad", seat: 0, edge: "e1" },
       { type: "tradeBank", seat: 1, resource: "ore" },
       { type: "steal", seat: 0, victim: 1, resource: "ore" },
+      { type: "playMonopoly", seat: 1, resource: "wood", count: 3, monopolyStolen: { 0: 1, 2: 2 } },
     ],
   }));
 
@@ -126,12 +127,13 @@ test("shows a resources-over-time graph of gains minus steals", async () => {
   await userEvent.click(screen.getByRole("option", { name: /resources/i }));
 
   const region = screen.getByRole("region", { name: /resources over time/i });
-  expect(region).toHaveTextContent("Production gains and robber steals");
+  expect(region).toHaveTextContent("Production gains, robber steals, and Monopoly");
   expect(screen.getByRole("img", { name: /resources gained minus stolen over time/i })).toBeInTheDocument();
-  expect(screen.getByLabelText("Alice: 3 net resources")).toBeInTheDocument();
-  expect(screen.getByLabelText("Bob: 0 net resources")).toBeInTheDocument();
+  expect(screen.getByLabelText("Alice: 2 net resources")).toBeInTheDocument();
+  expect(screen.getByLabelText("Bob: 3 net resources")).toBeInTheDocument();
+  expect(screen.getByLabelText("Carol: -2 net resources")).toBeInTheDocument();
   expect(screen.getByRole("list", { name: /resource totals by game event/i })).toHaveTextContent(
-    "Alice: start 0; after each event 2, 2, 2, 3",
+    "Alice: start 0; after each event 2, 2, 2, 3, 2",
   );
   expect(screen.getByTestId("resource-line-0")).toHaveAttribute("stroke-dasharray", "none");
   expect(screen.getByTestId("resource-line-1")).toHaveAttribute("stroke-dasharray", "8 4");

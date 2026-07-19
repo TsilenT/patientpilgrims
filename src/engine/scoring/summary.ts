@@ -188,9 +188,11 @@ export function gameSummary(state: GameState): GameSummary {
     devCardsBought: countLog(state, p.seat, (e) => e.type === "buyDevCard"),
   }));
 
-  const resourceHistoryComplete = state.log.every(
-    (entry) => entry.type !== "roll" || entry.sum === 7 || entry.gains !== undefined,
-  );
+  const resourceHistoryComplete = state.log.every((entry) => {
+    if (entry.type === "roll" && entry.sum !== 7) return entry.gains !== undefined;
+    if (entry.type === "playMonopoly" && (entry.count ?? 0) > 0) return entry.monopolyStolen !== undefined;
+    return true;
+  });
   const resourceTotals = state.players.map(() => 0);
   const resourceHistory: PlayerResourceHistory[] = state.players.map((p) => ({
     seat: p.seat,
@@ -211,6 +213,20 @@ export function gameSummary(state: GameState): GameSummary {
     } else if (entry.type === "steal" && entry.victim !== undefined) {
       resourceTotals[entry.seat] = (resourceTotals[entry.seat] ?? 0) + 1;
       resourceTotals[entry.victim] = (resourceTotals[entry.victim] ?? 0) - 1;
+    } else if (entry.type === "playMonopoly") {
+      if (entry.monopolyStolen) {
+        let taken = 0;
+        for (const [victimText, amount] of Object.entries(entry.monopolyStolen)) {
+          const victim = Number(victimText);
+          taken += amount;
+          resourceTotals[victim] = (resourceTotals[victim] ?? 0) - amount;
+        }
+        resourceTotals[entry.seat] = (resourceTotals[entry.seat] ?? 0) + taken;
+      } else {
+        // Older entries recorded only the actor's total; the completeness warning
+        // explains that exact victim histories are unavailable.
+        resourceTotals[entry.seat] = (resourceTotals[entry.seat] ?? 0) + (entry.count ?? 0);
+      }
     }
     for (const p of state.players) resourceHistory[p.seat]!.values.push(resourceTotals[p.seat]!);
   }
