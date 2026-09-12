@@ -944,7 +944,27 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
 .discard-resource { display: inline-flex; align-items: center; gap: 7px; font-weight: 800; text-transform: capitalize; }
 .discard-count { color: var(--muted); font-weight: 800; font-variant-numeric: tabular-nums; }
 .discard-submit { width: 100%; margin-top: 10px; justify-content: center; }
-.robber-victims button { margin: 4px; }
+.robber-victims > p { margin: 0 0 12px; font-weight: 800; }
+.robber-victim-list { display: flex; flex-direction: column; gap: 8px; }
+.robber-victim {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 46px;
+  padding: 9px 12px;
+  text-align: left;
+}
+.robber-victim-swatch {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.72);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
+}
+.robber-victim-name { overflow: hidden; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.robber-victim-color { color: var(--muted); font-size: 12px; font-weight: 800; }
 
 /* ---- Dev-card modals (Monopoly / Year of Plenty) ---- */
 .dev-modal h2 { margin: 0 0 4px; }

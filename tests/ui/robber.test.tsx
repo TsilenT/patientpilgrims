@@ -106,7 +106,7 @@ test("clicking a robber hex with two victims opens a picker after confirming; ch
   expect(screen.queryByRole("dialog", { name: /choose who to rob/i })).toBeNull();
   await userEvent.click(within(confirm).getByRole("button", { name: /confirm/i }));
   const picker = screen.getByRole("dialog", { name: /choose who to rob/i });
-  await userEvent.click(within(picker).getByRole("button", { name: "C" })); // seat 2
+  await userEvent.click(within(picker).getByRole("button", { name: "C, white player" })); // seat 2
   expect(s.getState().board.robber).toBe(targetHex);
   expect(s.getState().turn.subPhase).toBe("main");
   expect(s.getState().players[0]!.resources.wheat).toBe(1); // stole C's wheat
