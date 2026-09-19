@@ -10,6 +10,7 @@ import { createInitialGame, mulberry32 } from "../../src/engine";
 import { createBoard } from "../../src/board";
 import { LocalStoragePersistence } from "../../src/state/persistence";
 import { topology } from "../../src/engine/board";
+import { buildTargetCount } from "../../src/state/legalTargets";
 import type { GameState } from "../../src/engine/types";
 
 function mainGame(): GameState {
@@ -44,6 +45,51 @@ test("road button disabled with no resources / no network", () => {
     </GameProvider>,
   );
   expect(screen.getByRole("button", { name: /road/i })).toBeDisabled();
+});
+
+test("road button stays disabled when the player has no road pieces left", () => {
+  const g = mainGame();
+  const v = topology().vertexIds[0]!;
+  g.board.buildings[v] = { owner: 0, type: "settlement" };
+  g.players[0]!.resources = { wood: 1, brick: 1, sheep: 0, wheat: 0, ore: 0 };
+  g.players[0]!.pieces.roads = 0;
+  render(
+    <GameProvider store={store(g)}>
+      <BuildControls buildMode={null} onSelect={() => {}} onCancel={() => {}} />
+    </GameProvider>,
+  );
+  expect(screen.getByRole("button", { name: /road/i })).toBeDisabled();
+  expect(buildTargetCount(g, "road")).toBe(0);
+});
+
+test("settlement button stays disabled when the player has no settlement pieces left", () => {
+  const g = mainGame();
+  const edge = topology().edgeIds[0]!;
+  g.board.roads[edge] = { owner: 0 };
+  g.players[0]!.resources = { wood: 1, brick: 1, sheep: 1, wheat: 1, ore: 0 };
+  g.players[0]!.pieces.settlements = 0;
+  render(
+    <GameProvider store={store(g)}>
+      <BuildControls buildMode={null} onSelect={() => {}} onCancel={() => {}} />
+    </GameProvider>,
+  );
+  expect(screen.getByRole("button", { name: /settlement/i })).toBeDisabled();
+  expect(buildTargetCount(g, "settlement")).toBe(0);
+});
+
+test("city button stays disabled when the player has no city pieces left", () => {
+  const g = mainGame();
+  const v = topology().vertexIds[0]!;
+  g.board.buildings[v] = { owner: 0, type: "settlement" };
+  g.players[0]!.resources = { wood: 0, brick: 0, sheep: 0, wheat: 2, ore: 3 };
+  g.players[0]!.pieces.cities = 0;
+  render(
+    <GameProvider store={store(g)}>
+      <BuildControls buildMode={null} onSelect={() => {}} onCancel={() => {}} />
+    </GameProvider>,
+  );
+  expect(screen.getByRole("button", { name: /city/i })).toBeDisabled();
+  expect(buildTargetCount(g, "city")).toBe(0);
 });
 
 test("placement mode shows a prompt and a cancel button", () => {
