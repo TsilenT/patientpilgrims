@@ -1,6 +1,6 @@
 import type { GameState } from "../engine/types";
 import { topology } from "../engine/board";
-import { respectsDistance, vertexOnNetwork, edgeConnects } from "../engine";
+import { respectsDistance, vertexOnNetwork, edgeConnects, hasBuildPiece } from "../engine";
 
 /** Clickable board targets for the current sub-phase. Defined here (state layer);
  *  the board UI imports this type rather than the reverse. */
@@ -45,6 +45,8 @@ export function buildTargets(state: GameState, mode: "road" | "settlement" | "ci
   const seat = state.turn.activeSeat;
   const sub = state.turn.subPhase;
   const t: LegalTargets = { vertices: new Set(), edges: new Set(), hexes: new Set() };
+
+  if (!hasBuildPiece(state.players[seat]!, mode)) return t;
 
   if (mode === "road") {
     if (sub === "setupRoad") {

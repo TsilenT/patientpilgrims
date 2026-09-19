@@ -1,5 +1,14 @@
-import type { BoardState } from "./types";
+import type { BoardState, Player } from "./types";
 import { topology } from "./board";
+
+export type BuildKind = "road" | "settlement" | "city";
+
+/** True when the player still has the physical piece needed for this build. */
+export function hasBuildPiece(player: Player, kind: BuildKind): boolean {
+  if (kind === "road") return player.pieces.roads > 0;
+  if (kind === "settlement") return player.pieces.settlements > 0;
+  return player.pieces.cities > 0;
+}
 
 export function isVertexEmpty(board: BoardState, v: string): boolean {
   return board.buildings[v] === undefined;
