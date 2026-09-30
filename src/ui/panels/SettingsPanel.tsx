@@ -98,11 +98,13 @@ function BasicRulebook() {
   );
 }
 
-export function SettingsPanel({ gameId, links, confirmPurchases = false, onConfirmPurchasesChange = () => {} }: {
-  gameId: string;
+export function SettingsPanel({ gameId, links, confirmPurchases = false, onConfirmPurchasesChange = () => {}, confirmBankTrades = false, onConfirmBankTradesChange = () => {} }: {
+  gameId: string | null;
   links: SeatLink[] | null;
   confirmPurchases?: boolean;
   onConfirmPurchasesChange?: (enabled: boolean) => void;
+  confirmBankTrades?: boolean;
+  onConfirmBankTradesChange?: (enabled: boolean) => void;
 }) {
   const [openSection, setOpenSection] = useState<"rules" | "links" | null>(null);
   const toggle = (section: "rules" | "links") => {
@@ -116,13 +118,13 @@ export function SettingsPanel({ gameId, links, confirmPurchases = false, onConfi
         <p>Manage this device and find help with the game.</p>
       </header>
 
-      <section className="settings-card" aria-labelledby="notification-heading">
+      {gameId !== null && <section className="settings-card" aria-labelledby="notification-heading">
         <div className="settings-card-heading">
           <h3 id="notification-heading">Notifications</h3>
           <p>Keep up with the game when this tab is closed.</p>
         </div>
         <NotificationToggle />
-      </section>
+      </section>}
 
       <section className="settings-card" aria-labelledby="confirmation-heading">
         <div className="settings-card-heading">
@@ -137,6 +139,14 @@ export function SettingsPanel({ gameId, links, confirmPurchases = false, onConfi
           </span>
           <span className="settings-switch" aria-hidden="true"><span /></span>
         </button>
+        <button className="settings-toggle" aria-pressed={confirmBankTrades}
+          onClick={() => onConfirmBankTradesChange(!confirmBankTrades)}>
+          <span className="settings-toggle-copy">
+            <strong>Confirm bank trades</strong>
+            <small>{confirmBankTrades ? "Review each bank trade before exchanging" : "Trade with the bank in one click"}</small>
+          </span>
+          <span className="settings-switch" aria-hidden="true"><span /></span>
+        </button>
       </section>
 
       <SettingsAccordion title="How to play" summary="A quick game rulebook"
@@ -144,7 +154,7 @@ export function SettingsPanel({ gameId, links, confirmPurchases = false, onConfi
         <BasicRulebook />
       </SettingsAccordion>
 
-      {links !== null && (
+      {gameId !== null && links !== null && (
         <SettingsAccordion title="Device links" summary="Connect another device to a player seat"
           open={openSection === "links"} onToggle={() => toggle("links")}>
           <HostLinksPanel id={gameId} links={links} />

@@ -833,6 +833,11 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
 .res-pick button.picked { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
 .res-pick .ratio { font-size: 11px; font-weight: 800; color: var(--muted); }
 .bank .btn-primary, .propose .btn-primary { margin-top: 12px; display: inline-flex; align-items: center; gap: 5px; }
+.bank-confirm { margin-top: 10px; padding: 10px; background: var(--panel-2); border: 1px solid var(--gold); border-radius: 9px; }
+.bank-confirm p { margin: 0 0 8px; font-weight: 700; }
+.bank-confirm-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.bank-confirm-actions button { flex: 1; min-width: 110px; }
+.bank .bank-confirm-actions .btn-primary { margin-top: 0; justify-content: center; }
 
 /* Open offers */
 .open-offers ul { list-style: none; padding: 0; margin: 0; }
@@ -1027,6 +1032,7 @@ button.dev-card-tile:hover:not(:disabled) { background: #2e2238; border-color: #
 .settings-card-heading p { margin: 3px 0 10px; color: var(--muted); font-size: 0.82rem; }
 .settings-note { margin: 8px 0 0; color: var(--muted); font-size: 0.86rem; line-height: 1.4; }
 .settings-toggle { width: 100%; min-height: 48px; display: flex; align-items: center; gap: 12px; padding: 9px 11px; text-align: left; }
+.settings-toggle + .settings-toggle { margin-top: 8px; }
 .settings-toggle-copy { display: flex; flex: 1; flex-direction: column; gap: 2px; }
 .settings-toggle-copy strong { font-size: 0.9rem; }
 .settings-toggle-copy small { color: var(--muted); font-size: 0.76rem; }

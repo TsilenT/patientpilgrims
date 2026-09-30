@@ -65,17 +65,26 @@ function ProposeTrade({ me, run }: { me: Player; run: RunFn }) {
   );
 }
 
-function BankTrade({ state, seat, run }: { state: GameState; seat: number; run: RunFn }) {
+function BankTrade({ state, seat, run, confirmBankTrades }: { state: GameState; seat: number; run: RunFn; confirmBankTrades: boolean }) {
   const me = state.players[seat]!;
   const [giveRes, setGiveRes] = useState<Resource | null>(null);
   const [getRes, setGetRes] = useState<Resource | null>(null);
+  const [pending, setPending] = useState<{ give: Resource; get: Resource; ratio: number } | null>(null);
+  const [busy, setBusy] = useState(false);
   const ratioOf = (r: Resource) => portRatio(state, seat, r);
   const ready = giveRes !== null && getRes !== null && giveRes !== getRes;
+  const commit = async (give: Resource, get: Resource) => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const result = await run({ type: "tradeBank", give, get, seat });
+      if (result.ok) { setPending(null); setGiveRes(null); setGetRes(null); }
+    } finally { setBusy(false); }
+  };
   const trade = () => {
-    if (!ready) return;
-    run({ type: "tradeBank", give: giveRes, get: getRes, seat });
-    setGiveRes(null);
-    setGetRes(null);
+    if (!ready || busy) return;
+    if (confirmBankTrades) setPending({ give: giveRes, get: getRes, ratio: ratioOf(giveRes) });
+    else void commit(giveRes, getRes);
   };
   return (
     <div className="bank">
@@ -84,7 +93,7 @@ function BankTrade({ state, seat, run }: { state: GameState; seat: number; run: 
         {RESOURCE_LIST.map((r) => (
           <button key={r} data-testid={`bank-give-${r}`} disabled={me.resources[r] < ratioOf(r)}
             className={giveRes === r ? "picked" : undefined} aria-pressed={giveRes === r}
-            title={`Trade ${ratioOf(r)} ${r} for 1`} onClick={() => setGiveRes(r)}>
+            title={`Trade ${ratioOf(r)} ${r} for 1`} onClick={() => { setGiveRes(r); setPending(null); }}>
             <ResTile r={r} /><span className="ratio">×{ratioOf(r)}</span>
           </button>
         ))}
@@ -94,16 +103,28 @@ function BankTrade({ state, seat, run }: { state: GameState; seat: number; run: 
         {RESOURCE_LIST.map((r) => (
           <button key={r} data-testid={`bank-get-${r}`} disabled={r === giveRes || state.bank[r] < 1}
             className={getRes === r ? "picked" : undefined} aria-pressed={getRes === r}
-            onClick={() => setGetRes(r)}>
+            onClick={() => { setGetRes(r); setPending(null); }}>
             <ResTile r={r} />
           </button>
         ))}
       </div>
-      <button className="btn-primary" data-testid="bank-trade" disabled={!ready} onClick={trade}>
+      <button className="btn-primary" data-testid="bank-trade" disabled={!ready || busy || pending !== null} onClick={trade}>
         {ready
           ? <>Trade {ratioOf(giveRes)} <ResTile r={giveRes} /> → 1 <ResTile r={getRes} /></>
           : "Trade with bank"}
       </button>
+      {confirmBankTrades && pending && (
+        <div className="bank-confirm" role="dialog" aria-label="Confirm bank trade">
+          <p>Give {pending.ratio} {pending.give} → get 1 {pending.get}?</p>
+          <div className="bank-confirm-actions">
+            <button aria-label="Cancel bank trade" onClick={() => setPending(null)} disabled={busy}>Cancel</button>
+            <button className="btn-primary" aria-label="Confirm bank trade" disabled={busy ||
+              me.resources[pending.give] < ratioOf(pending.give) || state.bank[pending.get] < 1 ||
+              ratioOf(pending.give) !== pending.ratio}
+              onClick={() => void commit(pending.give, pending.get)}>Confirm trade</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -149,7 +170,7 @@ function OpenOffers({ state, mySeat, seat, run }: {
   );
 }
 
-export function TradePanel() {
+export function TradePanel({ confirmBankTrades = false }: { confirmBankTrades?: boolean }) {
   const { state, mySeat } = useGame();
   const { run, error, dismissError } = useDispatchWithError();
   const seat = mySeat ?? state.turn.activeSeat;
@@ -172,7 +193,7 @@ export function TradePanel() {
                 ? "Discard before proposing or accepting trades."
                 : "Player trades unlock after the roll."}</p>
             : isMyTurn && state.turn.subPhase === "main"
-              ? <BankTrade state={state} seat={seat} run={run} />
+              ? <BankTrade state={state} seat={seat} run={run} confirmBankTrades={confirmBankTrades} />
               : <p className="trade-empty">{isMyTurn
                 ? "You can trade with the bank after you roll."
                 : "Bank trades are only available on your own turn after you roll."}</p>}
