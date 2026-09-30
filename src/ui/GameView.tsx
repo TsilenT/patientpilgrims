@@ -28,6 +28,7 @@ import type { DevCardType } from "../engine/devcards";
 const NO_TARGETS = { vertices: new Set<string>(), edges: new Set<string>(), hexes: new Set<string>() };
 const SHEET_HEIGHT_KEY = "adultingcatan:sheetHeight";
 const CONFIRM_PURCHASES_KEY = "adultingcatan:confirmPurchases";
+const CONFIRM_BANK_TRADES_KEY = "adultingcatan:confirmBankTrades";
 
 function tradesTabLabel(openTradeCount: number) {
   return openTradeCount > 0 ? `Trades (${openTradeCount})` : "Trades";
@@ -50,6 +51,9 @@ export function GameView() {
   const [confirmSingleRoad, setConfirmSingleRoad] = useState(false);
   const [buildMode, setBuildMode] = useState<BuildMode>(null);
   const [confirmPurchases, setConfirmPurchases] = useState(() => localStorage.getItem(CONFIRM_PURCHASES_KEY) === "true");
+  const [confirmBankTrades, setConfirmBankTrades] = useState(() => {
+    try { return localStorage.getItem(CONFIRM_BANK_TRADES_KEY) === "true"; } catch { return false; }
+  });
   const [pendingBuild, setPendingBuild] = useState<
     | { kind: "settlement" | "city"; vertex: string }
     | { kind: "road"; edge: string }
@@ -79,6 +83,10 @@ export function GameView() {
   const changeConfirmPurchases = (enabled: boolean) => {
     setConfirmPurchases(enabled);
     try { localStorage.setItem(CONFIRM_PURCHASES_KEY, String(enabled)); } catch { /* private mode */ }
+  };
+  const changeConfirmBankTrades = (enabled: boolean) => {
+    setConfirmBankTrades(enabled);
+    try { localStorage.setItem(CONFIRM_BANK_TRADES_KEY, String(enabled)); } catch { /* private mode */ }
   };
   // Collapsing the sheet frees the board on phones. The wide (≥900px) side
   // rail sits beside the board and has no visible reopen control — collapsing
@@ -355,14 +363,15 @@ export function GameView() {
           { id: "hand", label: "Hand" },
           { id: "trades", label: tradesTabLabel(state.tradeOffers.length) },
           { id: "log", label: "Log" },
-          ...(gameId !== null ? [{ id: "settings" as const, label: "Settings" }] : []),
+          { id: "settings" as const, label: "Settings" },
         ]}>
         {tab === "hand" && (interactive ? <HandPanel onPlayDev={onPlayDev} /> : <HandPanel />)}
-        {tab === "trades" && <TradePanel />}
+        {tab === "trades" && <TradePanel confirmBankTrades={confirmBankTrades} />}
         {tab === "log" && <LogRail />}
-        {tab === "settings" && gameId !== null && (
+        {tab === "settings" && (
           <SettingsPanel gameId={gameId} links={rescueLinks}
-            confirmPurchases={confirmPurchases} onConfirmPurchasesChange={changeConfirmPurchases} />
+            confirmPurchases={confirmPurchases} onConfirmPurchasesChange={changeConfirmPurchases}
+            confirmBankTrades={confirmBankTrades} onConfirmBankTradesChange={changeConfirmBankTrades} />
         )}
       </BottomSheet>
       {needReveal && (

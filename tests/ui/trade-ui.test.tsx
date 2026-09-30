@@ -45,6 +45,7 @@ function onlineStore(initial: GameState, mySeat: number): Store {
 }
 
 test("bank trade swaps at the 4:1 default ratio", async () => {
+  localStorage.removeItem("adultingcatan:confirmBankTrades");
   const g = mainGame();
   g.players[0]!.resources = rm(4); // 4 wood
   const s = store(g);
@@ -56,6 +57,56 @@ test("bank trade swaps at the 4:1 default ratio", async () => {
   await userEvent.click(screen.getByTestId("bank-trade"));
   expect(s.getState().players[0]!.resources.wood).toBe(0);
   expect(s.getState().players[0]!.resources.brick).toBe(1);
+  expect(screen.queryByRole("button", { name: "Confirm bank trade" })).toBeNull();
+});
+
+test("bank confirmation is off by default, can be enabled in settings, and cancel spends nothing", async () => {
+  localStorage.removeItem("adultingcatan:confirmBankTrades");
+  const g = mainGame();
+  g.players[0]!.resources = rm(4);
+  const s = store(g);
+  const { unmount } = render(<GameProvider store={s}><GameView /></GameProvider>);
+  await userEvent.click(screen.getByRole("tab", { name: "Settings" }));
+  const toggle = screen.getByRole("button", { name: /Confirm bank trades/i });
+  expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await userEvent.click(toggle);
+  expect(toggle).toHaveAttribute("aria-pressed", "true");
+  expect(localStorage.getItem("adultingcatan:confirmBankTrades")).toBe("true");
+  await userEvent.click(screen.getByRole("tab", { name: "Trades" }));
+  await userEvent.click(screen.getByRole("tab", { name: "Bank" }));
+  await userEvent.click(screen.getByTestId("bank-give-wood"));
+  await userEvent.click(screen.getByTestId("bank-get-brick"));
+  await userEvent.click(screen.getByTestId("bank-trade"));
+  expect(screen.getByRole("dialog", { name: "Confirm bank trade" })).toHaveTextContent(/4 wood.*1 brick/i);
+  expect(s.getState().players[0]!.resources.wood).toBe(4);
+  await userEvent.click(screen.getByRole("button", { name: "Cancel bank trade" }));
+  expect(s.getState().players[0]!.resources.wood).toBe(4);
+  await userEvent.click(screen.getByTestId("bank-trade"));
+  await userEvent.click(screen.getByRole("button", { name: "Confirm bank trade" }));
+  expect(s.getState().players[0]!.resources.wood).toBe(0);
+  expect(s.getState().players[0]!.resources.brick).toBe(1);
+  unmount();
+  render(<GameProvider store={store(mainGame())}><GameView /></GameProvider>);
+  await userEvent.click(screen.getByRole("tab", { name: "Settings" }));
+  expect(screen.getByRole("button", { name: /Confirm bank trades/i })).toHaveAttribute("aria-pressed", "true");
+  localStorage.removeItem("adultingcatan:confirmBankTrades");
+});
+
+test("changing a resource after review requires a new bank confirmation", async () => {
+  localStorage.setItem("adultingcatan:confirmBankTrades", "true");
+  const g = mainGame();
+  g.players[0]!.resources = rm(4);
+  const s = store(g);
+  render(<GameProvider store={s}><GameView /></GameProvider>);
+  await userEvent.click(screen.getByRole("tab", { name: "Trades" }));
+  await userEvent.click(screen.getByRole("tab", { name: "Bank" }));
+  await userEvent.click(screen.getByTestId("bank-give-wood"));
+  await userEvent.click(screen.getByTestId("bank-get-brick"));
+  await userEvent.click(screen.getByTestId("bank-trade"));
+  await userEvent.click(screen.getByTestId("bank-get-sheep"));
+  expect(screen.queryByRole("dialog", { name: "Confirm bank trade" })).toBeNull();
+  expect(s.getState().players[0]!.resources.wood).toBe(4);
+  localStorage.removeItem("adultingcatan:confirmBankTrades");
 });
 
 test("the give stepper is capped at what you own", async () => {
