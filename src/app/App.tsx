@@ -15,6 +15,7 @@ import { parseRoute, type Route } from "./router";
 import { isFirebaseConfigured } from "../net/firebase";
 import { makeRtdbBackend, seatForUid } from "../net/game";
 import { createLobby, getMeta, makeLobbyBackend } from "../net/lobby";
+import { loadLastOnlineGameId, rememberOnlineGame } from "./lastOnlineGame";
 
 const persistence = new LocalStoragePersistence();
 
@@ -26,6 +27,7 @@ export function App() {
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [lobbyFor, setLobbyFor] = useState<string | null>(null);
+  const [lastOnlineGameId, setLastOnlineGameId] = useState(loadLastOnlineGameId);
 
   useEffect(() => {
     const onHash = () => {
@@ -63,6 +65,7 @@ export function App() {
         const s = new NetworkedGameStore(makeRtdbBackend(id), seat);
         await s.whenReady();
         if (!s.hasState()) { setJoinError("Game not found."); setJoining(false); return; }
+        setLastOnlineGameId(rememberOnlineGame(id));
         setStore(s);
         if (location.hash !== `#/g/${id}`) location.hash = `#/g/${id}`;
         setJoining(false);
@@ -79,8 +82,11 @@ export function App() {
       void getMeta(route.id)
         .then((meta) => {
           if (meta === null) setJoinError("Game not found.");
-          else if (meta.status === "lobby") setLobbyFor(route.id);
-          else enterOnline(route.id);
+          else {
+            setLastOnlineGameId(rememberOnlineGame(route.id));
+            if (meta.status === "lobby") setLobbyFor(route.id);
+            else enterOnline(route.id);
+          }
         })
         .catch((e) => setJoinError(e instanceof Error ? e.message : "Could not load the game."));
     }
@@ -145,6 +151,7 @@ export function App() {
   return (
     <main data-testid="app-root">
       <StartScreen
+        lastOnlineGameId={lastOnlineGameId}
         onCreateOnline={isFirebaseConfigured() ? () => {
           void createLobby()
             .then((id) => { location.hash = `#/g/${id}`; })
