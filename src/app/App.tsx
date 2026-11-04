@@ -82,11 +82,10 @@ export function App() {
       void getMeta(route.id)
         .then((meta) => {
           if (meta === null) setJoinError("Game not found.");
-          else {
+          else if (meta.status === "lobby") {
             setLastOnlineGameId(rememberOnlineGame(route.id));
-            if (meta.status === "lobby") setLobbyFor(route.id);
-            else enterOnline(route.id);
-          }
+            setLobbyFor(route.id);
+          } else enterOnline(route.id);
         })
         .catch((e) => setJoinError(e instanceof Error ? e.message : "Could not load the game."));
     }
@@ -161,3 +160,4 @@ export function App() {
     </main>
   );
 }
+
